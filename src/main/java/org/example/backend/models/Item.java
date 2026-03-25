@@ -1,67 +1,63 @@
-package org.example.core.models.items;
+package org.example.backend.models;
 
-import org.example.core.models.entities.Entity;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
-  private String type;
-  private String itemName;
-  private BigDecimal startingPrice;
-  protected String description;
+    private final String itemName;
+    private double startingPrice;
+    protected String description; //Mô tả chi tiết
+    protected LocalDateTime startTime;
+    protected LocalDateTime endTime;
+    protected double currentHightestBid; // giá cao nhất hiện tại
 
-  // Constructor khi Lấy từ DB lên
-  public Item(int id, String type, String itemName, String description, BigDecimal startingPrice) {
-    super(id);
-    this.type = type;
-    this.itemName = itemName;
-    this.description = description;
-    this.startingPrice = startingPrice;
-  }
+    public Item(int id, String itemName, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
+        super(id);
+        this.itemName = itemName;
+        this.startingPrice = startingPrice;
+        this.description = description;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.currentHightestBid = currentHightestBid;
+    }
 
-  public Item(
-      int id,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String description,
-      BigDecimal startingPrice) {}
+    //get tất cả các thuộc tính
+    public String getItemName() {
+        return itemName;
+    }
 
-  public Item() {}
+    public double getStartingPrice() {
+        return startingPrice;
+    }
 
-  // GETTERS & SETTERS
-  public String getType() {
-    return type;
-  }
+    public String getDescription() {
+        return description;
+    }
 
-  public void setType(String type) {
-    this.type = type;
-  }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
 
-  public String getItemName() {
-    return itemName;
-  }
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
 
-  public void setItemName(String itemName) {
-    this.itemName = itemName;
-  }
+    public double getCurrentHightestBid() {
+        return currentHightestBid;
+    }
 
-  public BigDecimal getStartingPrice() {
-    return startingPrice;
-  }
+    //chỉ set giá cao nhất để có thể điều chỉnh khi đấu giá
+    public void setCurrentHightestBid(double currentHightestBid) {
+        this.currentHightestBid = currentHightestBid;
+    }
 
-  public void setStartingPrice(BigDecimal startingPrice) {
-    this.startingPrice = startingPrice;
-  }
+    abstract void printInfo();
+    /*
+    Là một "Bản hợp đồng" (Contract): Khi bạn khai báo một phương thức là abstract trong lớp cha Item,
+    phương thức đó sẽ không có phần thân code (không có cặp ngoặc nhọn {}).
+    Nó mang ý nghĩa: "Tôi là một Sản phẩm (Item), tôi chắc chắn có thể in ra thông tin của mình (printInfo),
+    nhưng in ra cụ thể như thế nào thì các lớp con tự đi mà định nghĩa".
 
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  protected abstract void printInfo();
+    Sự bắt buộc (Enforcement): Bất kỳ lớp con nào kế thừa từ Item (như Art, Vehicle, Electronics) bắt buộc phải ghi đè
+    (override) phương thức này và viết code chi tiết cho nó. Nếu không ghi đè, trình biên dịch Java sẽ báo lỗi ngay lập tức.
+     */
 }
