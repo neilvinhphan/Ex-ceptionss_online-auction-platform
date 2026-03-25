@@ -57,7 +57,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                org.example.frontend.Signin
+                                org.example.frontend.Register
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

@@ -52,7 +52,11 @@ public class Signin extends Application {
         PasswordField pass_an = new PasswordField();
         TextField pass_hien = new TextField();
         pass_hien.textProperty().bindBidirectional(pass_an.textProperty());
-        Button eye = new Button("xem");
+        Button eye = new Button("\uD83D\uDC40");
+        eye.setStyle("-fx-background-color: transparent;"+
+                        " -fx-text-fill: black; "+
+                            "-fx-cursor: hand;");
+
         pass_hien.setVisible(false);
         pass_hien.setManaged(false);
         StackPane passwordContainer = new StackPane(pass_hien, pass_an, eye);
@@ -78,8 +82,20 @@ public class Signin extends Application {
         HBox hb_signin = new HBox(signin);
         hb_signin.setAlignment(Pos.CENTER_RIGHT);
         grid.add(hb_signin, 1, 3);
-        grid.setStyle("-fx-background-color: DARKRED");
-        Scene scene = new Scene(grid);
+
+        Hyperlink linkRegis = new Hyperlink("Chưa có tài khoản? Đăng kí ngay");
+        grid.add(linkRegis, 1, 4);
+        linkRegis.setStyle("-fx-text-fill: white");
+        linkRegis.setOnAction(e -> {
+            Stage currentStage = (Stage) linkRegis.getScene().getWindow();
+            currentStage.close();
+            Register registerUi = new Register();
+            Stage regisStage = new Stage();
+            registerUi.start(regisStage);
+        });
+
+        grid.setStyle("-fx-background-color: #447D9B");
+        Scene scene = new Scene(grid,900,600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
