@@ -44,10 +44,8 @@ public class Register extends Application {
         grid.add(hoten,0,1);
         //  grid.add(new Label("Họ và Tên:"), 0, 1);
 
-        TextField ho = new TextField();
-        ho.setPromptText("Họ");
-        TextField ten = new TextField();
-        ten.setPromptText("Tên");
+        TextField ho = new TextField("Họ");
+        TextField ten = new TextField("Tên");
 
         HBox hbName = new HBox(20); // Khoảng cách giữa ô Họ và Tên
         hbName.getChildren().addAll(ho, ten);
@@ -88,11 +86,8 @@ public class Register extends Application {
         //Dong bo du lieu 2 o
         pass_hien.textProperty().bindBidirectional(pass_an.textProperty());
         //Tao nut xem
-        Button eye = new Button("\uD83D\uDC40");
-        eye.setStyle("-fx-background-color: transparent;"+
-                            "-fx-text-fill: black;"+
-                                "-fx-cursor:hand;"
-                );
+        Button eye = new Button("xem");
+
 // 3. Xếp chồng dùng StackPane
         StackPane passwordContainer = new StackPane();
         passwordContainer.getChildren().addAll(pass_hien, pass_an, eye);
@@ -136,20 +131,10 @@ public class Register extends Application {
 
         // 5. Link chuyển sang Đăng nhập (cho đủ bộ Front-end)
         Hyperlink linkLogin = new Hyperlink("Đã có tài khoản? Đăng nhập");
-        linkLogin.setStyle("-fx-text-fill: white");
-        linkLogin.setOnAction(e->{
-            Stage currentStage = (Stage) linkLogin.getScene().getWindow();
-            currentStage.close();
-
-            Signin signInUi= new Signin();
-            Stage signInStage = new Stage();
-            signInUi.start(signInStage);
-        });
         grid.add(linkLogin, 1, 7);
-        grid.setStyle("-fx-background-color: #447D9B;");
-       // grid.setStyle("-fx-background-color: linear-gradient(to bottom right, #FAACBF, #FBC3C1);");
+        grid.setStyle("-fx-background-color: darkred");
         // 6. Tạo Scene (Cảnh) và gắn vào Stage
-        Scene scene = new Scene(grid, 900, 600);
+        Scene scene = new Scene(grid, 450, 500);
 
         primaryStage.setScene(scene);
 
