@@ -1,4 +1,3 @@
 package org.example.backend.services;
 
-public class Login {
-}
+public class AuthService {}
