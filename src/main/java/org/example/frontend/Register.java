@@ -41,16 +41,16 @@ public class Register extends Application {
         // Dòng 1: Họ và Tên (Dùng HBox để xếp ngang)
         Label hoten = new Label("Họ và tên: ");
         hoten.setStyle("-fx-text-fill: white");
-        grid.add(hoten,0,1);
+        grid.add(hoten, 0, 1);
         //  grid.add(new Label("Họ và Tên:"), 0, 1);
 
-        TextField ho = new TextField();
-        ho.setPromptText("Họ");
-        TextField ten = new TextField();
-        ten.setPromptText("Tên");
+        TextField tfHo = new TextField();
+        tfHo.setPromptText("Họ");
+        TextField tfTen = new TextField();
+        tfTen.setPromptText("Tên");
 
         HBox hbName = new HBox(20); // Khoảng cách giữa ô Họ và Tên
-        hbName.getChildren().addAll(ho, ten);
+        hbName.getChildren().addAll(tfHo, tfTen);
         grid.add(hbName, 1, 1);
 
         // Dòng 2: Username
@@ -64,15 +64,15 @@ public class Register extends Application {
         Label sdt = new Label("Số điện thoại: ");
         sdt.setStyle("-fx-text-fill: white");
         grid.add(sdt, 0, 3);
-        TextField txtSdt = new TextField();
-        grid.add(txtSdt, 1, 3);
+        TextField tfSdt = new TextField();
+        grid.add(tfSdt, 1, 3);
 
         // Dòng 4: Email
         Label email = new Label("Email: ");
         email.setStyle("-fx-text-fill: white");
         grid.add(email, 0, 4);
-        TextField txtEmail = new TextField();
-        grid.add(txtEmail, 1, 4);
+        TextField tfEmail = new TextField();
+        grid.add(tfEmail, 1, 4);
 
         // Dòng 5: Mật khẩu (Dùng PasswordField để hiện dấu *)
         Label pass = new Label("Mật khẩu: ");
@@ -89,8 +89,8 @@ public class Register extends Application {
         pass_hien.textProperty().bindBidirectional(pass_an.textProperty());
         //Tao nut xem
         Button eye = new Button("\uD83D\uDC40");
-        eye.setStyle("-fx-background-color: transparent;"+
-                "-fx-text-fill: black;"+
+        eye.setStyle("-fx-background-color: transparent;" +
+                "-fx-text-fill: black;" +
                 "-fx-cursor:hand;"
         );
 // 3. Xếp chồng dùng StackPane
@@ -129,19 +129,42 @@ public class Register extends Application {
                         "-fx-background-radius: 10; " + // bo góc
                         "-fx-padding: 10 20 10 20;" // trên-phải-dưới-trái: KC từ viền đến chữ đăng ký ngay"
         );
+        dki.setOnAction(e -> {
+            if (tfHo.getText().trim().isEmpty() ||
+                    tfTen.getText().trim().isEmpty() ||
+                    tfusername.getText().trim().isEmpty() ||
+                    tfSdt.getText().trim().isEmpty() ||
+                    tfEmail.getText().trim().isEmpty() ||
+                    pass_hien.getText().trim().isEmpty() ||
+                    pass_an.getText().trim().isEmpty()) {
+
+                // 2. Nếu thiếu, hiện cái Dialog (Alert) cảnh báo
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Cảnh báo");
+                alert.setHeaderText(null); // Để null cho gọn, không bị hiện 2 dòng tiêu đề
+                alert.setContentText("Vui lòng nhập đầy đủ thông tin trước khi đăng ký!");
+                alert.showAndWait(); // Lệnh này làm cái hộp thoại hiện lên và bắt người dùng phải bấm OK mới được làm tiếp
+
+            } else {
+                Stage currentStage = (Stage) dki.getScene().getWindow();
+                currentStage.close();
+                Signin signin = new Signin();
+                Stage st_signin = new Stage();
+                signin.start(st_signin);
+            }
+        });
         HBox hb_dki = new HBox(dki);
         hb_dki.setAlignment(Pos.CENTER_RIGHT);
         //hb_dki.getChildren().add(dki);
         grid.add(hb_dki, 1, 6);
-
         // 5. Link chuyển sang Đăng nhập (cho đủ bộ Front-end)
         Hyperlink linkLogin = new Hyperlink("Đã có tài khoản? Đăng nhập");
         linkLogin.setStyle("-fx-text-fill: white");
-        linkLogin.setOnAction(e->{
+        linkLogin.setOnAction(e -> {
             Stage currentStage = (Stage) linkLogin.getScene().getWindow();
             currentStage.close();
 
-            Signin signInUi= new Signin();
+            Signin signInUi = new Signin();
             Stage signInStage = new Stage();
             signInUi.start(signInStage);
         });
