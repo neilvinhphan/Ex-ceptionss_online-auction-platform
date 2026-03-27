@@ -2,11 +2,11 @@ package org.example.backend.models;
 
 import java.time.LocalDateTime;
 
-public class Art_Item extends Item {
+public class ArtItem extends Item {
   protected String artist;
   protected int creationYear;
 
-  public Art_Item(
+  public ArtItem(
       int id,
       String itemName,
       String artist,
