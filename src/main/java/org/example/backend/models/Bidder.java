@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 public class Bidder extends User {
   protected double walletBalance;
 
-  public Bidder(String userName, String email, int id, double walletBalance) {
-    super(userName, email, id);
+  public Bidder(int id, String userName, String phone, String email, double walletBalance) {
+    super(id, userName, phone, email);
     this.walletBalance = walletBalance;
   }
 
