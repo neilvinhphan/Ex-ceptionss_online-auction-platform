@@ -12,13 +12,12 @@ public class Art_item extends Item {
         this.creationYear = creationYear;
     }
 
+    public int getCreationYear() {
+        return creationYear;
+    }
 
     public String getArtist() {
         return artist;
-    }
-
-    public int getCreationYear() {
-        return creationYear;
     }
 
     public void printInfo(){
