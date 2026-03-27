@@ -3,68 +3,58 @@ package org.example.backend.models;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
-  private final String itemName;
-  private double startingPrice;
-  protected String description; // Mô tả chi tiết
-  protected LocalDateTime startTime;
-  protected LocalDateTime endTime;
-  protected double currentHightestBid; // giá cao nhất hiện tại
+    protected String type;
+    protected String itemName;
+    protected double startingPrice;
+    protected String description;
 
-  public Item(
-      int id,
-      String itemName,
-      String description,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      double startingPrice,
-      double currentHightestBid) {
-    super(id);
-    this.itemName = itemName;
-    this.startingPrice = startingPrice;
-    this.description = description;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    this.currentHightestBid = currentHightestBid;
-  }
+    // Constructor khi Lấy từ DB lên
+    public Item(
+            int id,
+            LocalDateTime createdAt,
+            String type,
+            String itemName,
+            String description,
+            double startingPrice) {
+        super(id, createdAt);
+        this.type = type;
+        this.itemName = itemName;
+        this.description = description;
+        this.startingPrice = startingPrice;
+    }
 
-  // chỉ set giá cao nhất để có thể điều chỉnh khi đấu giá
-  public void setCurrentHightestBid(double currentHightestBid) {
-    this.currentHightestBid = currentHightestBid;
-  }
+    // GETTERS & SETTERS
+    public String getType() {
+        return type;
+    }
 
-  // get tất cả các thuộc tính
-  public String getItemName() {
-    return itemName;
-  }
+    public void setType(String newType) {
+        this.type = type;
+    }
 
-  public double getStartingPrice() {
-    return startingPrice;
-  }
+    public String getItemName() {
+        return itemName;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
 
-  public LocalDateTime getStartTime() {
-    return startTime;
-  }
+    public double getStartingPrice() {
+        return startingPrice;
+    }
 
-  public LocalDateTime getEndTime() {
-    return endTime;
-  }
+    public void setStartingPrice(double startingPrice) {
+        this.startingPrice = startingPrice;
+    }
 
-  public double getCurrentHightestBid() {
-    return currentHightestBid;
-  }
+    public String getDescription() {
+        return description;
+    }
 
-  abstract void printInfo();
-  /*
-  Là một "Bản hợp đồng" (Contract): Khi bạn khai báo một phương thức là abstract trong lớp cha Item,
-  phương thức đó sẽ không có phần thân code (không có cặp ngoặc nhọn {}).
-  Nó mang ý nghĩa: "Tôi là một Sản phẩm (Item), tôi chắc chắn có thể in ra thông tin của mình (printInfo),
-  nhưng in ra cụ thể như thế nào thì các lớp con tự đi mà định nghĩa".
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-  Sự bắt buộc (Enforcement): Bất kỳ lớp con nào kế thừa từ Item (như Art, Vehicle, Electronics) bắt buộc phải ghi đè
-  (override) phương thức này và viết code chi tiết cho nó. Nếu không ghi đè, trình biên dịch Java sẽ báo lỗi ngay lập tức.
-   */
+    abstract void printInfo();
 }

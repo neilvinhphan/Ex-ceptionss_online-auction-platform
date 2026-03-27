@@ -2,18 +2,26 @@ package org.example.backend.models;
 
 import java.time.LocalDateTime;
 
-public class Electronics_Item extends Item {
+public class ElectronicsItem extends Item {
     protected String brand;
-    protected int warrantyMonths; //Số tháng bảo hành
-    protected String condition; //tình trạng của sản phẩm
+    protected int warrantyMonths; // Số tháng bảo hành
+    protected String condition; // tình trạng của sản phẩm
 
-    public Electronics_Item(int id, String itemName, String brand, int warrantyMonths, String condition, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
-        super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
+    public ElectronicsItem(
+            int id,
+            LocalDateTime createdAt,
+            String type,
+            String itemName,
+            String brand,
+            int warrantyMonths,
+            String condition,
+            String description,
+            double startingPrice) {
+        super(id, createdAt, type, itemName, description, startingPrice);
         this.brand = brand;
         this.warrantyMonths = warrantyMonths;
         this.condition = condition;
     }
-
 
     public String getCondition() {
         return condition;
@@ -34,12 +42,6 @@ public class Electronics_Item extends Item {
         System.out.println("Số tháng bảo hành sản phẩm " + warrantyMonths);
         System.out.println("Tình trạng sản phẩm: " + condition);
         System.out.println("Mô tả sản phẩm: " + description);
-        System.out.println("Thời gian bắt đầu đấu giá: " + startTime);
-        System.out.println("Thời gian đóng phiên đấu giá: " + endTime);
         System.out.println("Giá khởi điểm: " + getStartingPrice());
-        System.out.println("Giá hiên tại: " + currentHightestBid);
-
-
     }
-
 }
