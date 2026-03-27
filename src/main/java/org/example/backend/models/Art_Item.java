@@ -2,11 +2,11 @@ package org.example.backend.models;
 
 import java.time.LocalDateTime;
 
-public class Art_item extends Item {
+public class Art_Item extends Item {
     protected String artist;
     protected  int creationYear ;
 
-    public Art_item(int id, String itemName, String artist, int creationYear, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
+    public Art_Item(int id, String itemName, String artist, int creationYear, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
         super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
         this.artist = artist;
         this.creationYear = creationYear;

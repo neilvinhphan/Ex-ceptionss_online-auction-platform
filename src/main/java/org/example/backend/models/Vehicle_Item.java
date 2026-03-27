@@ -2,13 +2,13 @@ package org.example.backend.models;
 
 import java.time.LocalDateTime;
 
-public class Vehicle extends Item {
+public class Vehicle_Item extends Item {
     protected String brand;
     protected String model;
     protected int manufacturingYear; // Năm sản xuất
     protected double mileage; // số km đã đi
 
-    public Vehicle(int id, String itemName, String brand, String model, int manufacturingYear, double mileage, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
+    public Vehicle_Item(int id, String itemName, String brand, String model, int manufacturingYear, double mileage, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid) {
         super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
         this.brand = brand;
         this.model = model;
