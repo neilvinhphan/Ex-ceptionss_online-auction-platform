@@ -5,11 +5,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -144,7 +148,7 @@ public class Register extends Application {
             } else {
                 Stage currentStage = (Stage) dki.getScene().getWindow();
                 currentStage.close();
-                Login signin = new Login();
+                Signin signin = new Signin();
                 Stage st_signin = new Stage();
                 signin.start(st_signin);
             }
@@ -160,7 +164,7 @@ public class Register extends Application {
             Stage currentStage = (Stage) linkLogin.getScene().getWindow();
             currentStage.close();
 
-            Login signInUi = new Login();
+            Signin signInUi = new Signin();
             Stage signInStage = new Stage();
             signInUi.start(signInStage);
         });
