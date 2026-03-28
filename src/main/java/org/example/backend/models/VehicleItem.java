@@ -10,37 +10,45 @@ public class VehicleItem extends Item {
 
   public VehicleItem(
       int id,
+      LocalDateTime createdAt,
+      String type,
       String itemName,
-      String brand,
-      String model,
-      int manufacturingYear,
-      double mileage,
       String description,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      double startingPrice,
-      double currentHightestBid) {
-    super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
+      double startingPrice) {
+    super(id, createdAt, type, itemName, description, startingPrice);
+  }
+
+  // GETTER & SETTER
+  public String getBrand() {
+    return brand;
+  }
+
+  public void setBrand(String brand) {
     this.brand = brand;
-    this.model = model;
-    this.manufacturingYear = manufacturingYear;
-    this.mileage = mileage;
-  }
-
-  public double getMileage() {
-    return mileage;
-  }
-
-  public int getManufacturingYear() {
-    return manufacturingYear;
   }
 
   public String getModel() {
     return model;
   }
 
-  public String getBrand() {
-    return brand;
+  public void setModel(String model) {
+    this.model = model;
+  }
+
+  public int getManufacturingYear() {
+    return manufacturingYear;
+  }
+
+  public void setManufacturingYear(int manufacturingYear) {
+    this.manufacturingYear = manufacturingYear;
+  }
+
+  public double getMileage() {
+    return mileage;
+  }
+
+  public void setMileage(double mileage) {
+    this.mileage = mileage;
   }
 
   public void printInfo() {
@@ -50,9 +58,6 @@ public class VehicleItem extends Item {
     System.out.println("Năm sản xuất:" + manufacturingYear);
     System.out.println("Số km đã đi: " + mileage);
     System.out.println("Tổng quan về chiếc xe: " + description);
-    System.out.println("Thời gian bắt đầu đấu giá: " + startTime);
-    System.out.println("Thời gian đóng phiên đấu giá: " + endTime);
     System.out.println("Giá khởi điểm: " + getStartingPrice());
-    System.out.println("Giá hiên tại: " + currentHightestBid);
   }
 }
