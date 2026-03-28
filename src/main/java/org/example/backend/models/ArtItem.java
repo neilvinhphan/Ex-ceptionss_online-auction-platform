@@ -8,15 +8,14 @@ public class ArtItem extends Item {
 
   public ArtItem(
       int id,
+      LocalDateTime createdAt,
+      String type,
       String itemName,
       String artist,
       int creationYear,
       String description,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      double startingPrice,
-      double currentHightestBid) {
-    super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
+      double startingPrice) {
+    super(id, createdAt, type, itemName, description, startingPrice);
     this.artist = artist;
     this.creationYear = creationYear;
   }
@@ -32,9 +31,6 @@ public class ArtItem extends Item {
   public void printInfo() {
     System.out.println(id + ": " + getItemName());
     System.out.println("Mô tả sản phẩm: " + description);
-    System.out.println("Thời gian bắt đầu đấu giá: " + startTime);
-    System.out.println("Thời gian đóng phiên đấu giá: " + endTime);
     System.out.println("Giá khởi điểm: " + getStartingPrice());
-    System.out.println("Giá hiên tại: " + currentHightestBid);
   }
 }
