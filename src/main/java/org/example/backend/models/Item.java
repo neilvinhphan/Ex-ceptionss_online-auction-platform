@@ -1,22 +1,17 @@
 package org.example.backend.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
   private String type;
   private String itemName;
-  private double startingPrice;
+  private BigDecimal startingPrice;
   protected String description;
 
   // Constructor khi Lấy từ DB lên
-  public Item(
-      int id,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String description,
-      double startingPrice) {
-    super(id, createdAt);
+  public Item(int id, String type, String itemName, String description, BigDecimal startingPrice) {
+    super(id);
     this.type = type;
     this.itemName = itemName;
     this.description = description;
@@ -28,7 +23,7 @@ public abstract class Item extends Entity {
     return type;
   }
 
-  public void setType(String newType) {
+  public void setType(String type) {
     this.type = type;
   }
 
@@ -40,11 +35,11 @@ public abstract class Item extends Entity {
     this.itemName = itemName;
   }
 
-  public double getStartingPrice() {
+  public BigDecimal getStartingPrice() {
     return startingPrice;
   }
 
-  public void setStartingPrice(double startingPrice) {
+  public void setStartingPrice(BigDecimal startingPrice) {
     this.startingPrice = startingPrice;
   }
 

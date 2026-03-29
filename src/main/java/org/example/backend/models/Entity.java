@@ -10,9 +10,15 @@ public abstract class Entity {
     createdAt = LocalDateTime.now();
   }
 
+  // Create User
   public Entity(int id, LocalDateTime createdAt) {
     this.id = id;
     this.createdAt = createdAt;
+  }
+
+  // Create Item
+  public Entity(int id) {
+    this.id = id;
   }
 
   // Setter & Getter
