@@ -27,7 +27,7 @@ public class AuctionHeroUI extends Application {
         VBox.setVgrow(heroContainer, Priority.ALWAYS);
 
         try {
-            InputStream imageStream = getClass().getResourceAsStream("/images/anh_nen.jpg");
+            InputStream imageStream = getClass().getResourceAsStream("/images/anhphancam.jpg");
             if (imageStream != null) {
                 Image anhnen = new Image(imageStream);
                 BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true);
