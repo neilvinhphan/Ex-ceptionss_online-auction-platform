@@ -2,7 +2,6 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class ElectronicsItem extends Item {
@@ -11,21 +10,21 @@ public class ElectronicsItem extends Item {
   protected String condition; // tình trạng của sản phẩm
 
   public ElectronicsItem(
-          int id,
-          LocalDateTime createdAt,
-          String type,
-          String itemName,
-          String brand,
-          int warrantyMonths,
-          String condition,
-          String description,
-          BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+      int id,
+      String itemName,
+      String brand,
+      int warrantyMonths,
+      String condition,
+      String description,
+      LocalDateTime startTime,
+      LocalDateTime endTime,
+      double startingPrice,
+      double currentHightestBid) {
+    super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
     this.brand = brand;
     this.warrantyMonths = warrantyMonths;
     this.condition = condition;
   }
-  public ElectronicsItem() {}
 
   public String getCondition() {
     return condition;
@@ -46,6 +45,9 @@ public class ElectronicsItem extends Item {
     System.out.println("Số tháng bảo hành sản phẩm " + warrantyMonths);
     System.out.println("Tình trạng sản phẩm: " + condition);
     System.out.println("Mô tả sản phẩm: " + description);
+    System.out.println("Thời gian bắt đầu đấu giá: " + startTime);
+    System.out.println("Thời gian đóng phiên đấu giá: " + endTime);
     System.out.println("Giá khởi điểm: " + getStartingPrice());
+    System.out.println("Giá hiên tại: " + currentHightestBid);
   }
 }

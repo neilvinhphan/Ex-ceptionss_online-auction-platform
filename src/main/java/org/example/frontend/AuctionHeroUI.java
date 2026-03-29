@@ -27,7 +27,7 @@ public class AuctionHeroUI extends Application {
         VBox.setVgrow(heroContainer, Priority.ALWAYS);
 
         try {
-            InputStream imageStream = getClass().getResourceAsStream("/images/anh_nen.jpg");
+            InputStream imageStream = getClass().getResourceAsStream("/images/anhphancam.jpg");
             if (imageStream != null) {
                 Image anhnen = new Image(imageStream);
                 BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true);
@@ -145,7 +145,7 @@ public class AuctionHeroUI extends Application {
         btnLogin.setOnAction(e -> {
             Stage currentStage = (Stage) btnLogin.getScene().getWindow();
             currentStage.close();
-            Signin signinUi = new Signin();
+            Login signinUi = new Login();
             Stage st_signin = new Stage();
             signinUi.start(st_signin);
         });

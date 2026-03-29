@@ -91,7 +91,7 @@ public class UserDashboard extends Application {
         btLogout.setOnAction(e -> {
             Stage currentStage = (Stage) btLogout.getScene().getWindow();
             currentStage.close();
-            Signin signinUi = new Signin();
+            Login signinUi = new Login();
             Stage st_signin = new Stage();
             signinUi.start(st_signin);
         });

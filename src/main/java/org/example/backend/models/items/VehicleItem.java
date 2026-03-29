@@ -2,7 +2,6 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class VehicleItem extends Item {
@@ -12,47 +11,38 @@ public class VehicleItem extends Item {
   protected double mileage; // số km đã đi
 
   public VehicleItem(
-          int id,
-          LocalDateTime createdAt,
-          String type,
-          String itemName,
-          String description,
-          BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
-  }
-  public VehicleItem() {}
-
-  // GETTER & SETTER
-  public String getBrand() {
-    return brand;
-  }
-
-  public void setBrand(String brand) {
+      int id,
+      String itemName,
+      String brand,
+      String model,
+      int manufacturingYear,
+      double mileage,
+      String description,
+      LocalDateTime startTime,
+      LocalDateTime endTime,
+      double startingPrice,
+      double currentHightestBid) {
+    super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
     this.brand = brand;
-  }
-
-  public String getModel() {
-    return model;
-  }
-
-  public void setModel(String model) {
     this.model = model;
-  }
-
-  public int getManufacturingYear() {
-    return manufacturingYear;
-  }
-
-  public void setManufacturingYear(int manufacturingYear) {
     this.manufacturingYear = manufacturingYear;
+    this.mileage = mileage;
   }
 
   public double getMileage() {
     return mileage;
   }
 
-  public void setMileage(double mileage) {
-    this.mileage = mileage;
+  public int getManufacturingYear() {
+    return manufacturingYear;
+  }
+
+  public String getModel() {
+    return model;
+  }
+
+  public String getBrand() {
+    return brand;
   }
 
   public void printInfo() {
@@ -62,6 +52,9 @@ public class VehicleItem extends Item {
     System.out.println("Năm sản xuất:" + manufacturingYear);
     System.out.println("Số km đã đi: " + mileage);
     System.out.println("Tổng quan về chiếc xe: " + description);
+    System.out.println("Thời gian bắt đầu đấu giá: " + startTime);
+    System.out.println("Thời gian đóng phiên đấu giá: " + endTime);
     System.out.println("Giá khởi điểm: " + getStartingPrice());
+    System.out.println("Giá hiên tại: " + currentHightestBid);
   }
 }
