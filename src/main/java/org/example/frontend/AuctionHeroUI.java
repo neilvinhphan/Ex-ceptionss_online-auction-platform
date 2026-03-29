@@ -145,7 +145,7 @@ public class AuctionHeroUI extends Application {
         btnLogin.setOnAction(e -> {
             Stage currentStage = (Stage) btnLogin.getScene().getWindow();
             currentStage.close();
-            Signin signinUi = new Signin();
+            Login signinUi = new Login();
             Stage st_signin = new Stage();
             signinUi.start(st_signin);
         });

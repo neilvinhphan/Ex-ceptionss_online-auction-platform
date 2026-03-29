@@ -19,7 +19,7 @@ import javafx.application.Application;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-public class Signin extends Application {
+public class Login extends Application {
 
     public static void main(String[] args) {
         launch(args);
