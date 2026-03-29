@@ -138,7 +138,6 @@ public class Register extends Application {
                     pass_hien.getText().trim().isEmpty() ||
                     pass_an.getText().trim().isEmpty()) {
 
-                // 2. Nếu thiếu, hiện cái Dialog (Alert) cảnh báo
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Cảnh báo");
                 alert.setHeaderText(null); // Để null cho gọn, không bị hiện 2 dòng tiêu đề
@@ -172,7 +171,7 @@ public class Register extends Application {
         grid.setStyle("-fx-background-color: #447D9B;");
         // grid.setStyle("-fx-background-color: linear-gradient(to bottom right, #FAACBF, #FBC3C1);");
         // 6. Tạo Scene (Cảnh) và gắn vào Stage
-        Scene scene = new Scene(grid, 900, 600);
+        Scene scene = new Scene(grid, 900, 650);
 
         primaryStage.setScene(scene);
 

@@ -84,7 +84,6 @@ public class Login extends Application {
                     pass_hien.getText().trim().isEmpty() ||
                     pass_an.getText().trim().isEmpty()) {
 
-                // 2. Nếu thiếu, hiện cái Dialog (Alert) cảnh báo
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Cảnh báo");
                 alert.setHeaderText(null);
@@ -94,9 +93,9 @@ public class Login extends Application {
             } else {
                 Stage currentStage = (Stage) signin.getScene().getWindow();
                 currentStage.close();
-                RoleSelection roleSelection = new RoleSelection();
-                Stage roleStage = new Stage();
-                roleSelection.start(roleStage);
+                AuctionHeroUI auctionHeroUI= new AuctionHeroUI();
+                Stage stageAuction = new Stage();
+                auctionHeroUI.start(stageAuction);
             }
         });
 
@@ -116,7 +115,7 @@ public class Login extends Application {
         });
 
         grid.setStyle("-fx-background-color: #447D9B");
-        Scene scene = new Scene(grid, 900, 600);
+        Scene scene = new Scene(grid, 900, 650);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
