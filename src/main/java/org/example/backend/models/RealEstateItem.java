@@ -8,14 +8,14 @@ public class RealEstateItem extends Item {
     protected String propertyType;  // Loại hình (Đất nền, Chung cư...)
     protected String legalStatus;   // Tình trạng pháp lý (Sổ đỏ, HĐMB...)
 
-
-    public RealEstateItem(int id, String itemName, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid, String location, double area, String propertyType, String legalStatus) {
-        super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
+    public RealEstateItem(int id, LocalDateTime createdAt, String type, String itemName, String location, double area, String propertyType, String legalStatus, String description, double startingPrice) {
+        super(id, createdAt, type, itemName, description, startingPrice);
         this.location = location;
         this.area = area;
         this.propertyType = propertyType;
         this.legalStatus = legalStatus;
     }
+
 
     public String getLocation() {
         return location;
@@ -42,9 +42,6 @@ public class RealEstateItem extends Item {
         System.out.println("Diện tích: " + area + " m2");
         System.out.println("Pháp lý: " + legalStatus);
         System.out.println("Mô tả chi tiết: " + description);
-        System.out.println("Thời gian bắt đầu: " + startTime);
-        System.out.println("Thời gian đóng phiên: " + endTime);
         System.out.println("Giá khởi điểm: " + getStartingPrice());
-        System.out.println("Giá hiện tại: " + currentHightestBid);
     }
 }

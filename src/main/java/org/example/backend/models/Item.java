@@ -3,9 +3,9 @@ package org.example.backend.models;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
-    private String type;
-    private String itemName;
-    private double startingPrice;
+    protected String type;
+    protected String itemName;
+    protected double startingPrice;
     protected String description;
 
     // Constructor khi Lấy từ DB lên

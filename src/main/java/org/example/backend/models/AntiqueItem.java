@@ -8,9 +8,8 @@ public class AntiqueItem extends Item {
     protected String condition; //Tình trạng
     protected boolean isCertified;
 
-
-    public AntiqueItem(int id, String itemName, String description, LocalDateTime startTime, LocalDateTime endTime, double startingPrice, double currentHightestBid, String era, String material, String condition, boolean isCertified) {
-        super(id, itemName, description, startTime, endTime, startingPrice, currentHightestBid);
+    public AntiqueItem(int id, LocalDateTime createdAt, String type, String itemName, String era, String material, String condition, boolean isCertified, String description, double startingPrice) {
+        super(id, createdAt, type, itemName, description, startingPrice);
         this.era = era;
         this.material = material;
         this.condition = condition;
@@ -29,6 +28,22 @@ public class AntiqueItem extends Item {
         return condition;
     }
 
+    public void setEra(String era) {
+        this.era = era;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public void setCertified(boolean certified) {
+        isCertified = certified;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
     public boolean isCertified() {
         return isCertified;
     }
@@ -42,9 +57,6 @@ public class AntiqueItem extends Item {
         System.out.println("Tình trạng bảo quản: " + condition);
         System.out.println("Giấy thẩm định: " + (isCertified ? "Đã có chứng nhận chuyên gia" : "Chưa qua thẩm định"));
         System.out.println("Mô tả chi tiết: " + description);
-        System.out.println("Thời gian bắt đầu: " + startTime);
-        System.out.println("Thời gian đóng phiên: " + endTime);
         System.out.println("Giá khởi điểm: " + getStartingPrice());
-        System.out.println("Giá hiện tại: " + currentHightestBid);
     }
 }
