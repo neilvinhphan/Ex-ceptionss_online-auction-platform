@@ -53,8 +53,8 @@ public class Signin extends Application {
         TextField pass_hien = new TextField();
         pass_hien.textProperty().bindBidirectional(pass_an.textProperty());
         Button eye = new Button("\uD83D\uDC40");
-        eye.setStyle("-fx-background-color: transparent;"+
-                " -fx-text-fill: black; "+
+        eye.setStyle("-fx-background-color: transparent;" +
+                " -fx-text-fill: black; " +
                 "-fx-cursor: hand;");
 
         pass_hien.setVisible(false);
@@ -79,6 +79,27 @@ public class Signin extends Application {
         Button signin = new Button("Đăng nhập");
         signin.setPrefWidth(150);
         signin.setStyle("-fx-background-color: white;" + "-fx-text-fill: black;" + "-fx-font-weight: bold;" + "-fx-background-radius: 10;" + "-fx-padding: 10 20 10 20;");
+        signin.setOnAction(e -> {
+            if (tfusename.getText().trim().isEmpty() ||
+                    pass_hien.getText().trim().isEmpty() ||
+                    pass_an.getText().trim().isEmpty()) {
+
+                // 2. Nếu thiếu, hiện cái Dialog (Alert) cảnh báo
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Cảnh báo");
+                alert.setHeaderText(null);
+                alert.setContentText("Vui lòng nhập đầy đủ thông tin trước khi đăng nhập!");
+                alert.showAndWait();
+
+            } else {
+                Stage currentStage = (Stage) signin.getScene().getWindow();
+                currentStage.close();
+                RoleSelection roleSelection = new RoleSelection();
+                Stage roleStage = new Stage();
+                roleSelection.start(roleStage);
+            }
+        });
+
         HBox hb_signin = new HBox(signin);
         hb_signin.setAlignment(Pos.CENTER_RIGHT);
         grid.add(hb_signin, 1, 3);
@@ -95,7 +116,7 @@ public class Signin extends Application {
         });
 
         grid.setStyle("-fx-background-color: #447D9B");
-        Scene scene = new Scene(grid,900,600);
+        Scene scene = new Scene(grid, 900, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
