@@ -1,4 +1,6 @@
-package org.example.backend.models;
+package org.example.backend.models.items;
+
+import org.example.backend.models.Item;
 
 import java.time.LocalDateTime;
 
