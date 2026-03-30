@@ -2,6 +2,7 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class ArtItem extends Item {
@@ -9,14 +10,14 @@ public class ArtItem extends Item {
   protected int creationYear;
 
   public ArtItem(
-      int id,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String artist,
-      int creationYear,
-      String description,
-      double startingPrice) {
+          int id,
+          LocalDateTime createdAt,
+          String type,
+          String itemName,
+          String artist,
+          int creationYear,
+          String description,
+          BigDecimal startingPrice) {
     super(id, createdAt, type, itemName, description, startingPrice);
     this.artist = artist;
     this.creationYear = creationYear;

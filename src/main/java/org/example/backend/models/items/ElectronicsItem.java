@@ -2,6 +2,7 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class ElectronicsItem extends Item {
@@ -10,15 +11,15 @@ public class ElectronicsItem extends Item {
   protected String condition; // tình trạng của sản phẩm
 
   public ElectronicsItem(
-      int id,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String brand,
-      int warrantyMonths,
-      String condition,
-      String description,
-      double startingPrice) {
+          int id,
+          LocalDateTime createdAt,
+          String type,
+          String itemName,
+          String brand,
+          int warrantyMonths,
+          String condition,
+          String description,
+          BigDecimal startingPrice) {
     super(id, createdAt, type, itemName, description, startingPrice);
     this.brand = brand;
     this.warrantyMonths = warrantyMonths;
