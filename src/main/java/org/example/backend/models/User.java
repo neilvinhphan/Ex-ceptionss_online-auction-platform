@@ -45,6 +45,9 @@ public class User extends Entity {
     this.email = email;
   }
 
+  // Constructor rỗng cho DB
+  public User() {}
+
   // SELLER METHODS
   public Item createItem(String type, String name, String desc, BigDecimal startingPrice) {
     Item newItem = null;
@@ -76,39 +79,92 @@ public class User extends Entity {
 
   //  public List<BidTransaction> getBidHistory(Auction auction) {return...}
 
-  // Bổ sung code
-  public User() {}
-
-  public String getUsername() {
+  // GETTER & SETTER
+  public String getUserName() {
     return userName;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public BigDecimal getBalance() {
-    return balance;
   }
 
   public void setUserName(String userName) {
     this.userName = userName;
   }
 
-  public void setBalance(BigDecimal balance) {
-    this.balance = balance;
+  public String getPhone() {
+    return phone;
   }
 
-  static void main() throws SQLException {
-    User user = userDAO.getUserInformation("klbc_0211");
-    System.out.println(user.getUsername() + " " + user.getBalance());
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public SellerProfile getSellerProfile() {
+    return sellerProfile;
+  }
+
+  public void setSellerProfile(SellerProfile sellerProfile) {
+    this.sellerProfile = sellerProfile;
+  }
+
+  public String getArtist() {
+    return artist;
+  }
+
+  public void setArtist(String artist) {
+    this.artist = artist;
+  }
+
+  public int getCreationYear() {
+    return creationYear;
+  }
+
+  public void setCreationYear(int creationYear) {
+    this.creationYear = creationYear;
+  }
+
+  public String getBrand() {
+    return brand;
+  }
+
+  public void setBrand(String brand) {
+    this.brand = brand;
+  }
+
+  public int getWarrantyMonths() {
+    return warrantyMonths;
+  }
+
+  public void setWarrantyMonths(int warrantyMonths) {
+    this.warrantyMonths = warrantyMonths;
+  }
+
+  public String getCondition() {
+    return condition;
+  }
+
+  public void setCondition(String condition) {
+    this.condition = condition;
+  }
+
+  public BigDecimal getBalance() {
+    return balance;
+  }
+
+  public void setBalance(BigDecimal balance) {
+    this.balance = balance;
   }
 }

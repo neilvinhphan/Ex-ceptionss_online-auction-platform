@@ -1,8 +1,10 @@
-package org.example.backend.models;
+package org.example.backend.models.bidding;
+
+import org.example.backend.models.Auction;
+import org.example.backend.models.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class AutoBidConfig {
   private Auction aucntionId;
