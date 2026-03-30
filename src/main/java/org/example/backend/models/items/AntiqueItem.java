@@ -2,6 +2,7 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class AntiqueItem extends Item {
@@ -10,7 +11,7 @@ public class AntiqueItem extends Item {
     protected String condition; //Tình trạng
     protected boolean isCertified;
 
-    public AntiqueItem(int id, LocalDateTime createdAt, String type, String itemName, String era, String material, String condition, boolean isCertified, String description, double startingPrice) {
+    public AntiqueItem(int id, LocalDateTime createdAt, String type, String itemName, String era, String material, String condition, boolean isCertified, String description, BigDecimal startingPrice) {
         super(id, createdAt, type, itemName, description, startingPrice);
         this.era = era;
         this.material = material;

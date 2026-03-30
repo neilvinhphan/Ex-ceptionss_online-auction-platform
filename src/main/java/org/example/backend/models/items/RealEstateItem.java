@@ -2,6 +2,7 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class RealEstateItem extends Item {
@@ -10,7 +11,7 @@ public class RealEstateItem extends Item {
     protected String propertyType;  // Loại hình (Đất nền, Chung cư...)
     protected String legalStatus;   // Tình trạng pháp lý (Sổ đỏ, HĐMB...)
 
-    public RealEstateItem(int id, LocalDateTime createdAt, String type, String itemName, String location, double area, String propertyType, String legalStatus, String description, double startingPrice) {
+    public RealEstateItem(int id, LocalDateTime createdAt, String type, String itemName, String location, double area, String propertyType, String legalStatus, String description, BigDecimal startingPrice) {
         super(id, createdAt, type, itemName, description, startingPrice);
         this.location = location;
         this.area = area;
