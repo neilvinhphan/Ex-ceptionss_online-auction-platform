@@ -2,6 +2,7 @@ package org.example.backend.models.items;
 
 import org.example.backend.models.Item;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class JewelryItem extends Item {
@@ -10,7 +11,7 @@ public class JewelryItem extends Item {
     protected double weight;         // Trọng lượng (Carat hoặc Gram)
     protected String certification;  // Giấy kiểm định
 
-    public JewelryItem(int id, LocalDateTime createdAt, String type, String itemName, String material, String gemstone, double weight, String certification, String description, double startingPrice) {
+    public JewelryItem(int id, LocalDateTime createdAt, String type, String itemName, String material, String gemstone, double weight, String certification, String description, BigDecimal startingPrice) {
         super(id, createdAt, type, itemName, description, startingPrice);
         this.material = material;
         this.gemstone = gemstone;
