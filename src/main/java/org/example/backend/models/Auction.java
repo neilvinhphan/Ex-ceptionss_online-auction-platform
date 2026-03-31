@@ -19,8 +19,6 @@ public class Auction {
 
   public void start(LocalDateTime now) {}
 
-  //  public boolean placeBid(User bidder, BigDecimal amount) {}
-
   public void validateBid(BigDecimal amount) {}
 
   //  public BidTransaction getHighestBid() {}
