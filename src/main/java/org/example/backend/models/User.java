@@ -63,21 +63,7 @@ public class User extends Entity {
     return newItem;
   }
 
-  public void updateItem(
-      Item needChange, String newType, String newName, String newDesc, double newStartingPrice) {
-    needChange.setType(newType);
-    needChange.setItemName(newName);
-    needChange.setDescription(newDesc);
-  }
-
   public void removeItem() {}
-
-  // BIDDER METHODS
-  public boolean bid() {
-    return true;
-  }
-
-  //  public List<BidTransaction> getBidHistory(Auction auction) {return...}
 
   // GETTER & SETTER
   public String getUserName() {

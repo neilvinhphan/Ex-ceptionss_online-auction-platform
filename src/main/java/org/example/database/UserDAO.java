@@ -12,7 +12,7 @@ public class UserDAO {
         String sql = "INSERT INTO user (user_name, password, email, phone_number) VALUES (?,?,?,?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement preparedstatement = connection.prepareStatement(sql)) {
-            preparedstatement.setString(1, user.getUsername());
+            preparedstatement.setString(1, user.getUserName());
             preparedstatement.setString(2, user.getPassword());
             preparedstatement.setString(3, user.getEmail());
             preparedstatement.setString(4, user.getPhone());
@@ -47,7 +47,7 @@ public class UserDAO {
         UserDAO userDAO = new UserDAO();
         User user = userDAO.getUserInformation("klbc_0211");
         if (user != null) {
-      System.out.println(user.getUsername() + " " + user.getBalance());
+      System.out.println(user.getUserName() + " " + user.getBalance());
         }
     }
 }
