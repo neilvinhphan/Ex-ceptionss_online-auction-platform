@@ -22,14 +22,13 @@ public class UserDAO {
             throw new RuntimeException(e);
         }
     }
-
     public User getUserInformation(String username) throws SQLException {
         String sql = "SELECT * FROM user WHERE user_name = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
+                if(rs.next()) {
                     User user = new User();
                     user.setUserName(rs.getString("user_name"));
                     user.setBalance(rs.getBigDecimal("balance"));
@@ -42,5 +41,13 @@ public class UserDAO {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    static void main() throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserInformation("klbc_0211");
+        if (user != null) {
+      System.out.println(user.getUserName() + " " + user.getBalance());
+        }
     }
 }
