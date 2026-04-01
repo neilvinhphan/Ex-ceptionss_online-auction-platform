@@ -1,4 +1,4 @@
-package org.example.backend.models.bidding;
+package org.example.Core.models.entities;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

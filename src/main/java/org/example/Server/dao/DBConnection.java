@@ -1,4 +1,4 @@
-package org.example.database;
+package org.example.Server.dao;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -20,7 +20,8 @@ public class DBConnection {
     String pass = properties.getProperty("db.pass");
     return DriverManager.getConnection(url, user, pass);
   }
-  static void main(){
+
+  static void main() {
     try (Connection connection = getConnection()) {
       if (connection != null) {
         System.out.println("Ket noi thanh cong");

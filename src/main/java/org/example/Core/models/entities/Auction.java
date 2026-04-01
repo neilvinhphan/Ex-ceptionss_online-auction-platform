@@ -1,7 +1,7 @@
-package org.example.backend.models;
+package org.example.Core.models.entities;
 
-import org.example.backend.models.bidding.BidTransaction;
-import org.example.backend.models.enums.AuctionStatus;
+import org.example.Core.models.items.Item;
+import org.example.Core.shared.enums.AuctionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

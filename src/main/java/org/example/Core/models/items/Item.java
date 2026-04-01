@@ -1,4 +1,6 @@
-package org.example.backend.models;
+package org.example.Core.models.items;
+
+import org.example.Core.models.entities.Entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,7 +12,7 @@ public abstract class Item extends Entity {
   protected String description;
 
   // Constructor khi Lấy từ DB lên
-  public Item(int id, String type, String itemName, String description,BigDecimal startingPrice) {
+  public Item(int id, String type, String itemName, String description, BigDecimal startingPrice) {
     super(id);
     this.type = type;
     this.itemName = itemName;
@@ -18,10 +20,15 @@ public abstract class Item extends Entity {
     this.startingPrice = startingPrice;
   }
 
-    public Item(int id, LocalDateTime createdAt, String type, String itemName, String description, BigDecimal startingPrice) {
-    }
+  public Item(
+      int id,
+      LocalDateTime createdAt,
+      String type,
+      String itemName,
+      String description,
+      BigDecimal startingPrice) {}
 
-    // GETTERS & SETTERS
+  // GETTERS & SETTERS
   public String getType() {
     return type;
   }

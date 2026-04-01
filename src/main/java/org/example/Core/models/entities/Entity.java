@@ -1,4 +1,4 @@
-package org.example.backend.models;
+package org.example.Core.models.entities;
 
 import java.time.LocalDateTime;
 

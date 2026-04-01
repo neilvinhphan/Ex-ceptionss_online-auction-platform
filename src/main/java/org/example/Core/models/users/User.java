@@ -1,14 +1,14 @@
-package org.example.backend.models;
+package org.example.Core.models.users;
 
-import org.example.backend.models.items.ArtItem;
-import org.example.backend.models.items.ElectronicsItem;
-import org.example.backend.models.items.VehicleItem;
-import org.example.database.UserDAO;
+import org.example.Core.models.entities.Entity;
+import org.example.Core.models.items.ArtItem;
+import org.example.Core.models.items.ElectronicsItem;
+import org.example.Core.models.items.Item;
+import org.example.Core.models.items.VehicleItem;
+import org.example.Server.dao.UserDAO;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class User extends Entity {
   public static final UserDAO userDAO = new UserDAO();
