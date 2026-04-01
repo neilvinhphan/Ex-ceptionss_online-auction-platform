@@ -15,9 +15,9 @@ import javafx.stage.Stage;
 import java.io.InputStream;
 
 public class AuctionHeroUI extends Application {
-    private final String GREEN_COLOR = "#218c74";
-    private final String DARK_TRANSPARENT = "rgba(0, 0, 0, 0.6)";
-    private final String GLASS_TRANSPARENT = "rgba(255, 255, 255, 0.2)";
+    public final String GREEN_COLOR = "#218c74";
+    public final String DARK_TRANSPARENT = "rgba(0, 0, 0, 0.6)";
+    public final String GLASS_TRANSPARENT = "rgba(255, 255, 255, 0.2)";
 
     @Override
     public void start(Stage primaryStage) {
@@ -27,7 +27,7 @@ public class AuctionHeroUI extends Application {
         VBox.setVgrow(heroContainer, Priority.ALWAYS);
 
         try {
-            InputStream imageStream = getClass().getResourceAsStream("/images/anhphancam.jpg");
+            InputStream imageStream = getClass().getResourceAsStream("/images/anh_nen.jpg");
             if (imageStream != null) {
                 Image anhnen = new Image(imageStream);
                 BackgroundSize bgSize = new BackgroundSize(100, 100, true, true, false, true);
@@ -46,7 +46,7 @@ public class AuctionHeroUI extends Application {
         heroContent.getChildren().addAll(createHeader(), createHeroSection());
         heroContainer.getChildren().add(heroContent);
 
-        HBox categoryButtons = createCategoryButtons();
+        VBox categoryButtons = createCategoryButtons();
         manhinh.getChildren().addAll(heroContainer, categoryButtons);
 
         Scene scene = new Scene(manhinh, 1200, 750);
@@ -57,7 +57,7 @@ public class AuctionHeroUI extends Application {
         primaryStage.show();
     }
 
-    private HBox createHeader() {
+    public HBox createHeader() {
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(10, 25, 10, 25));
@@ -174,7 +174,7 @@ public class AuctionHeroUI extends Application {
         searchContainer.setStyle("-fx-background-color: " + GLASS_TRANSPARENT + ";" + "-fx-border-color: rgba(255,255,255,0.4); -fx-border-width: 1px;" + "-fx-border-radius: 30; -fx-background-radius: 30;");
 
         ComboBox<String> categoryBox = new ComboBox<>();
-        categoryBox.getItems().addAll("Electronics", "Art", "Vehicle");
+        categoryBox.getItems().addAll("Bất động sản", "Phương tiện","Đồ cổ", "Tác phẩm nghệ thuật ","Trang sức","Khác");
         categoryBox.getSelectionModel().selectFirst();
         categoryBox.setPrefWidth(180);
         categoryBox.setStyle("-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 5;");
@@ -192,17 +192,30 @@ public class AuctionHeroUI extends Application {
         return heroBox;
     }
 
-    private HBox createCategoryButtons() {
-        HBox container = new HBox(200);
+    private VBox createCategoryButtons() {
+        HBox container1 = new HBox(150);
+        HBox container2 = new HBox(150);
+        VBox container = new VBox(0);
+
+        container1.setAlignment(Pos.CENTER);
+        container1.setPadding(new Insets(40, 0, 40, 0));
+        container1.setStyle("-fx-background-color: white;");
+        container2.setAlignment(Pos.CENTER);
+        container2.setPadding(new Insets(40, 0, 40, 0));
+        container2.setStyle("-fx-background-color: white;");
+
+        VBox btn1 = createSingleCategoryButton("\uD83C\uDFE0","Bất động sản");
+        VBox btn2 = createSingleCategoryButton("\uD83D\uDE97", "Phương tiện");
+        VBox btn3 = createSingleCategoryButton("\uD83C\uDFFA", "Đồ cổ");
+        VBox btn4 = createSingleCategoryButton("\uD83C\uDFA8", "Tác phẩm nghệ thuật");
+        VBox btn5 = createSingleCategoryButton("\uD83D\uDC8D", "Trang sức");
+        VBox btn6 = createSingleCategoryButton("…","Khác");
+        container1.getChildren().addAll(btn1, btn2, btn3);
+        container2.getChildren().addAll(btn4,btn5,btn6);
+        container.getChildren().addAll(container1,container2);
         container.setAlignment(Pos.CENTER);
-        container.setPadding(new Insets(40, 0, 40, 0));
-        container.setStyle("-fx-background-color: white;");
-
-        VBox btn1 = createSingleCategoryButton("\uD83D\uDCBB", "Electronics");
-        VBox btn2 = createSingleCategoryButton("\uD83C\uDFA8", "Art");
-        VBox btn3 = createSingleCategoryButton("\uD83D\uDE97", "Vehicle");
-
-        container.getChildren().addAll(btn1, btn2, btn3);
+        VBox.setVgrow(container1,Priority.ALWAYS);
+        VBox.setVgrow(container2,Priority.ALWAYS);
         return container;
     }
 

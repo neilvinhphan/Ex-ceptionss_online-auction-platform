@@ -28,76 +28,58 @@ public class Register extends Application {
         grid.setVgap(18); // Khoảng cách giữa các hàng
         grid.setPadding(new Insets(25, 25, 25, 25)); // Lề xung quanh lưới
         // 3. Tiêu đề trang
-        Text sceneTitle = new Text("TẠO TÀI KHOẢN");
+        Text sceneTitle = new Text("ĐĂNG KÍ TÀI KHOẢN");
         sceneTitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
         // Đặt ở cột 0, hàng 0, chiếm 2 cột
         sceneTitle.setFill(Color.WHITE);
         grid.add(sceneTitle, 0, 0, 2, 1);
 
         // Dòng 1: Họ và Tên (Dùng HBox để xếp ngang)
-        Label hoten = new Label("Họ và tên: ");
+       /* Label hoten = new Label("Họ và tên: ");
         hoten.setStyle("-fx-text-fill: white");
         grid.add(hoten, 0, 1);
-        //  grid.add(new Label("Họ và Tên:"), 0, 1);
+          grid.add(new Label("Họ và Tên:"), 0, 1); */
 
         TextField tfHo = new TextField();
         tfHo.setPromptText("Họ");
+        TextField tfDem = new TextField();
+        tfDem.setPromptText("Têm đệm");
         TextField tfTen = new TextField();
         tfTen.setPromptText("Tên");
 
-        HBox hbName = new HBox(20); // Khoảng cách giữa ô Họ và Tên
-        hbName.getChildren().addAll(tfHo, tfTen);
-        grid.add(hbName, 1, 1);
+        HBox hbName = new HBox(15); // Khoảng cách giữa ô Họ và Tên
+        hbName.getChildren().addAll(tfHo, tfDem,tfTen);
+        grid.add(hbName, 0, 1);
 
         // Dòng 2: Username
-        Label username = new Label("Tên đăng nhập:");
-        username.setStyle("-fx-text-fill: white");
-        grid.add(username, 0, 2);
         TextField tfusername = new TextField();
-        grid.add(tfusername, 1, 2);
+        tfusername.setPromptText("Tên đăng nhập");
+        grid.add(tfusername, 0, 2);
 
         // Dòng 3: Số điện thoại
-        Label sdt = new Label("Số điện thoại: ");
-        sdt.setStyle("-fx-text-fill: white");
-        grid.add(sdt, 0, 3);
         TextField tfSdt = new TextField();
-        grid.add(tfSdt, 1, 3);
+        tfSdt.setPromptText("Số điện thoại");
+        grid.add(tfSdt, 0, 3);
 
         // Dòng 4: Email
-        Label email = new Label("Email: ");
-        email.setStyle("-fx-text-fill: white");
-        grid.add(email, 0, 4);
         TextField tfEmail = new TextField();
-        grid.add(tfEmail, 1, 4);
-
-        // Dòng 5: Mật khẩu (Dùng PasswordField để hiện dấu *)
-        Label pass = new Label("Mật khẩu: ");
-        pass.setStyle("-fx-text-fill: white");
-        grid.add(pass, 0, 5);
+        tfEmail.setPromptText("Email");
+        grid.add(tfEmail, 0, 4);
 
         PasswordField pass_an = new PasswordField();
         pass_an.setPromptText("Nhập mật khẩu");
-
         TextField pass_hien = new TextField();
         pass_hien.setVisible(false); // cho cút -> ẩn luôn khỏi cái grid
         pass_hien.setManaged(false); // đỡ tốn diện tích tính toán, ncl cái này với setVisible đi đôi !!!
-        //Dong bo du lieu 2 o
-        pass_hien.textProperty().bindBidirectional(pass_an.textProperty());
-        //Tao nut xem
+        pass_hien.textProperty().bindBidirectional(pass_an.textProperty()); //Dong bo du lieu 2 o
         Button eye = new Button("\uD83D\uDC40");
         eye.setStyle("-fx-background-color: transparent;" +
                 "-fx-text-fill: black;" +
                 "-fx-cursor:hand;"
         );
-// 3. Xếp chồng dùng StackPane
         StackPane passwordContainer = new StackPane();
         passwordContainer.getChildren().addAll(pass_hien, pass_an, eye);
-
-// Căn con mắt nằm bên phải của cái hộp
         StackPane.setAlignment(eye, Pos.CENTER_RIGHT);
-        //     StackPane.setMargin(eye, new Insets(0, 10, 0, 0)); // Cách lề phải 10px cho đẹp
-
-// Xử lý sự kiện nhấn nút
         eye.setOnAction(e -> {
             if (pass_an.isVisible()) {
                 pass_an.setVisible(false);
@@ -111,10 +93,39 @@ public class Register extends Application {
                 pass_an.setManaged(true);
             }
         });
-        grid.add(passwordContainer, 1, 5);
+        grid.add(passwordContainer, 0, 5);
 
+
+        //
+        PasswordField pass_an1 = new PasswordField();
+        pass_an1.setPromptText("Nhập lại mật khẩu");
+        TextField pass_hien1 = new TextField();
+        pass_hien1.setVisible(false); // cho cút -> ẩn luôn khỏi cái grid
+        pass_hien1.setManaged(false); // đỡ tốn diện tích tính toán, ncl cái này với setVisible đi đôi !!!
+        pass_hien1.textProperty().bindBidirectional(pass_an1.textProperty()); //Dong bo du lieu 2 o
+        Button eye1 = new Button("\uD83D\uDC40");
+        eye1.setStyle("-fx-background-color: transparent;" +
+                "-fx-text-fill: black;" +
+                "-fx-cursor:hand;"
+        );
+        StackPane passwordContainer1 = new StackPane();
+        passwordContainer1.getChildren().addAll(pass_hien1, pass_an1, eye1);
+        StackPane.setAlignment(eye1, Pos.CENTER_RIGHT);
+        eye1.setOnAction(e -> {
+            if (pass_an1.isVisible()) {
+                pass_an1.setVisible(false);
+                pass_an1.setManaged(false);
+                pass_hien1.setVisible(true);
+                pass_hien1.setManaged(true);
+            } else {
+                pass_hien1.setVisible(false);
+                pass_hien1.setManaged(false);
+                pass_an1.setVisible(true);
+                pass_an1.setManaged(true);
+            }
+        });
+        grid.add(passwordContainer1, 0, 6);
         // 4. Nút bấm Đăng ký
-
         Button dki = new Button("Đăng ký ngay");
         dki.setPrefWidth(200);
 
@@ -150,9 +161,7 @@ public class Register extends Application {
         });
         HBox hb_dki = new HBox(dki);
         hb_dki.setAlignment(Pos.CENTER_RIGHT);
-        //hb_dki.getChildren().add(dki);
-        grid.add(hb_dki, 1, 6);
-        // 5. Link chuyển sang Đăng nhập (cho đủ bộ Front-end)
+        grid.add(hb_dki, 0, 7);
         Hyperlink linkLogin = new Hyperlink("Đã có tài khoản? Đăng nhập");
         linkLogin.setStyle("-fx-text-fill: white");
         linkLogin.setOnAction(e -> {
@@ -163,15 +172,11 @@ public class Register extends Application {
             Stage signInStage = new Stage();
             signInUi.start(signInStage);
         });
-        grid.add(linkLogin, 1, 7);
+        grid.add(linkLogin, 0, 8);
         grid.setStyle("-fx-background-color: #447D9B;");
-        // grid.setStyle("-fx-background-color: linear-gradient(to bottom right, #FAACBF, #FBC3C1);");
-        // 6. Tạo Scene (Cảnh) và gắn vào Stage
         Scene scene = new Scene(grid, 900, 650);
 
         primaryStage.setScene(scene);
-
-        // Hiển thị cửa sổ
         primaryStage.show();
     }
 
