@@ -6,6 +6,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+
 import java.io.InputStream;
 import java.util.*;
 
@@ -128,9 +129,9 @@ public class MainView {
         flowPane.setAlignment(Pos.CENTER);
 
         String[][] cats = {
-                {"\uD83C\uDFE0","Bất động sản"}, {"\uD83D\uDE97", "Phương tiện"},
+                {"\uD83C\uDFE0", "Bất động sản"}, {"\uD83D\uDE97", "Phương tiện"},
                 {"\uD83C\uDFFA", "Đồ cổ"}, {"\uD83C\uDFA8", "Nghệ thuật"},
-                {"\uD83D\uDC8D", "Trang sức"}, {"\u2026","Khác"}
+                {"\uD83D\uDC8D", "Trang sức"}, {"\u2026", "Khác"}
         };
 
         for (String[] cat : cats) {
@@ -163,11 +164,31 @@ public class MainView {
         return box;
     }
 
-    public VBox getRoot() { return root; }
-    public Button getBtnLogin() { return btnLogin; }
-    public Button getBtnRegister() { return btnRegister; }
-    public Button getBtnSearch() { return btnSearch; }
-    public ComboBox<String> getCategoryBox() { return categoryBox; }
-    public TextField getSearchInput() { return searchInput; }
-    public Map<String, VBox> getCategoryNodes() { return categoryNodes; }
+    public VBox getRoot() {
+        return root;
+    }
+
+    public Button getBtnLogin() {
+        return btnLogin;
+    }
+
+    public Button getBtnRegister() {
+        return btnRegister;
+    }
+
+    public Button getBtnSearch() {
+        return btnSearch;
+    }
+
+    public ComboBox<String> getCategoryBox() {
+        return categoryBox;
+    }
+
+    public TextField getSearchInput() {
+        return searchInput;
+    }
+
+    public Map<String, VBox> getCategoryNodes() {
+        return categoryNodes;
+    }
 }

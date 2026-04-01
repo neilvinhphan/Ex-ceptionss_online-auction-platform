@@ -21,7 +21,8 @@ public class RegisterView {
     private void initUI() {
         root = new GridPane();
         root.setAlignment(Pos.CENTER);
-        root.setHgap(10); root.setVgap(18);
+        root.setHgap(10);
+        root.setVgap(18);
         root.setPadding(new Insets(25));
         root.setStyle("-fx-background-color: #447D9B;");
 
@@ -30,23 +31,32 @@ public class RegisterView {
         sceneTitle.setFill(Color.WHITE);
         root.add(sceneTitle, 0, 0, 2, 1);
 
-        tfHo = new TextField(); tfHo.setPromptText("Họ");
-        tfDem = new TextField(); tfDem.setPromptText("Tên đệm");
-        tfTen = new TextField(); tfTen.setPromptText("Tên");
+        tfHo = new TextField();
+        tfHo.setPromptText("Họ");
+        tfDem = new TextField();
+        tfDem.setPromptText("Tên đệm");
+        tfTen = new TextField();
+        tfTen.setPromptText("Tên");
         HBox hbName = new HBox(15, tfHo, tfDem, tfTen);
         root.add(hbName, 0, 1);
 
-        tfUsername = new TextField(); tfUsername.setPromptText("Tên đăng nhập");
+        tfUsername = new TextField();
+        tfUsername.setPromptText("Tên đăng nhập");
         root.add(tfUsername, 0, 2);
 
-        tfSdt = new TextField(); tfSdt.setPromptText("Số điện thoại");
+        tfSdt = new TextField();
+        tfSdt.setPromptText("Số điện thoại");
         root.add(tfSdt, 0, 3);
 
-        tfEmail = new TextField(); tfEmail.setPromptText("Email");
+        tfEmail = new TextField();
+        tfEmail.setPromptText("Email");
         root.add(tfEmail, 0, 4);
 
-        passAn = new PasswordField(); passAn.setPromptText("Nhập mật khẩu");
-        passHien = new TextField(); passHien.setVisible(false); passHien.setManaged(false);
+        passAn = new PasswordField();
+        passAn.setPromptText("Nhập mật khẩu");
+        passHien = new TextField();
+        passHien.setVisible(false);
+        passHien.setManaged(false);
         passHien.textProperty().bindBidirectional(passAn.textProperty());
         btnEye1 = new Button("\uD83D\uDC40");
         btnEye1.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
@@ -64,23 +74,51 @@ public class RegisterView {
     }
 
 
-    public GridPane getRoot() { return root; }
+    public GridPane getRoot() {
+        return root;
+    }
 
-    public Button getBtnRegister() { return btnRegister; }
+    public Button getBtnRegister() {
+        return btnRegister;
+    }
 
-    public Hyperlink getLinkLogin() { return linkLogin; }
+    public Hyperlink getLinkLogin() {
+        return linkLogin;
+    }
 
-    public Button getBtnEye1() { return btnEye1; }
+    public Button getBtnEye1() {
+        return btnEye1;
+    }
 
-    public PasswordField getPassAn() { return passAn; }
+    public PasswordField getPassAn() {
+        return passAn;
+    }
 
-    public TextField getPassHien() { return passHien; }
+    public TextField getPassHien() {
+        return passHien;
+    }
+
     public TextField getTfUsername() {
         return tfUsername;
     }
-    public TextField getTfHo() { return tfHo; }
-    public TextField getTfDem() { return tfDem; }
-    public TextField getTfTen() { return tfTen; }
-    public TextField getTfSdt() { return tfSdt; }
-    public TextField getTfEmail() { return tfEmail; }
+
+    public TextField getTfHo() {
+        return tfHo;
+    }
+
+    public TextField getTfDem() {
+        return tfDem;
+    }
+
+    public TextField getTfTen() {
+        return tfTen;
+    }
+
+    public TextField getTfSdt() {
+        return tfSdt;
+    }
+
+    public TextField getTfEmail() {
+        return tfEmail;
+    }
 }

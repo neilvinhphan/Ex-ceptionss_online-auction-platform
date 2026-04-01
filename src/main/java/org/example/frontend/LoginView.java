@@ -21,7 +21,8 @@ public class LoginView {
     private void initUI() {
         root = new GridPane();
         root.setAlignment(Pos.CENTER);
-        root.setHgap(10); root.setVgap(10);
+        root.setHgap(10);
+        root.setVgap(10);
         root.setPadding(new Insets(25));
         root.setStyle("-fx-background-color: #447D9B");
 
@@ -30,14 +31,19 @@ public class LoginView {
         title.setFill(Color.WHITE);
         root.add(title, 0, 0, 2, 1);
 
-        root.add(new Label("Tên đăng nhập: ") {{ setStyle("-fx-text-fill: white"); }}, 0, 1);
+        root.add(new Label("Tên đăng nhập: ") {{
+            setStyle("-fx-text-fill: white");
+        }}, 0, 1);
         tfUsername = new TextField();
         root.add(tfUsername, 1, 1);
 
-        root.add(new Label("Mật khẩu: ") {{ setStyle("-fx-text-fill: white"); }}, 0, 2);
+        root.add(new Label("Mật khẩu: ") {{
+            setStyle("-fx-text-fill: white");
+        }}, 0, 2);
         passAn = new PasswordField();
         passHien = new TextField();
-        passHien.setVisible(false); passHien.setManaged(false);
+        passHien.setVisible(false);
+        passHien.setManaged(false);
         passHien.textProperty().bindBidirectional(passAn.textProperty());
         btnEye = new Button("\uD83D\uDC40");
         btnEye.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
@@ -59,11 +65,31 @@ public class LoginView {
         root.add(linkRegis, 1, 4);
     }
 
-    public GridPane getRoot() { return root; }
-    public TextField getTfUsername() { return tfUsername; }
-    public PasswordField getPassAn() { return passAn; }
-    public TextField getPassHien() { return passHien; }
-    public Button getBtnSignin() { return btnSignin; }
-    public Button getBtnEye() { return btnEye; }
-    public Hyperlink getLinkRegis() { return linkRegis; }
+    public GridPane getRoot() {
+        return root;
+    }
+
+    public TextField getTfUsername() {
+        return tfUsername;
+    }
+
+    public PasswordField getPassAn() {
+        return passAn;
+    }
+
+    public TextField getPassHien() {
+        return passHien;
+    }
+
+    public Button getBtnSignin() {
+        return btnSignin;
+    }
+
+    public Button getBtnEye() {
+        return btnEye;
+    }
+
+    public Hyperlink getLinkRegis() {
+        return linkRegis;
+    }
 }
