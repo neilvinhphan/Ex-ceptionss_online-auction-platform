@@ -1,6 +1,6 @@
 package org.example.server.dao;
 
-import org.example.server.core.models.users.User;
+import org.example.core.models.users.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
