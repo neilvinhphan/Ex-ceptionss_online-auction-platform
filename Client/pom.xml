@@ -5,15 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>OnlineAuctionSystem</artifactId>
+    <artifactId>Client</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>Core</module>
-        <module>Server</module>
-        <module>Client</module>
-    </modules>
+    <parent>
+        <groupId>org.example</groupId>
+        <artifactId>OnlineAuctionSystem</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
@@ -41,11 +40,6 @@
             <artifactId>javafx-fxml</artifactId>
             <version>21.0.6</version>
         </dependency>
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.3.0</version>
-        </dependency>
 
     </dependencies>
     <build>
@@ -69,7 +63,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                controllers.client.org.example.server.Signin
+                                org.example.frontend.Signin
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
