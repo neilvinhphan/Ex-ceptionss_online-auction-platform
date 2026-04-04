@@ -13,14 +13,11 @@ public class MainApp extends Application {
         // 1. Chỉ đường dẫn đến file FXML của bạn
         // Lưu ý: Đường dẫn tính từ thư mục resources
         // Code chuẩn trong MainApp.java
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AntiqueView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/AntiqueView.fxml"));
         Parent root = loader.load();
-
-        // 2. Thiết lập Scene (Màn hình)
         primaryStage.setTitle("Hệ thống Đấu giá");
         primaryStage.setScene(new Scene(root));
 
-        // 3. Hiển thị cửa sổ
         primaryStage.show();
     }
 

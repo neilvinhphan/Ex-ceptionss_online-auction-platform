@@ -69,7 +69,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                controllers.client.org.example.server.Signin
+                                org.example.server.Client.LoginView
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

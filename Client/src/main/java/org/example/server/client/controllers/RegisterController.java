@@ -1,6 +1,5 @@
 package org.example.server.client.controllers;
 
-import org.example.frontend.*;
 import org.example.server.client.LoginView;
 import org.example.server.client.RegisterView;
 
