@@ -1,54 +1,24 @@
 package org.example.server.client.controllers;
 
-import org.example.server.client.LoginView;
-import org.example.server.client.MainView;
-import org.example.server.client.RegisterView;
-
+import org.example.server.client.View.*;
 import javafx.scene.control.Alert;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 
 public class LoginController {
     private LoginView view;
 
     public LoginController(LoginView view) {
         this.view = view;
-        initEvents();
-    }
+        // Gán sự kiện cho Header của trang Login
+        MainController.initCommonEvents(view.getHeader());
 
-    private void initEvents() {
         view.getBtnSignin().setOnAction(e -> {
-            String user = view.getTfUsername().getText();
-            String pass = view.getPassAn().getText();
-
-            if (user.isEmpty() || pass.isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Thông báo");
-                alert.setHeaderText(null);
-                alert.setContentText("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
-                alert.showAndWait();
+            if (view.getTfUsername().getText().isEmpty()) {
+                new Alert(Alert.AlertType.WARNING, "Nhập tài khoản!").show();
             } else {
-                Stage stage = (Stage) view.getRoot().getScene().getWindow();
-                MainView mv = new MainView();
-                new MainController(mv);
-                stage.setScene(new Scene(mv.getRoot(), 1200, 750));
-                stage.centerOnScreen();
+                System.out.println("Đăng nhập thành công");
             }
         });
 
-        view.getLinkRegis().setOnAction(e -> {
-            Stage stage = (Stage) view.getRoot().getScene().getWindow();
-            RegisterView rv = new RegisterView();
-            new RegisterController(rv);
-            stage.setScene(new Scene(rv.getRoot(), 900, 650));
-        });
-
-        view.getBtnEye().setOnAction(e -> {
-            boolean isVisible = view.getPassAn().isVisible();
-            view.getPassAn().setVisible(!isVisible);
-            view.getPassAn().setManaged(!isVisible);
-            view.getPassHien().setVisible(isVisible);
-            view.getPassHien().setManaged(isVisible);
-        });
+        view.getLinkRegis().setOnAction(e -> view.getHeader().getBtnRegister().fire());
     }
 }
