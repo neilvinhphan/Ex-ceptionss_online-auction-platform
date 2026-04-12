@@ -12,12 +12,12 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         // 1. Chỉ đường dẫn đến file FXML của bạn
         // Lưu ý: Đường dẫn phải khớp với cấu trúc trong thư mục resources
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/MainView.fxml"));
         Parent root = loader.load();
 
 
         Scene scene = new Scene(root);
-        primaryStage.setTitle("Hệ thống Đấu giá VNA");
+        primaryStage.setTitle("Trang chủ");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
