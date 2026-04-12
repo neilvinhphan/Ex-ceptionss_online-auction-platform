@@ -19,11 +19,6 @@ public class User extends Entity {
 
   // Seller contributes
   private SellerProfile sellerProfile;
-  protected String artist;
-  protected int creationYear;
-  protected String brand;
-  protected int warrantyMonths;
-  protected String condition;
 
   // Bidder contributes
   private BigDecimal balance;
@@ -49,19 +44,19 @@ public class User extends Entity {
   public User() {}
 
   // SELLER METHODS
-  public Item createItem(String type, String name, String desc, BigDecimal startingPrice) {
-    Item newItem = null;
-    if (type.equalsIgnoreCase("Vehicle")) {
-      newItem = new VehicleItem(0, null, type, name, desc, startingPrice);
-    } else if (type.equalsIgnoreCase("Art")) {
-      newItem = new ArtItem(0, null, type, name, artist, creationYear, desc, startingPrice);
-    } else if (type.equalsIgnoreCase("Electronics")) {
-      newItem =
-          new ElectronicsItem(
-              0, null, type, name, brand, warrantyMonths, condition, desc, startingPrice);
-    }
-    return newItem;
-  }
+  //  public Item createItem(String type, String name, String desc, BigDecimal startingPrice) {
+  //    Item newItem = null;
+  //    if (type.equalsIgnoreCase("Vehicle")) {
+  //      newItem = new VehicleItem(0, null, type, name, desc, startingPrice);
+  //    } else if (type.equalsIgnoreCase("Art")) {
+  //      newItem = new ArtItem(0, null, type, name, artist, creationYear, desc, startingPrice);
+  //    } else if (type.equalsIgnoreCase("Electronics")) {
+  //      newItem =
+  //          new ElectronicsItem(
+  //              0, null, type, name, brand, warrantyMonths, condition, desc, startingPrice);
+  //    }
+  //    return newItem;
+  //  }
 
   public void removeItem() {}
 
@@ -104,46 +99,6 @@ public class User extends Entity {
 
   public void setSellerProfile(SellerProfile sellerProfile) {
     this.sellerProfile = sellerProfile;
-  }
-
-  public String getArtist() {
-    return artist;
-  }
-
-  public void setArtist(String artist) {
-    this.artist = artist;
-  }
-
-  public int getCreationYear() {
-    return creationYear;
-  }
-
-  public void setCreationYear(int creationYear) {
-    this.creationYear = creationYear;
-  }
-
-  public String getBrand() {
-    return brand;
-  }
-
-  public void setBrand(String brand) {
-    this.brand = brand;
-  }
-
-  public int getWarrantyMonths() {
-    return warrantyMonths;
-  }
-
-  public void setWarrantyMonths(int warrantyMonths) {
-    this.warrantyMonths = warrantyMonths;
-  }
-
-  public String getCondition() {
-    return condition;
-  }
-
-  public void setCondition(String condition) {
-    this.condition = condition;
   }
 
   public BigDecimal getBalance() {

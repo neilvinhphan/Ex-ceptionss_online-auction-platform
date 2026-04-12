@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class Auction {
+public class Auction extends Entity {
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;

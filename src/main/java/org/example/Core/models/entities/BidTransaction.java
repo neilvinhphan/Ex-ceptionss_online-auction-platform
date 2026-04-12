@@ -7,9 +7,9 @@ import java.util.UUID;
 public class BidTransaction {
   private BigDecimal amount;
   private LocalDateTime time;
-  private UUID bidderID;
+  private int bidderID;
 
-  public BidTransaction(BigDecimal amount, LocalDateTime time, UUID bidderID) {
+  public BidTransaction(BigDecimal amount, LocalDateTime time, int bidderID) {
     this.amount = amount;
     this.time = time;
     this.bidderID = bidderID;
