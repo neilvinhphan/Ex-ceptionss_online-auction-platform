@@ -25,7 +25,7 @@ public class LoginController {
             showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
 
         }
-        
+
         /* Giả lập kiểm tra tài khoản (Sau này bạn sẽ gọi vào Database ở đây)
         if (userName.equals("admin") && password.equals("123")) {
             System.out.println("Đăng nhập thành công!");
@@ -33,6 +33,9 @@ public class LoginController {
             showAlert("Thất bại", "Tài khoản hoặc mật khẩu không chính xác!");
         }
          */
+        else{
+            System.out.println("Chuyển sang trang chủ");
+        }
     }
 
     @FXML
