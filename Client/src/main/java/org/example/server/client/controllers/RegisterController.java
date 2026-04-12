@@ -30,7 +30,7 @@ private CheckBox cbCommit;
         alert.setContentText(content);
         alert.showAndWait();
     }
-
+@FXML
     void handleRegister(ActionEvent event){
         String userName = tfuserName.getText();
         String phone = tfphone.getText();
@@ -42,25 +42,33 @@ private CheckBox cbCommit;
         if (userName.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty() || repassword.isEmpty()){
             showAlert("Lỗi","Vui lòng nhập đủ thông tin!");
         }
-        if(!password.equals(repassword)){
+        else if(!password.equals(repassword)){
             showAlert("Lỗi","Mật khẩu không khớp! Vui lòng kiểm tra lại! ");
         }
-        if(!cbCommit.isSelected()){
+        else if(!cbCommit.isSelected()){
             showAlert("Thông báo","Vui lòng đồng ý với điều khoản dịch vụ để tiếp tục!");
         }
         // sẽ có 1 cái gì đó check xem trong database tồn tại tài kh đó chưa;)) t chưa nghĩ ra
         else{
             System.out.println("Chuyển sang trang Login");
+            switchScene(event,"/views/LoginView.fxml","Đăng nhập hệ thống");
         }
     }
+    @FXML
     void hienthi_pass(ActionEvent event){
         logichienthi_pass(pass_an,pass_hien);
     }
+    @FXML
     void rehienthi_pass(ActionEvent event){
         logichienthi_pass(repass_an,repass_hien);
     }
+    @FXML
     void handleLogin(ActionEvent event){
         System.out.println("Sang trang login");
         switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    }
+    @FXML
+    void handleDieuKhoan(ActionEvent event){
+        System.out.println("Sang trang Dieu Khoan");
     }
 }

@@ -40,6 +40,7 @@ public class BaseController {
             stage.show();
         } catch (java.io.IOException e) {
             e.printStackTrace();
+            System.out.println("Lỗi rồi: " + e.getMessage());
         }
     }
 }
