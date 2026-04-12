@@ -23,13 +23,6 @@ public class RegisterController extends BaseController {
     private PasswordField repass_an;
 @FXML
 private CheckBox cbCommit;
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
 @FXML
     void handleRegister(ActionEvent event){
         String userName = tfuserName.getText();

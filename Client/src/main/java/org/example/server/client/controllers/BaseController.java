@@ -1,9 +1,19 @@
 package org.example.server.client.controllers;
 
+import java.io.IOException;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class BaseController {
 
@@ -26,21 +36,37 @@ public class BaseController {
 
     protected void switchScene(ActionEvent event, String fxmlPath, String title) {
         try {
-            // 1. Tải file FXML
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Parent root = loader.load();
+            // 1. Lấy Stage hiện tại
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            // 2. Lấy Stage hiện tại
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+            // 2. KIỂM TRA: Nếu tiêu đề hiện tại đã trùng với tiêu đề trang muốn tới
+            if (stage.getTitle() != null && stage.getTitle().equals(title)) {
+                System.out.println("Bạn đang ở trang '" + title + "' rồi, không chuyển nữa.");
+                return; // Dừng hàm tại đây, không load FXML nữa
+            }
 
-            // 3. Hiển thị Scene mới
+            // 3. Nếu chưa ở trang đó, tiến hành load Scene mới
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+
             stage.setTitle(title);
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.setMaximized(true); // Giữ full màn hình
+
+            stage.setScene(scene);
             stage.show();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-            System.out.println("Lỗi rồi: " + e.getMessage());
+
+        } catch (IOException e) {
+            System.err.println("Lỗi chuyển cảnh sang " + fxmlPath + ": " + e.getMessage());
         }
     }
+
+    protected void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+
 }

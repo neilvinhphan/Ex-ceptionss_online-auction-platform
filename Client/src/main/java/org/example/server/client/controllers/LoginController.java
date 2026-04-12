@@ -34,6 +34,7 @@ public class LoginController extends BaseController {
          */
         else{
             System.out.println("Chuyển sang trang chủ");
+            switchScene(event,"/views/MainView.fxml","Trang chủ");
         }
     }
 
@@ -52,11 +53,5 @@ public class LoginController extends BaseController {
         System.out.println("Mở form lấy lại mật khẩu...");
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
+
 }
