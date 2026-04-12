@@ -15,10 +15,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.server.client.controllers.RegisterController">
+<AnchorPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.server.client.controllers.RegisterController">
    <children>
-      <ImageView fitHeight="1080.0" fitWidth="1920.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <ImageView fitHeight="902.0" fitWidth="1566.0" layoutY="22.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <image>
             <Image url="@../images/demohinhnen.jpg" />
          </image>
@@ -64,9 +63,9 @@
                   </Button>
                </children>
             </StackPane>
-            <VBox prefHeight="52.0" prefWidth="880.0">
+            <VBox prefHeight="81.0" prefWidth="880.0">
                <children>
-                  <CheckBox fx:id="cbCommit" mnemonicParsing="false" prefHeight="29.0" prefWidth="883.0" style="-fx-font-size: 13;" text="Tôi cam kết tuân thủ quyền và trách nhiệm của người tham gia đấu giá, chính sách và mọi Điều khoản dịch vụ tại website đấu giá team Exception" wrapText="true">
+                  <CheckBox fx:id="cbCommit" mnemonicParsing="false" prefHeight="70.0" prefWidth="880.0" style="-fx-font-size: 13;" text="Tôi cam kết tuân thủ quyền và trách nhiệm của người tham gia đấu giá, chính sách và mọi Điều khoản dịch vụ tại website đấu giá team Exception" wrapText="true">
                      <font>
                         <Font size="13.0" />
                      </font>
@@ -75,7 +74,7 @@
                </children>
             </VBox>
             <Button mnemonicParsing="false" onAction="#handleRegister" prefHeight="43.0" prefWidth="222.0" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #28a745; -fx-font-size: 15;" text="Đăng ký" />
-            <HBox prefHeight="100.0" prefWidth="200.0">
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
                   <Label prefHeight="24.0" prefWidth="111.0" style="-fx-font-size: 14;" text="Đã có tài khoản? " />
                   <Hyperlink onAction="#handleLogin" style="-fx-font-size: 13; -fx-text-fill: #28a745; -fx-font-weight: bold;" text="Đăng nhập" />
