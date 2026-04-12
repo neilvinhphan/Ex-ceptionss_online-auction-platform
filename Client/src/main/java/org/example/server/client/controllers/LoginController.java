@@ -6,7 +6,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-public class LoginController {
+public class LoginController extends BaseController {
 
     @FXML
     private TextField tfuserName;
@@ -14,7 +14,6 @@ public class LoginController {
     private PasswordField pass_an;
     @FXML
     private TextField pass_hien;
-    private boolean isPasswordVisible = false;
     @FXML
     void handleLogin(ActionEvent event) {
         String userName = tfuserName.getText();
@@ -40,21 +39,12 @@ public class LoginController {
 
     @FXML
     void hienthi_pass(ActionEvent event) {
-        if (!isPasswordVisible) {
-            pass_hien.setText(pass_an.getText());
-            pass_hien.setVisible(true);
-            pass_an.setVisible(false);
-            isPasswordVisible = true;
-        } else {
-            pass_an.setText(pass_hien.getText());
-            pass_an.setVisible(true);
-            pass_hien.setVisible(false);
-            isPasswordVisible = false;
-        }
+        logichienthi_pass(pass_an,pass_hien);
     }
     @FXML
     void handleRegister(ActionEvent event) {
         System.out.println("Đang chuyển sang trang Đăng ký...");
+        switchScene(event, "/views/RegisterView.fxml", "Đăng ký tài khoản ");
     }
 
     @FXML
