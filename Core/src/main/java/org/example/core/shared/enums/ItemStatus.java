@@ -1,3 +1,8 @@
 package org.example.core.shared.enums;
 
-public class ItemStatus {}
+public enum ItemStatus {
+  DRAFT,
+  LISTED,
+  SOLD,
+  REMOVED,
+}
