@@ -1,0 +1,29 @@
+/* Tên class cho cái hình tròn */
+.hinh-tron-icon {
+    -fx-background-color: #C1FFC1; /* Màu xanh nhạt hiện tại của bạn */
+    -fx-background-radius: 50%;
+}
+
+/* Hiệu ứng khi di chuột vào (hover) */
+.hinh-tron-icon:hover {
+    -fx-background-color: #82E082; /* Màu xanh đậm hơn */
+}
+.glass-hbox {
+    /* 1. Màu nền: Tone xanh rêu nhạt/trắng đục, độ trong suốt (alpha) là 0.25 */
+    /* Bạn có thể chỉnh số 0.25 to lên (0.5) nếu muốn nó đục hơn, hoặc nhỏ đi (0.1) để trong hơn */
+    -fx-background-color: rgba(220, 255, 240, 0.25);
+
+    /* 2. Bo tròn góc giống ảnh thiết kế */
+    -fx-background-radius: 15px;
+
+    /* 3. Viền (rất quan trọng): Viền màu trắng/xanh sáng mỏng, bán trong suốt giúp tạo cảm giác mép kính */
+    -fx-border-color: rgba(255, 255, 255, 0.6);
+    -fx-border-radius: 15px;
+    -fx-border-width: 1.5px;
+
+    /* 4. Đổ bóng: Tạo bóng đen mờ phía sau để HBox nổi bần bật lên khỏi hình nền */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 15, 0, 0, 5);
+
+    /* 5. Căn lề trong (padding) cho 3 cái ô không bị dính sát vào viền kính */
+    -fx-padding: 8px 15px 8px 15px;
+}
