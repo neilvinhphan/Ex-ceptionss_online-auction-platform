@@ -28,6 +28,8 @@ public abstract class Item extends Entity {
       String description,
       BigDecimal startingPrice) {}
 
+  public Item() {}
+
   // GETTERS & SETTERS
   public String getType() {
     return type;
