@@ -1,3 +1,48 @@
 package org.example.server.services.authService;
 
-public class AuthRegister {}
+import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.models.users.User;
+import org.example.server.dao.UserDAO;
+import org.mindrot.jbcrypt.BCrypt;
+
+public class AuthRegister {
+  UserDAO userDAO = UserDAO.getInstance();
+
+  public User register(RegisterRequestDTO requestPayLoad) throws Exception {
+
+    String nameInCheck = requestPayLoad.getUsername();
+    String passInCheck = requestPayLoad.getPassword();
+    String mailInCheck = requestPayLoad.getEmail();
+    String phoneInCheck = requestPayLoad.getPhone();
+
+    // Check rỗng
+    if (nameInCheck == null || nameInCheck.trim().isEmpty()) {
+      throw new Exception("Please enter an username");
+    } else if (passInCheck == null || passInCheck.trim().isEmpty()) {
+      throw new Exception("Please enter a password");
+    } else if (mailInCheck == null || mailInCheck.trim().isEmpty()) {
+      throw new Exception("Please enter an email");
+    } else if (phoneInCheck == null || phoneInCheck.trim().isEmpty()) {
+      throw new Exception("Please enter a phone number");
+    }
+
+    // Check username existence
+    User userDB = userDAO.getUserByUsername(nameInCheck);
+    if (userDB.getUserName() != null) {
+      throw new Exception("Username existed.");
+    }
+
+    // Hashing password
+    String hashedPass = BCrypt.hashpw(passInCheck, BCrypt.gensalt(12));
+
+    // Khởi tạo User (đã pass kiểm duyệt)
+    User newUser = new User(nameInCheck, hashedPass, mailInCheck, phoneInCheck);
+
+    boolean isSuccess = userDAO.registerUser(newUser);
+    if (!isSuccess) {
+      throw new Exception("Something wrong in DB.");
+    }
+
+    return newUser;
+  }
+}

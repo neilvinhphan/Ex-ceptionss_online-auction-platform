@@ -35,20 +35,6 @@ public class UserDAO {
     }
   }
 
-  public User checkLogin(String username, String password) throws Exception {
-    User user = getUserByUsername(username);
-    if (user == null) {
-      throw new Exception("Account not found");
-    }
-    if (!user.getPassword().equals(password)) {
-      throw new Exception("Wrong password");
-    }
-    if (!user.getStatus()) {
-      throw new Exception("Account is locked");
-    }
-    return user;
-  }
-
   public User getUserByUsername(String username) throws Exception {
     String sql = "SELECT * FROM user WHERE user_name = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -85,26 +71,5 @@ public class UserDAO {
       ps.setString(2, username);
       ps.executeUpdate();
     }
-  }
-  public User upgradeToSeller(String username) throws Exception {
-    String sql = "UPDATE user SET role = 'seller' WHERE user_name = ?";
-    try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setString(1, username);
-      ps.executeUpdate();
-    }
-    return null;
-  }
-  public boolean isSeller(String username) throws Exception {
-    String sql = "SELECT role FROM user WHERE user_name = ?";
-    try(Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
-      try(ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-        String role = rs.getString("role");
-        return "seller".equalsIgnoreCase(role);
-        }
-      }
-    } return false;
   }
 }
