@@ -1,53 +1,16 @@
 package org.example.dto;
 
 public class RegisterRequestDTO {
-  public String firstname;
-  public String lastname;
-  public String middlename;
-  public String username;
-  public String phone;
-  public String email;
-  public String password;
+  private String username;
+  private String phone;
+  private String email;
+  private String password;
 
-  public RegisterRequestDTO(
-      String firstname,
-      String lastname,
-      String middlename,
-      String username,
-      String phone,
-      String email,
-      String password) {
-    this.firstname = firstname;
-    this.lastname = lastname;
-    this.middlename = middlename;
+  public RegisterRequestDTO(String username, String phone, String email, String password) {
     this.username = username;
     this.phone = phone;
     this.email = email;
     this.password = password;
-  }
-
-  public String getFirstname() {
-    return firstname;
-  }
-
-  public void setFirstname(String firstname) {
-    this.firstname = firstname;
-  }
-
-  public String getLastname() {
-    return lastname;
-  }
-
-  public void setLastname(String lastname) {
-    this.lastname = lastname;
-  }
-
-  public String getMiddlename() {
-    return middlename;
-  }
-
-  public void setMiddlename(String middlename) {
-    this.middlename = middlename;
   }
 
   public String getUsername() {

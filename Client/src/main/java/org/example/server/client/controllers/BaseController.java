@@ -41,7 +41,7 @@ public class BaseController {
 
             // 2. KIỂM TRA: Nếu tiêu đề hiện tại đã trùng với tiêu đề trang muốn tới
             if (stage.getTitle() != null && stage.getTitle().equals(title)) {
-                System.out.println("Bạn đang ở trang '" + title + "' rồi, không chuyển nữa.");
+                System.out.println("Bạn đang ở trang " + title + "rồi, không chuyển nữa.");
                 return; // Dừng hàm tại đây, không load FXML nữa
             }
 
@@ -49,12 +49,9 @@ public class BaseController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             Scene scene = new Scene(root);
-
             stage.setTitle(title);
-
             stage.setScene(scene);
             stage.show();
-
         } catch (IOException e) {
             System.err.println("Lỗi chuyển cảnh sang " + fxmlPath + ": " + e.getMessage());
         }
@@ -67,6 +64,5 @@ public class BaseController {
         alert.setContentText(content);
         alert.showAndWait();
     }
-
 
 }
