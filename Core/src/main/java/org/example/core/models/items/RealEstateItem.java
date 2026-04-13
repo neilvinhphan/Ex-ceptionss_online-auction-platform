@@ -26,6 +26,7 @@ public class RealEstateItem extends Item {
     this.propertyType = propertyType;
     this.legalStatus = legalStatus;
   }
+  public RealEstateItem() {}
 
   public String getLocation() {
     return location;
