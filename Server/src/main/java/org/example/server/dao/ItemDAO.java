@@ -21,9 +21,6 @@ public class ItemDAO {
             }
         } return instance;
     }
-    public Item initializeItem() {
-
-    }
 }
 class ItemFactory {
     public static Item createItem(String type) {
