@@ -16,6 +16,8 @@ public class User extends Entity {
   protected String phone;
   protected String email;
   protected String password;
+  protected String role;
+  protected boolean status;
 
   // Seller contributes
   private SellerProfile sellerProfile;
@@ -108,4 +110,8 @@ public class User extends Entity {
   public void setBalance(BigDecimal balance) {
     this.balance = balance;
   }
+  public String getRole() {return role;}
+  public void setRole(String role) {this.role = role;}
+  public void setStatus(boolean status) {this.status = status;}
+  public boolean getStatus() {return status;}
 }

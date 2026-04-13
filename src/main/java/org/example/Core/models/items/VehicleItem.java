@@ -18,6 +18,7 @@ public class VehicleItem extends Item {
       BigDecimal startingPrice) {
     super(id, createdAt, type, itemName, description, startingPrice);
   }
+  public VehicleItem() {}
 
   // GETTER & SETTER
   public String getBrand() {

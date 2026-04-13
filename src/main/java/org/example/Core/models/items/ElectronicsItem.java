@@ -23,6 +23,7 @@ public class ElectronicsItem extends Item {
     this.warrantyMonths = warrantyMonths;
     this.condition = condition;
   }
+  public ElectronicsItem() {}
 
   public String getCondition() {
     return condition;
