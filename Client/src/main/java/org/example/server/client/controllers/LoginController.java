@@ -14,6 +14,7 @@ public class LoginController extends BaseController {
     private PasswordField pass_an;
     @FXML
     private TextField pass_hien;
+
     @FXML
     void handleLogin(ActionEvent event) {
         String userName = tfuserName.getText();
@@ -32,16 +33,17 @@ public class LoginController extends BaseController {
             showAlert("Thất bại", "Tài khoản hoặc mật khẩu không chính xác!");
         }
          */
-        else{
+        else {
             System.out.println("Chuyển sang trang chủ");
-            switchScene(event,"/views/MainView.fxml","Trang chủ");
+            switchScene(event, "/views/MainView.fxml", "Trang chủ");
         }
     }
 
     @FXML
     void hienthi_pass(ActionEvent event) {
-        logichienthi_pass(pass_an,pass_hien);
+        logichienthi_pass(pass_an, pass_hien);
     }
+
     @FXML
     void handleRegister(ActionEvent event) {
         System.out.println("Đang chuyển sang trang Đăng ký...");
