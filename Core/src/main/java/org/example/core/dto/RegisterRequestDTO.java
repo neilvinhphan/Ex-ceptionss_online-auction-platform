@@ -1,13 +1,13 @@
 package org.example.core.dto;
 
 public class RegisterRequestDTO {
-  public String firstname;
-  public String lastname;
-  public String middlename;
-  public String username;
-  public String phone;
-  public String email;
-  public String password;
+  private String firstname;
+  private String lastname;
+  private String middlename;
+  private String username;
+  private String phone;
+  private String email;
+  private String password;
 
   public RegisterRequestDTO(
       String firstname,
