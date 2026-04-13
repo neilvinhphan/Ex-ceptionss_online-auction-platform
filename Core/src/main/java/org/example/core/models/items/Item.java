@@ -35,6 +35,8 @@ public abstract class Item extends Entity {
     this.startingPrice = startingPrice;
   }
 
+  public Item() {}
+
   // GETTERS & SETTERS
   public String getType() {
     return type;

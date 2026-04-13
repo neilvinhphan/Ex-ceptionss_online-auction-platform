@@ -26,6 +26,7 @@ public class AntiqueItem extends Item {
     this.condition = condition;
     this.isCertified = isCertified;
   }
+  public AntiqueItem() {}
 
   public String getEra() {
     return era;

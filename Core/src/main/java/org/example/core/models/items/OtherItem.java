@@ -23,6 +23,7 @@ public class OtherItem extends Item {
     this.origin = origin;
     this.weight = weight;
   }
+  public OtherItem() {}
 
   public String getCategory() {
     return category;

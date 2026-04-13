@@ -26,7 +26,7 @@ public class JewelryItem extends Item {
     this.weight = weight;
     this.certification = certification;
   }
-
+  public JewelryItem() {}
   public String getMaterial() {
     return material;
   }

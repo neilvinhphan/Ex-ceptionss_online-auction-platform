@@ -21,6 +21,8 @@ public class ArtItem extends Item {
     this.creationYear = creationYear;
   }
 
+  public ArtItem() {}
+
   public String getArtist() {
     return artist;
   }
