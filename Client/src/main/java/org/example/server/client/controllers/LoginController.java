@@ -1,54 +1,57 @@
 package org.example.server.client.controllers;
 
-import org.example.server.client.LoginView;
-import org.example.server.client.MainView;
-import org.example.server.client.RegisterView;
-
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
-public class LoginController {
-    private LoginView view;
+public class LoginController extends BaseController {
 
-    public LoginController(LoginView view) {
-        this.view = view;
-        initEvents();
+    @FXML
+    private TextField tfuserName;
+    @FXML
+    private PasswordField pass_an;
+    @FXML
+    private TextField pass_hien;
+    @FXML
+    void handleLogin(ActionEvent event) {
+        String userName = tfuserName.getText();
+        String password = pass_an.getText();
+        String passwordhidden = pass_hien.getText();
+
+        if (userName.isEmpty() || password.isEmpty()) {
+            showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+
+        }
+
+        /* Giả lập kiểm tra tài khoản (Sau này bạn sẽ gọi vào Database ở đây)
+        if (userName.equals("admin") && password.equals("123")) {
+            System.out.println("Đăng nhập thành công!");
+        } else {
+            showAlert("Thất bại", "Tài khoản hoặc mật khẩu không chính xác!");
+        }
+         */
+        else{
+            System.out.println("Chuyển sang trang chủ");
+            switchScene(event,"/views/MainView.fxml","Trang chủ");
+        }
     }
 
-    private void initEvents() {
-        view.getBtnSignin().setOnAction(e -> {
-            String user = view.getTfUsername().getText();
-            String pass = view.getPassAn().getText();
-
-            if (user.isEmpty() || pass.isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Thông báo");
-                alert.setHeaderText(null);
-                alert.setContentText("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
-                alert.showAndWait();
-            } else {
-                Stage stage = (Stage) view.getRoot().getScene().getWindow();
-                MainView mv = new MainView();
-                new MainController(mv);
-                stage.setScene(new Scene(mv.getRoot(), 1200, 750));
-                stage.centerOnScreen();
-            }
-        });
-
-        view.getLinkRegis().setOnAction(e -> {
-            Stage stage = (Stage) view.getRoot().getScene().getWindow();
-            RegisterView rv = new RegisterView();
-            new RegisterController(rv);
-            stage.setScene(new Scene(rv.getRoot(), 900, 650));
-        });
-
-        view.getBtnEye().setOnAction(e -> {
-            boolean isVisible = view.getPassAn().isVisible();
-            view.getPassAn().setVisible(!isVisible);
-            view.getPassAn().setManaged(!isVisible);
-            view.getPassHien().setVisible(isVisible);
-            view.getPassHien().setManaged(isVisible);
-        });
+    @FXML
+    void hienthi_pass(ActionEvent event) {
+        logichienthi_pass(pass_an,pass_hien);
     }
+    @FXML
+    void handleRegister(ActionEvent event) {
+        System.out.println("Đang chuyển sang trang Đăng ký...");
+        switchScene(event, "/views/RegisterView.fxml", "Đăng ký tài khoản ");
+    }
+
+    @FXML
+    void handleForgotPassword(ActionEvent event) {
+        System.out.println("Mở form lấy lại mật khẩu...");
+    }
+
+
 }

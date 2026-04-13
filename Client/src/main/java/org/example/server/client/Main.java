@@ -1,3 +1,29 @@
 package org.example.server.client;
 
-public class Main {}
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+public class Main extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        // 1. Chỉ đường dẫn đến file FXML của bạn
+        // Lưu ý: Đường dẫn phải khớp với cấu trúc trong thư mục resources
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/MainView.fxml"));
+        Parent root = loader.load();
+
+
+        Scene scene = new Scene(root);
+        primaryStage.setTitle("Trang chủ");
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}

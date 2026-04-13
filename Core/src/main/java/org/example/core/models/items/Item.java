@@ -20,13 +20,20 @@ public abstract class Item extends Entity {
     this.startingPrice = startingPrice;
   }
 
+  // Constructor khi tạo Item
   public Item(
       int id,
       LocalDateTime createdAt,
       String type,
       String itemName,
       String description,
-      BigDecimal startingPrice) {}
+      BigDecimal startingPrice) {
+    super(id, createdAt);
+    this.type = type;
+    this.itemName = itemName;
+    this.description = description;
+    this.startingPrice = startingPrice;
+  }
 
   public Item() {}
 

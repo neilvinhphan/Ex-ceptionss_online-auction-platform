@@ -1,48 +1,67 @@
 package org.example.server.client.controllers;
-
-import org.example.server.client.LoginView;
-import org.example.server.client.RegisterView;
-
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
-public class RegisterController {
-    private RegisterView view;
-
-    public RegisterController(RegisterView view) {
-        this.view = view;
-        handleEvents();
+public class RegisterController extends BaseController {
+    @FXML
+    private TextField tfuserName;
+    @FXML
+    private TextField tfphone;
+    @FXML
+    private TextField tfemail;
+    @FXML
+    private TextField pass_hien;
+    @FXML
+    private TextField repass_hien;
+    @FXML
+    private PasswordField pass_an;
+    @FXML
+    private PasswordField repass_an;
+@FXML
+private CheckBox cbCommit;
+@FXML
+    void handleRegister(ActionEvent event){
+        String userName = tfuserName.getText();
+        String phone = tfphone.getText();
+        String email = tfemail.getText();
+        String password = pass_an.getText();
+        String passwordhidden = pass_hien.getText();
+        String repassword = repass_an.getText();
+        String repasswordhidden = repass_hien.getText();
+        if (userName.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty() || repassword.isEmpty()){
+            showAlert("Lỗi","Vui lòng nhập đủ thông tin!");
+        }
+        else if(!password.equals(repassword)){
+            showAlert("Lỗi","Mật khẩu không khớp! Vui lòng kiểm tra lại! ");
+        }
+        else if(!cbCommit.isSelected()){
+            showAlert("Thông báo","Vui lòng đồng ý với điều khoản dịch vụ để tiếp tục!");
+        }
+        // sẽ có 1 cái gì đó check xem trong database tồn tại tài kh đó chưa;)) t chưa nghĩ ra
+        else{
+            System.out.println("Chuyển sang trang Login");
+            switchScene(event,"/views/LoginView.fxml","Đăng nhập hệ thống");
+        }
     }
-
-    private void handleEvents() {
-        view.getBtnRegister().setOnAction(e -> {
-            if (view.getTfUsername().getText().isEmpty() || view.getPassAn().getText().isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Cảnh báo");
-                alert.setHeaderText(null);
-                alert.setContentText("Vui lòng điền đầy đủ thông tin trước khi đăng ký!");
-                alert.showAndWait();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Thành công");
-                alert.setHeaderText(null);
-                alert.setContentText("Đăng ký tài khoản thành công! ");
-                alert.showAndWait();
-
-                Stage stage = (Stage) view.getRoot().getScene().getWindow();
-                LoginView loginView = new LoginView();
-                new org.example.server.client.controllers.LoginController(loginView); // Khởi tạo não cho trang đăng nhập
-                stage.setScene(new Scene(loginView.getRoot(), 900, 650));
-                stage.centerOnScreen();
-            }
-        });
-
-        view.getLinkLogin().setOnAction(e -> {
-            Stage stage = (Stage) view.getRoot().getScene().getWindow();
-            LoginView lv = new LoginView();
-            new org.example.server.client.controllers.LoginController(lv);
-            stage.setScene(new Scene(lv.getRoot(), 900, 650));
-        });
+    @FXML
+    void hienthi_pass(ActionEvent event){
+        logichienthi_pass(pass_an,pass_hien);
+    }
+    @FXML
+    void rehienthi_pass(ActionEvent event){
+        logichienthi_pass(repass_an,repass_hien);
+    }
+    @FXML
+    void handleLogin(ActionEvent event){
+        System.out.println("Sang trang login");
+        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    }
+    @FXML
+    void handleDieuKhoan(ActionEvent event){
+        System.out.println("Sang trang Dieu Khoan");
     }
 }

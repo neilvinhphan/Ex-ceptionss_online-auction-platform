@@ -1,3 +1,10 @@
 package org.example.core.shared.enums;
 
-public class AuctionStatus {}
+public enum AuctionStatus {
+  PENDING,
+  OPEN,
+  RUNNING,
+  FINISHED,
+  PAID,
+  CANCELED,
+}
