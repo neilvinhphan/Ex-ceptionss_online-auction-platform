@@ -11,12 +11,13 @@ public class VehicleItem extends Item {
 
   public VehicleItem(
       int id,
+      int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
   }
   public VehicleItem() {}
 

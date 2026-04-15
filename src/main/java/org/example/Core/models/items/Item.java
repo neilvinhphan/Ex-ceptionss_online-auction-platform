@@ -10,10 +10,12 @@ public abstract class Item extends Entity {
   private String itemName;
   private BigDecimal startingPrice;
   protected String description;
+  private  int sellerID;
 
   // Constructor khi Lấy từ DB lên
-  public Item(int id, String type, String itemName, String description, BigDecimal startingPrice) {
+  public Item(int id,int sellerID, String type, String itemName, String description, BigDecimal startingPrice) {
     super(id);
+    this.sellerID = sellerID;
     this.type = type;
     this.itemName = itemName;
     this.description = description;
@@ -23,12 +25,14 @@ public abstract class Item extends Entity {
   // Constructor khi tạo Item
   public Item(
       int id,
+      int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
       String description,
       BigDecimal startingPrice) {
     super(id, createdAt);
+    this.sellerID = sellerID;
     this.type = type;
     this.itemName = itemName;
     this.description = description;
@@ -70,6 +74,14 @@ public abstract class Item extends Entity {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public void setSellerID(int sellerID) {
+    this.sellerID = sellerID;
+  }
+
+  public int getSellerID() {
+    return sellerID;
   }
 
   protected abstract void printInfo();

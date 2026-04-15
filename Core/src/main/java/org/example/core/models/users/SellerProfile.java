@@ -1,7 +1,6 @@
 package org.example.core.models.users;
 
-public class
-SellerProfile {
+public class SellerProfile {
   protected double rating;
 
   public SellerProfile() {}

@@ -10,6 +10,7 @@ public class OtherItem extends Item {
 
   public OtherItem(
       int id,
+      int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -18,7 +19,7 @@ public class OtherItem extends Item {
       double weight,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
     this.category = category;
     this.origin = origin;
     this.weight = weight;

@@ -26,7 +26,7 @@ public class UserDAO {
   public boolean registerUser(User user) throws Exception {
     String sql = "INSERT INTO user (user_name, password, email, phone_number) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement preparedstatement = connection.prepareStatement(sql)) {
+         PreparedStatement preparedstatement = connection.prepareStatement(sql)) {
       preparedstatement.setString(1, user.getUserName());
       preparedstatement.setString(2, user.getPassword());
       preparedstatement.setString(3, user.getEmail());
@@ -38,7 +38,7 @@ public class UserDAO {
   public User getUserByUsername(String username) throws Exception {
     String sql = "SELECT * FROM user WHERE user_name = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, username);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -66,10 +66,30 @@ public class UserDAO {
       finalAmount = amount.negate();
     }
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, finalAmount);
       ps.setString(2, username);
       ps.executeUpdate();
+    }
+  }
+
+  public boolean updatePasswordByUsername(String username, String hashedPassword) throws Exception {
+    String sql = "UPDATE user SET password = ? WHERE user_name = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, hashedPassword);
+      ps.setString(2, username);
+      return ps.executeUpdate() > 0;
+    }
+  }
+
+  public boolean updateRatingByUsername(String username, double rating) throws Exception {
+    String sql = "UPDATE user SET rating = ? WHERE user_name = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setDouble(1, rating);
+      ps.setString(2, username);
+      return ps.executeUpdate() > 0;
     }
   }
 }
