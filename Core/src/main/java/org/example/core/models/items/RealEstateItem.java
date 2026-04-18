@@ -11,6 +11,7 @@ public class RealEstateItem extends Item {
 
   public RealEstateItem(
       int id,
+      int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -20,7 +21,7 @@ public class RealEstateItem extends Item {
       String legalStatus,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
     this.location = location;
     this.area = area;
     this.propertyType = propertyType;

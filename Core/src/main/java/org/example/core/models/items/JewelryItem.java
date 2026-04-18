@@ -11,6 +11,7 @@ public class JewelryItem extends Item {
 
   public JewelryItem(
       int id,
+      int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -20,7 +21,7 @@ public class JewelryItem extends Item {
       String certification,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
     this.material = material;
     this.gemstone = gemstone;
     this.weight = weight;
