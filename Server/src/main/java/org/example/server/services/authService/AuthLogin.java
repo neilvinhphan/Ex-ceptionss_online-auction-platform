@@ -1,4 +1,4 @@
-package org.example.server.services.authService;
+package org.example.server.services.authservice;
 
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.models.users.User;
@@ -7,7 +7,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import static org.example.core.shared.enums.UserStatus.*;
 
-public class AuthLogin {
+public class  AuthLogin {
   UserDAO userDAO = UserDAO.getInstance();
 
   public User login(LoginRequestDTO requestPayLoad) throws Exception {
