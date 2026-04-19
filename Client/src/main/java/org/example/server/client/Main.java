@@ -17,6 +17,8 @@ public class Main extends Application {
         primaryStage.setTitle("Trang chủ");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
+      //  primaryStage.setFullScreenExitHint("");
+
         primaryStage.show();
     }
 
