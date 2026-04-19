@@ -9,6 +9,7 @@ public class ArtItem extends Item {
 
   public ArtItem(
       int id,
+      int ownerId
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -16,7 +17,7 @@ public class ArtItem extends Item {
       int creationYear,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, ownerId, createdAt, type, itemName, description, startingPrice);
     this.artist = artist;
     this.creationYear = creationYear;
   }

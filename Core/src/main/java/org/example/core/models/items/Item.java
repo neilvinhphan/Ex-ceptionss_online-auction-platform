@@ -10,6 +10,7 @@ public abstract class Item extends Entity {
   private String itemName;
   private BigDecimal startingPrice;
   protected String description;
+  private int ownerId;
 
   // Constructor khi Lấy từ DB lên
   public Item(int id, String type, String itemName, String description, BigDecimal startingPrice) {
@@ -18,11 +19,13 @@ public abstract class Item extends Entity {
     this.itemName = itemName;
     this.description = description;
     this.startingPrice = startingPrice;
+    this.ownerId = ownerId;
   }
 
   // Constructor khi tạo Item
   public Item(
       int id,
+      int ownerId,
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -33,6 +36,7 @@ public abstract class Item extends Entity {
     this.itemName = itemName;
     this.description = description;
     this.startingPrice = startingPrice;
+    this.ownerId = ownerId;
   }
 
   public Item() {}
@@ -69,6 +73,10 @@ public abstract class Item extends Entity {
   public void setDescription(String description) {
     this.description = description;
   }
+
+  public int getOwnerId() {return ownerId;}
+
+  public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
 
   protected abstract void printInfo();
 }

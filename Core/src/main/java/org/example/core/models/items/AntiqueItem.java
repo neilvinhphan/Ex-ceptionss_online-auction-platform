@@ -11,6 +11,7 @@ public class AntiqueItem extends Item {
 
   public AntiqueItem(
       int id,
+      int ownerId,
       LocalDateTime createdAt,
       String type,
       String itemName,
@@ -20,7 +21,7 @@ public class AntiqueItem extends Item {
       boolean isCertified,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt, type, itemName, description, startingPrice);
+    super(id, ownerId, createdAt, type, itemName, description, startingPrice);
     this.era = era;
     this.material = material;
     this.condition = condition;
