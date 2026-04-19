@@ -1,4 +1,4 @@
-package org.example.Core.models.items;
+package org.example.core.models.items;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ public class ElectronicsItem extends Item {
       String condition,
       String description,
       BigDecimal startingPrice) {
-    super(id,sellerID, createdAt, type, itemName, description, startingPrice);
+    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
     this.brand = brand;
     this.warrantyMonths = warrantyMonths;
     this.condition = condition;

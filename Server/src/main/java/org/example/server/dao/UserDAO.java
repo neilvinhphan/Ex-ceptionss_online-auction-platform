@@ -23,7 +23,7 @@ public class UserDAO {
     return instance;
   }
 
-  public boolean registerUser(User user) throws Exception {
+  public boolean registerUser(User user) {
     String sql = "INSERT INTO user (user_name, password, email, phone_number) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement preparedstatement = connection.prepareStatement(sql)) {
@@ -32,6 +32,8 @@ public class UserDAO {
       preparedstatement.setString(3, user.getEmail());
       preparedstatement.setString(4, user.getPhone());
       return preparedstatement.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -53,33 +55,124 @@ public class UserDAO {
           return user;
         }
       }
-    }
+    } catch (Exception e) {
+throw new RuntimeException(e);
+}
     return null;
   }
 
-  public void updateBalance(String username, BigDecimal amount, String act) throws Exception {
-    String sql = "UPDATE user SET balance = balance + ? WHERE user_name = ?";
-    BigDecimal finalAmount;
-    if (act.equals("Deposit")) {
-      finalAmount = amount;
-    } else {
-      finalAmount = amount.negate();
-    }
+  public User getUserByUserId(int id) {
+    String sql = "SELECT * FROM user WHERE user_id = ?";
+    try(Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, id);
+      try (ResultSet rs = ps.executeQuery()) {
+        if(rs.next()) {
+          User user = new User();
+          user.setPassword(rs.getString("password"));
+          user.setId(rs.getInt("user_id"));
+          user.setUserName(rs.getString("user_name"));
+          user.setBalance(rs.getBigDecimal("balance"));
+          user.setEmail(rs.getString("email"));
+          user.setPhone(rs.getString("phone_number"));
+          user.setStatus(rs.getBoolean("status"));
+          return user;
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } return null;
+  }
+
+  public boolean updateBalance(int id, BigDecimal balance) {
+    String sql = "UPDATE user SET balance = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setBigDecimal(1, finalAmount);
-      ps.setString(2, username);
-      ps.executeUpdate();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setBigDecimal(1, balance);
+      ps.setInt(2, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
-  public boolean updatePasswordByUsername(String username, String hashedPassword) throws Exception {
-    String sql = "UPDATE user SET password = ? WHERE user_name = ?";
+  public boolean updatePassword(int id, String password) {
+    String sql = "UPDATE user SET password = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setString(1, hashedPassword);
-      ps.setString(2, username);
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, password);
+      ps.setInt(2, id);
       return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateRole(int id) {
+    String sql = "UPDATE user SET role = 'seller' WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updatePhonenumber(int id, String pn) {
+    String sql = "UPDATE user SET phone_number = ? WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, pn);
+      ps.setInt(2, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateEmail(int id, String email) {
+    String sql = "UPDATE user SET email = ? WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, email);
+      ps.setInt(2, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+  }
+
+  public boolean banStatus(int id) {
+    String sql = "UPDATE user SET status = false WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw  new RuntimeException(e);
+    }
+  }
+
+  public boolean unbanStatus(int id) {
+    String sql = "UPDATE user SET status = true WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, id);
+      return ps.executeUpdate() >0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean getStatus(int id) {
+    String sql = "SELECT status FROM user WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, id);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

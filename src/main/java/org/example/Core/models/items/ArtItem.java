@@ -1,4 +1,4 @@
-package org.example.Core.models.items;
+package org.example.core.models.items;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

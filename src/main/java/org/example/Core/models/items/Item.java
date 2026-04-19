@@ -1,6 +1,6 @@
-package org.example.Core.models.items;
+package org.example.core.models.items;
 
-import org.example.Core.models.entities.Entity;
+import org.example.core.models.entities.Entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,8 +38,6 @@ public abstract class Item extends Entity {
     this.description = description;
     this.startingPrice = startingPrice;
   }
-
-  public Item() {}
 
   public Item() {}
 
