@@ -1,4 +1,4 @@
-package org.example.server.services.authService;
+package org.example.server.services.authservice;
 
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.models.users.User;
