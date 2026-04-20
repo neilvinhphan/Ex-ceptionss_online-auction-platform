@@ -17,7 +17,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.server.client.controllers.MainController">
    <content>
       <VBox spacing="30.0" stylesheets="@style.css">
@@ -42,7 +41,7 @@
                               <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                           </items>
                         </MenuButton>
-                        <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" prefHeight="33.0" prefWidth="153.0" style="-fx-background-radius: 30;" text="Phòng đấu giá">
+                        <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" prefHeight="33.0" prefWidth="153.0" style="-fx-background-radius: 30;" text="Phiên đấu giá">
                           <items>
                             <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
                             <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
@@ -149,6 +148,7 @@
                </children>
             </FlowPane>
             <FlowPane />
+            <Label text="Label" />
          </children>
       </VBox>
    </content>
