@@ -16,7 +16,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class BaseController {
-
     protected boolean isPasswordVisible = false;
 
     protected void logichienthi_pass(PasswordField pass_an, TextField pass_hien) {
@@ -36,24 +35,30 @@ public class BaseController {
 
     protected void switchScene(ActionEvent event, String fxmlPath, String title) {
         try {
-            // 1. Lấy Stage hiện tại
+            // Lấy ra Stage và Scene HIỆN TẠI
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene currentScene = ((Node) event.getSource()).getScene();
 
-            // 2. KIỂM TRA: Nếu tiêu đề hiện tại đã trùng với tiêu đề trang muốn tới
             if (stage.getTitle() != null && stage.getTitle().equals(title)) {
-                System.out.println("Bạn đang ở trang " + title + "rồi, không chuyển nữa.");
-                return; // Dừng hàm tại đây, không load FXML nữa
+                return;
             }
 
-            // 3. Nếu chưa ở trang đó, tiến hành load Scene mới
+            // Load giao diện mới
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
+            Parent newRoot = loader.load();
+
+            // --- ĐIỂM KHÁC BIỆT CHÍNH ---
+            // KHÔNG tạo new Scene(). Chỉ cần thay ruột của Scene hiện tại.
+            currentScene.setRoot(newRoot);
+
             stage.setTitle(title);
-            stage.setScene(scene);
-            stage.show();
+
+            // Không cần gọi lại stage.setMaximized(true) hay stage.show() nữa
+            // vì cửa sổ vốn đang mở và full screen rồi.
+
         } catch (IOException e) {
             System.err.println("Lỗi chuyển cảnh sang " + fxmlPath + ": " + e.getMessage());
+            e.printStackTrace(); // Nên in ra stack trace để dễ debug hơn
         }
     }
 
