@@ -13,11 +13,9 @@
     </parent>
 
     <dependencies>
-
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>org.example</groupId>
+            <artifactId>Core</artifactId>
         </dependency>
 
         <dependency>
@@ -26,13 +24,14 @@
         </dependency>
 
         <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>Core</artifactId>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
