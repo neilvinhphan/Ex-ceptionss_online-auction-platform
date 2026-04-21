@@ -1,4 +1,4 @@
-package org.example.server.dao;
+package org.example.server.daos;
 
 import org.example.core.models.items.AntiqueItem;
 import org.example.core.models.items.ArtItem;
@@ -8,6 +8,7 @@ import org.example.core.models.items.JewelryItem;
 import org.example.core.models.items.OtherItem;
 import org.example.core.models.items.RealEstateItem;
 import org.example.core.models.items.VehicleItem;
+import org.example.server.config.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

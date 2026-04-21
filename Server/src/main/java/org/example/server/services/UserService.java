@@ -2,7 +2,7 @@ package org.example.server.services;
 
 import org.example.core.models.users.SellerProfile;
 import org.example.core.models.users.User;
-import org.example.server.dao.UserDAO;
+import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {

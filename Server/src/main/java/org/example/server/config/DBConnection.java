@@ -1,5 +1,4 @@
-package org.example.server.dao;
-
+package org.example.server.config;
 
 import java.io.InputStream;
 import java.sql.Connection;
