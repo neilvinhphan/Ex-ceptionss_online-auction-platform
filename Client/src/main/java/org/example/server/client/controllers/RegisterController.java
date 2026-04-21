@@ -49,13 +49,13 @@ public class RegisterController extends BaseController {
     }
 
     @FXML
-    void hienthi_pass(ActionEvent event) {
-        logichienthi_pass(pass_an, pass_hien);
+    void DisplayPassword(ActionEvent event) {
+        PasswordDisplayLogic(pass_an, pass_hien);
     }
 
     @FXML
-    void rehienthi_pass(ActionEvent event) {
-        logichienthi_pass(repass_an, repass_hien);
+    void ReDisplayPassword(ActionEvent event) {
+        PasswordDisplayLogic(repass_an, repass_hien);
     }
 
     @FXML
