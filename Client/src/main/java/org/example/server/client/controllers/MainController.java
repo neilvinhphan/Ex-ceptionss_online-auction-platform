@@ -18,18 +18,12 @@ public class MainController extends BaseController {
     @FXML
     private void handleMenuItem(ActionEvent event) {
         MenuItem item = (MenuItem) event.getSource();
-
-        // Lấy ra MenuButton cha của MenuItem đó
-        // Lưu ý: Phải ép kiểu về MenuButton để set lại Text
         MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-
-        // Cập nhật Text của nút cha bằng Text của item đã chọn
         parentMenu.setText(item.getText());
     }
 
     @FXML
     void handleMain(ActionEvent event) {
-
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
 

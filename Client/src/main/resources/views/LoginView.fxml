@@ -33,7 +33,7 @@
                <children>
                   <PasswordField fx:id="pass_an" maxHeight="-Infinity" prefHeight="30.0" prefWidth="531.0" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" />
                   <TextField fx:id="pass_hien" maxHeight="-Infinity" prefHeight="30.0" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" visible="false" />
-                  <Button alignment="CENTER" mnemonicParsing="false" onAction="#hienthi_pass" prefHeight="26.0" prefWidth="28.0" style="-fx-background-color: transparent; -fx-background-radius: 10; -fx-border-radius: 10;" text="👀" StackPane.alignment="CENTER_RIGHT">
+                  <Button alignment="CENTER" mnemonicParsing="false" onAction="#DisplayPassword" prefHeight="26.0" prefWidth="28.0" style="-fx-background-color: transparent; -fx-background-radius: 10; -fx-border-radius: 10;" text="👀" StackPane.alignment="CENTER_RIGHT">
                      <StackPane.margin>
                         <Insets right="6.0" />
                      </StackPane.margin></Button>

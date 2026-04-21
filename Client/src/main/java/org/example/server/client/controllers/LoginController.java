@@ -40,8 +40,8 @@ public class LoginController extends BaseController {
     }
 
     @FXML
-    void hienthi_pass(ActionEvent event) {
-        logichienthi_pass(pass_an, pass_hien);
+    void DisplayPassword(ActionEvent event) {
+        PasswordDisplayLogic(pass_an, pass_hien);
     }
 
     @FXML
