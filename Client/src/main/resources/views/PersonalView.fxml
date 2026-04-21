@@ -1,13 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            prefHeight="400.0" prefWidth="600.0">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.PersonalController">
+   <content>
+      <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
+         <children>
 
-</AnchorPane>
+            <BorderPane VBox.vgrow="ALWAYS">
+
+               <top>
+                  <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
+                        <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá">
+                           <items>
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="💎 Trang sức" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
+                           </items>
+                        </MenuButton>
+                        <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Phòng đấu giá">
+                           <items>
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏠 Bất động sản" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏺 Đồ cổ" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🎨 Tác phẩm nghệ thuật" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🚗 Phương tiện" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="💎 Trang sức" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="Khác" />
+                           </items>
+                        </MenuButton>
+                        <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <MenuButton fx:id="menuUser" mnemonicParsing="false" prefWidth="150.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                           <items>
+                              <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                           </items>
+                        </MenuButton>
+                     </children>
+                     <BorderPane.margin>
+                        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
+                     </BorderPane.margin>
+                  </HBox>
+               </top>
+
+               <left>
+                  <VBox prefWidth="280.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
+                     <children>
+                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: #F8F9FA; -fx-text-fill: #28a745; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand; -fx-background-radius: 10;" text="👤 Hồ sơ của tôi" />
+                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="🛒 Giỏ hàng" />
+                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="⏳ Tài sản chờ đấu giá" />
+                        <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="📜 Lịch sử đấu giá" />
+                        <Region VBox.vgrow="ALWAYS" />
+                        <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 15 20; -fx-font-size: 15; -fx-background-radius: 10; -fx-cursor: hand;" text="➕ Tạo cuộc đấu giá" />
+                     </children>
+                     <padding>
+                        <Insets bottom="20.0" left="15.0" right="15.0" top="20.0" />
+                     </padding>
+                     <BorderPane.margin>
+                        <Insets bottom="40.0" left="40.0" right="20.0" />
+                     </BorderPane.margin>
+                  </VBox>
+               </left>
+
+               <center>
+                  <VBox spacing="25.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
+                     <padding>
+                        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+                     </padding>
+                     <children>
+                        <Label style="-fx-font-weight: Bold; -fx-font-size: 22; -fx-text-fill: #333;" text="THÔNG TIN CÁ NHÂN">
+                           <VBox.margin>
+                              <Insets bottom="10.0" />
+                           </VBox.margin>
+                        </Label>
+
+                        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
+                           <children>
+                              <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Username:" />
+                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="hmi2447@" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
+                           </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
+                           <children>
+                              <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số điện thoại:" />
+                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="0987.xxx.xxx" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
+                           </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
+                           <children>
+                              <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Email:" />
+                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="hm2447@gmail.com" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
+                           </children>
+                        </HBox>
+                     </children>
+                     <BorderPane.margin>
+                        <Insets bottom="40.0" right="40.0" />
+                     </BorderPane.margin>
+                  </VBox>
+               </center>
+            </BorderPane>
+
+            <HBox alignment="CENTER_LEFT" spacing="60.0" style="-fx-background-color: #0f2b25; -fx-padding: 40 60;">
+               <children>
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label style="-fx-text-fill: #28a745; -fx-font-size: 22; -fx-font-weight: bold;" text="EX-CEPTION" />
+                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="Hân hạnh đồng hành !" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;" text="Liên hệ với chúng tôi" />
+                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="☎ Hotline: 0378.466.888" />
+                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="📧 Email: exception@daugia.vn" />
+                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="📍 Địa chỉ: 144 Xuân Thủy, Cầu Giấy, Hà Nội" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+
+         </children>
+      </VBox>
+   </content>
+</ScrollPane>

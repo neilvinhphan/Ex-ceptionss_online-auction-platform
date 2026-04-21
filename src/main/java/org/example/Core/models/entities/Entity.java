@@ -19,6 +19,7 @@ public abstract class Entity {
   // Create Item
   public Entity(int id) {
     this.id = id;
+    this.createdAt = LocalDateTime.now();
   }
 
   // Setter & Getter
