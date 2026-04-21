@@ -2,8 +2,8 @@ package org.example.server.services;
 
 import org.example.core.models.items.Item;
 import org.example.core.models.users.User;
-import org.example.server.dao.ItemDAO;
-import org.example.server.dao.UserDAO;
+import org.example.server.daos.ItemDAO;
+import org.example.server.daos.UserDAO;
 
 import java.math.BigDecimal;
 
