@@ -14,6 +14,8 @@ public class MainController extends BaseController {
     private MenuButton menuPhongDauGia;
     @FXML
     private MenuButton menuSearch;
+    @FXML
+    private MenuButton menuUser;
 
     @FXML
     private void handleMenuItem(ActionEvent event) {
