@@ -17,7 +17,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.server.client.controllers.MainController">
    <content>
       <VBox spacing="30.0" stylesheets="@style.css">
@@ -57,16 +56,16 @@
                         <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
                         <StackPane prefHeight="36.0" prefWidth="270.0">
                            <children>
-                              <HBox pickOnBounds="false" prefHeight="100.0" prefWidth="200.0" spacing="10.0" style="-fx-managed: true;">
+                              <HBox pickOnBounds="false" prefHeight="100.0" prefWidth="200.0" spacing="10.0" style="-fx-managed: false;" visible="false">
                                  <children>
                                     <Button mnemonicParsing="false" onAction="#handleLogin" prefHeight="33.0" prefWidth="128.0" style="-fx-background-radius: 30; -fx-padding: 8 20; -fx-background-color: #28a745; -fx-font-weight: bold; -fx-text-fill: white;" text="Đăng nhập" />
                                     <Button mnemonicParsing="false" onAction="#handleRegister" prefHeight="34.0" prefWidth="138.0" style="-fx-background-radius: 30; -fx-padding: 8 20; -fx-font-weight: bold;" text="Đăng ký" />
                                  </children>
                               </HBox>
-                              <MenuButton accessibleText="người dùng" mnemonicParsing="false" onAction="#handleUser" prefHeight="52.0" prefWidth="149.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: false;" text="MenuButton" visible="false">
+                              <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" onAction="#handleUser" prefHeight="52.0" prefWidth="149.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
                                 <items>
-                                  <MenuItem mnemonicParsing="false" text="Action 1" />
-                                  <MenuItem mnemonicParsing="false" text="Action 2" />
+                                  <MenuItem mnemonicParsing="false" text="👤 Hồ sơ cá nhân" />
+                                  <MenuItem mnemonicParsing="false" text="➜] Đăng xuất" />
                                 </items>
                               </MenuButton>
                            </children>
