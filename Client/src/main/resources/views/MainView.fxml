@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.server.client.controllers.MainController">
+<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.MainController">
     <content>
         <VBox spacing="30.0" stylesheets="@style.css">
             <children>
@@ -62,10 +62,10 @@
                                                 <Button mnemonicParsing="false" onAction="#handleRegister" prefHeight="34.0" prefWidth="138.0" style="-fx-background-radius: 30; -fx-padding: 8 20; -fx-font-weight: bold;" text="Đăng ký" />
                                             </children>
                                         </HBox>
-                                        <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" onAction="#handleUser" prefHeight="52.0" prefWidth="149.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
+                                        <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" prefHeight="52.0" prefWidth="149.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
                                             <items>
-                                                <MenuItem mnemonicParsing="false" text="👤 Hồ sơ cá nhân" />
-                                                <MenuItem mnemonicParsing="false" text="➜] Đăng xuất" />
+                                                <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                                                <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
                                             </items>
                                         </MenuButton>
                                     </children>

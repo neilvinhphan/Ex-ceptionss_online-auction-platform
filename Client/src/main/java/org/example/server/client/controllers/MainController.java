@@ -1,5 +1,7 @@
 package org.example.server.client.controllers;
 
+import org.example.client.controllers.BaseController;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -42,5 +44,11 @@ public class MainController extends BaseController {
     @FXML
     void handleUser(ActionEvent event) {
         System.out.println("Về trang thông tin cá nhân");
+    }
+
+    public void handleUserui(ActionEvent event) {
+    }
+
+    public void handleLogout(ActionEvent event) {
     }
 }
