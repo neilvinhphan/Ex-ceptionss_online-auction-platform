@@ -7,6 +7,9 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
     private final UserDAO userDAO = UserDAO.getInstance();
+    public int getUserId(User user) {
+        return userDAO.getUserByUserId(user.getId());
+    }
     //Xem thông tin
     public User viewProfile(String username) throws Exception {
         if (username == null || username.trim().isEmpty()) {
@@ -47,7 +50,7 @@ public class UserService {
         }
 
         String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-        boolean success = userDAO.updatePasswordByUsername(username, hashedNewPassword);
+        boolean success = userDAO.updatePassword(username, hashedNewPassword);
         if (!success) {
             throw new Exception("Cannot change password.");
         }
