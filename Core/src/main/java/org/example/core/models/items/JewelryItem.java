@@ -1,33 +1,71 @@
 package org.example.core.models.items;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class JewelryItem extends Item {
-  protected String material; // Chất liệu chính
-  protected String gemstone; // Đá quý đính kèm
-  protected double weight; // Trọng lượng (Carat hoặc Gram)
-  protected String certification; // Giấy kiểm định
+  private String material; // Chất liệu chính
+  private String gemstone; // Đá quý đính kèm
+  private double weight; // Trọng lượng (Carat hoặc Gram)
+  private String certification; // Giấy kiểm định
 
-  public JewelryItem(
-      int id,
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String material,
-      String gemstone,
-      double weight,
-      String certification,
-      String description,
-      BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
-    this.material = material;
-    this.gemstone = gemstone;
-    this.weight = weight;
-    this.certification = certification;
+  public JewelryItem() {
+    super();
   }
-  public JewelryItem() {}
+
+  private JewelryItem(Builder builder) {
+    super(builder);
+    this.material = builder.material;
+    this.gemstone = builder.gemstone;
+    this.weight = builder.weight;
+    this.certification = builder.certification;
+  }
+
+  public static class Builder extends Item.Builder<Builder> {
+    private String material; // Chất liệu chính
+    private String gemstone; // Đá quý đính kèm
+    private double weight; // Trọng lượng (Carat hoặc Gram)
+    private String certification; // Giấy kiểm định
+
+    public Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder material(String material) {
+      this.material = material;
+      return this;
+    }
+
+    public Builder gemstone(String gemstone) {
+      this.gemstone = gemstone;
+      return this;
+    }
+
+    public Builder weight(double weight) {
+      this.weight = weight;
+      return this;
+    }
+
+    public Builder certification(String certification) {
+      this.certification = certification;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public JewelryItem build() {
+      return new JewelryItem(this);
+    }
+  }
+
+  @Override
+  public String getType() {
+    return "JEWELRY";
+  }
+
   public String getMaterial() {
     return material;
   }
@@ -58,17 +96,5 @@ public class JewelryItem extends Item {
 
   public void setCertification(String certification) {
     this.certification = certification;
-  }
-
-  @Override
-  public void printInfo() {
-    System.out.println("Mã sản phẩm: " + id);
-    System.out.println("Trang sức: " + getItemName());
-    System.out.println("Chất liệu: " + material);
-    System.out.println("Đá quý: " + gemstone);
-    System.out.println("Trọng lượng: " + weight + " (Carat/Gram)");
-    System.out.println("Giấy kiểm định: " + certification);
-    System.out.println("Mô tả chi tiết: " + description);
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
   }
 }

@@ -1,33 +1,70 @@
 package org.example.core.models.items;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class AntiqueItem extends Item {
-  protected String era; // niên đại<xuất xứ>
-  protected String material;
-  protected String condition; // Tình trạng
-  protected boolean isCertified;
+  private String era; // niên đại<xuất xứ>
+  private String material;
+  private String condition; // Tình trạng
+  private boolean isCertified;
 
-  public AntiqueItem(
-      int id,
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String era,
-      String material,
-      String condition,
-      boolean isCertified,
-      String description,
-      BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
-    this.era = era;
-    this.material = material;
-    this.condition = condition;
-    this.isCertified = isCertified;
+  public AntiqueItem() {
+    super();
   }
-  public AntiqueItem() {}
+
+  private AntiqueItem(Builder builder) {
+    super(builder);
+    this.era = builder.era;
+    this.material = builder.material;
+    this.condition = builder.condition;
+    this.isCertified = builder.isCertified;
+  }
+
+  public static class Builder extends Item.Builder<Builder> {
+    private String era;
+    private String material;
+    private String condition;
+    private boolean isCertified;
+
+    public Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder era(String era) {
+      this.era = era;
+      return this;
+    }
+
+    public Builder material(String material) {
+      this.material = material;
+      return this;
+    }
+
+    public Builder condition(String condition) {
+      this.condition = condition;
+      return this;
+    }
+
+    public Builder certified(boolean certified) {
+      this.isCertified = certified;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public AntiqueItem build() {
+      return new AntiqueItem(this);
+    }
+  }
+
+  @Override
+  public String getType() {
+    return "ANTIQUE";
+  }
 
   public String getEra() {
     return era;
@@ -49,10 +86,6 @@ public class AntiqueItem extends Item {
     this.material = material;
   }
 
-  public void setCertified(boolean certified) {
-    isCertified = certified;
-  }
-
   public void setCondition(String condition) {
     this.condition = condition;
   }
@@ -61,16 +94,7 @@ public class AntiqueItem extends Item {
     return isCertified;
   }
 
-  @Override
-  public void printInfo() {
-    System.out.println("Mã sản phẩm: " + id);
-    System.out.println("Đồ cổ: " + getItemName());
-    System.out.println("Niên đại/Xuất xứ: " + era);
-    System.out.println("Chất liệu: " + material);
-    System.out.println("Tình trạng bảo quản: " + condition);
-    System.out.println(
-        "Giấy thẩm định: " + (isCertified ? "Đã có chứng nhận chuyên gia" : "Chưa qua thẩm định"));
-    System.out.println("Mô tả chi tiết: " + description);
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
+  public void setCertified(boolean certified) {
+    isCertified = certified;
   }
 }

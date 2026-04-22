@@ -1,33 +1,65 @@
 package org.example.core.models.items;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class RealEstateItem extends Item {
-  protected String location; // Vị trí/Địa chỉ
-  protected double area; // Diện tích (m2)
-  protected String propertyType; // Loại hình (Đất nền, Chung cư...)
-  protected String legalStatus; // Tình trạng pháp lý (Sổ đỏ, HĐMB...)
+  private String location; // Vị trí/Địa chỉ
+  private double area; // Diện tích (m2)
+  private String propertyType; // Loại hình (Đất nền, Chung cư...)
+  private String legalStatus; // Tình trạng pháp lý (Sổ đỏ, HĐMB...)
 
-  public RealEstateItem(
-      int id,
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String location,
-      double area,
-      String propertyType,
-      String legalStatus,
-      String description,
-      BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
-    this.location = location;
-    this.area = area;
-    this.propertyType = propertyType;
-    this.legalStatus = legalStatus;
+  public RealEstateItem() {
+    super();
   }
-  public RealEstateItem() {}
+
+  private RealEstateItem(Builder builder) {
+    super(builder);
+    this.location = builder.location;
+    this.area = builder.area;
+    this.propertyType = builder.propertyType;
+    this.legalStatus = builder.legalStatus;
+  }
+
+  public static class Builder extends Item.Builder<Builder> {
+    private String location;
+    private double area;
+    private String propertyType;
+    private String legalStatus;
+
+    public Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder location(String location) {
+      this.location = location;
+      return this;
+    }
+
+    public Builder area(double area) {
+      this.area = area;
+      return this;
+    }
+
+    public Builder propertyType(String propertyType) {
+      this.propertyType = propertyType;
+      return this;
+    }
+
+    public Builder legalStatus(String legalStatus) {
+      this.legalStatus = legalStatus;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public RealEstateItem build() {
+      return new RealEstateItem(this);
+    }
+  }
 
   public String getLocation() {
     return location;
@@ -45,15 +77,24 @@ public class RealEstateItem extends Item {
     return legalStatus;
   }
 
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public void setArea(double area) {
+    this.area = area;
+  }
+
+  public void setPropertyType(String propertyType) {
+    this.propertyType = propertyType;
+  }
+
+  public void setLegalStatus(String legalStatus) {
+    this.legalStatus = legalStatus;
+  }
+
   @Override
-  public void printInfo() {
-    System.out.println("Mã sản phẩm: " + id);
-    System.out.println("Bất động sản: " + getItemName());
-    System.out.println("Loại hình: " + propertyType);
-    System.out.println("Vị trí: " + location);
-    System.out.println("Diện tích: " + area + " m2");
-    System.out.println("Pháp lý: " + legalStatus);
-    System.out.println("Mô tả chi tiết: " + description);
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
+  public String getType() {
+    return "REALESTATE";
   }
 }
