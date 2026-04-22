@@ -11,25 +11,17 @@ public class Auction extends Entity {
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
-  private LocalDateTime endTime;
+  private long duration;
   private List<BidTransaction> bidHistory;
   private BidTransaction highestBid;
 
   // Constructor tạo mới đấu giá
-  public Auction(
-      Item item,
-      AuctionStatus status,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      List<BidTransaction> bidHistory,
-      BidTransaction highestBid) {
+  public Auction(Item item, AuctionStatus status, LocalDateTime startTime, long duration) {
     super(0, LocalDateTime.now());
     this.item = item;
     this.status = status;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    this.bidHistory = bidHistory;
-    this.highestBid = highestBid;
+    this.startTime = LocalDateTime.now();
+    this.duration = duration;
   }
 
   // Constructor from DB
@@ -46,31 +38,24 @@ public class Auction extends Entity {
     this.item = item;
     this.status = status;
     this.startTime = startTime;
-    this.endTime = endTime;
+    this.duration = duration;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
   }
 
-  // Phiên trong kho --> Pending xác nhận
-  public void open(LocalDateTime now) {
-    if (this.status == AuctionStatus.WAREHOUSE && !now.isBefore(this.startTime)) {
-      this.status = AuctionStatus.PENDING;
-    }
-  }
-
-  // Phiên Pending --> Running
+  // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
   public void start(LocalDateTime now) {
-    if (this.status == AuctionStatus.PENDING && now.isBefore(this.startTime)) {
+    if (this.status == AuctionStatus.WAREHOUSE && now.isBefore(this.startTime)) {
       this.status = AuctionStatus.RUNNING;
     }
   }
 
   // Đóng phiên
-  public void close(LocalDateTime now) {
-    if (this.status == AuctionStatus.RUNNING && now.isAfter(this.endTime)) {
-      this.status = AuctionStatus.FINISHED;
-    }
-  }
+  //  public void close(LocalDateTime now) {
+  //    if (this.status == AuctionStatus.RUNNING && now.isAfter(this.endTime)) {
+  //      this.status = AuctionStatus.FINISHED;
+  //    }
+  //  }
 
   public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
     // Check trạng thái
@@ -78,13 +63,14 @@ public class Auction extends Entity {
       throw new Exception("The auction has ended.");
     }
 
-    // Check thời gian
-    if (now.isBefore(this.startTime) || !now.isBefore() )
+    //    // Check thời gian
+    //    if (now.isAfter(this.endTime)) {
+    //  }
+
+    //  public BidTransaction getHighestBid() {}
+
+    //  public void extendEndTime(int seconds) {}
+
+    //  public boolean isAntiSniping(LocalDateTime at) {}
   }
-
-  //  public BidTransaction getHighestBid() {}
-
-  public void extendEndTime(int seconds) {}
-
-  //  public boolean isAntiSniping(LocalDateTime at) {}
 }

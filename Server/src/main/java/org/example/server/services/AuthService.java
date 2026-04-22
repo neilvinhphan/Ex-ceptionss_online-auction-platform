@@ -7,9 +7,9 @@ import org.example.server.dao.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
-  UserDAO userDAO = UserDAO.getInstance();
+  static UserDAO userDAO = UserDAO.getInstance();
 
-  public User register(RegisterRequestDTO requestPayLoad) throws Exception {
+  public static User register(RegisterRequestDTO requestPayLoad) throws Exception {
 
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
@@ -47,7 +47,7 @@ public class AuthService {
     return newUser;
   }
 
-  public User login(LoginRequestDTO requestPayLoad) throws Exception {
+  public static User login(LoginRequestDTO requestPayLoad) throws Exception {
 
     // Lấy dữ liệu từ giao diện
     String nameInCheck = requestPayLoad.getUsername();
@@ -60,7 +60,7 @@ public class AuthService {
 
     // Check username
     User userDB = userDAO.getUserByUsername(nameInCheck);
-    if (userDB.getUserName() == null) {
+    if (userDB == null) {
       throw new Exception("Wrong username or password.");
     }
 
