@@ -10,15 +10,12 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
-    // Chỉ đường dẫn đến file FXML của bạn
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/MainView.fxml"));
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
     Parent root = loader.load();
     Scene scene = new Scene(root);
-    primaryStage.setTitle("Trang chủ");
+    primaryStage.setTitle("Đăng nhập hệ thống");
     primaryStage.setScene(scene);
     primaryStage.setMaximized(true);
-    //  primaryStage.setFullScreenExitHint("");
-
     primaryStage.show();
   }
 

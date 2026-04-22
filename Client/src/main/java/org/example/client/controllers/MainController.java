@@ -1,15 +1,21 @@
 package org.example.client.controllers;
 
+import java.io.IOException;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
 
 public class MainController extends BaseController {
   @FXML private MenuButton menuDanhMuc;
   @FXML private MenuButton menuPhongDauGia;
   @FXML private MenuButton menuSearch;
-
+@FXML private MenuButton menuUser;
   @FXML
   private void handleMenuItem(ActionEvent event) {
     MenuItem item = (MenuItem) event.getSource();
@@ -33,7 +39,12 @@ public class MainController extends BaseController {
   }
 
   @FXML
-  void handleUser(ActionEvent event) {
-    System.out.println("Về trang thông tin cá nhân");
+  void handleUserui(ActionEvent event) {
+    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+  }
+  @FXML
+  void handleLogout(ActionEvent event){
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
   }
 }
+
