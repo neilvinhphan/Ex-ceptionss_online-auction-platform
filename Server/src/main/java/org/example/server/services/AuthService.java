@@ -29,7 +29,7 @@ public class AuthService {
 
     // Check username existence
     User userDB = userDAO.getUserByUsername(nameInCheck);
-    if (userDB.getUserName() != null) {
+    if (userDB != null) {
       throw new Exception("Username existed.");
     }
 
