@@ -209,7 +209,7 @@
                     <top>
                         <HBox spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
                      <BorderPane.margin>
-                        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
+                        <Insets bottom="20.0" left="75.0" right="75.0" top="35.0" />
                      </BorderPane.margin>
                      <children>
                         <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
