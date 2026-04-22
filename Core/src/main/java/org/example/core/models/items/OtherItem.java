@@ -4,26 +4,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class OtherItem extends Item {
-  protected String category; // Phân loại (Ví dụ: Nội thất, Quần áo, Thẻ bài sưu tầm...)
-  protected String origin; // Xuất xứ
-  protected double weight; // Trọng lượng (kg)
+  private String category;     // Phân loại (ví dụ: Nội thất, Quần áo...)
+  private String origin;       // Xuất xứ
+  private double weight;       // Trọng lượng (kg)
 
-  public OtherItem(
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String category,
-      String origin,
-      double weight,
-      String description,
-      BigDecimal startingPrice) {
-    super(sellerID, createdAt, type, itemName, description, startingPrice);
-    this.category = category;
-    this.origin = origin;
-    this.weight = weight;
+  // Giữ lại để tương thích luồng map từ DB hiện tại (nếu đang dùng reflection/new rỗng)
+  public OtherItem() {
+    super();
   }
-  public OtherItem() {}
+
+  private OtherItem(Builder builder) {
+    super(builder);
+    this.category = builder.category;
+    this.origin = builder.origin;
+    this.weight = builder.weight;
+  }
+
+  @Override
+  public String getType() {
+    return "OTHER";
+  }
 
   public String getCategory() {
     return category;
@@ -49,14 +49,38 @@ public class OtherItem extends Item {
     this.weight = weight;
   }
 
-  public void printInfo() {
-    System.out.println("Mã sản phẩm: " + id);
-    System.out.println("Sản phẩm khác: " + getItemName());
-    System.out.println("Phân loại: " + category);
-    System.out.println("Xuất xứ: " + origin);
-    System.out.println("Trọng lượng: " + weight + " kg");
-    System.out.println("Mô tả chi tiết: " + description);
-    ;
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
+  public static class Builder extends Item.Builder<Builder> {
+    private String category;
+    private String origin;
+    private double weight;
+
+    public Builder(int sellerID, String itemName, java.math.BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder category(String category) {
+      this.category = category;
+      return this;
+    }
+
+    public Builder origin(String origin) {
+      this.origin = origin;
+      return this;
+    }
+
+    public Builder weight(double weight) {
+      this.weight = weight;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public OtherItem build() {
+      return new OtherItem(this);
+    }
   }
 }

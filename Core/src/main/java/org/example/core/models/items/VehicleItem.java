@@ -1,24 +1,65 @@
 package org.example.core.models.items;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class VehicleItem extends Item {
-  protected String brand;
-  protected String model;
-  protected int manufacturingYear; // Năm sản xuất
-  protected double mileage; // số km đã đi
+  private String brand;
+  private String model;
+  private int manufacturingYear; // Năm sản xuất
+  private double mileage; // số km đã đi
 
-  public VehicleItem(
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String description,
-      BigDecimal startingPrice) {
-    super(sellerID, createdAt, type, itemName, description, startingPrice);
+  public VehicleItem() {
+    super();
   }
-  public VehicleItem() {}
+
+  private VehicleItem(Builder builder) {
+    super(builder);
+    this.brand = builder.brand;
+    this.model = builder.model;
+    this.manufacturingYear = builder.manufacturingYear;
+    this.mileage = builder.mileage;
+  }
+
+  public static class Builder extends Item.Builder<Builder> {
+    private String brand;
+    private String model;
+    private int manufacturingYear;
+    private double mileage;
+
+    public Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder brand(String brand) {
+      this.brand = brand;
+      return this;
+    }
+
+    public Builder model(String model) {
+      this.model = model;
+      return this;
+    }
+
+    public Builder manufacturingYear(int manufacturingYear) {
+      this.manufacturingYear = manufacturingYear;
+      return this;
+    }
+
+    public Builder mileage(double mileage) {
+      this.mileage = mileage;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public VehicleItem build() {
+      return new VehicleItem(this);
+    }
+  }
 
   // GETTER & SETTER
   public String getBrand() {
@@ -53,13 +94,8 @@ public class VehicleItem extends Item {
     this.mileage = mileage;
   }
 
-  public void printInfo() {
-    System.out.println("Mã sản phẩm" + id);
-    System.out.println("Xe " + getItemName());
-    System.out.println("Thương hiệu: " + brand);
-    System.out.println("Năm sản xuất:" + manufacturingYear);
-    System.out.println("Số km đã đi: " + mileage);
-    System.out.println("Tổng quan về chiếc xe: " + description);
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
+  @Override
+  public String getType() {
+    return "VEHICLE";
   }
 }

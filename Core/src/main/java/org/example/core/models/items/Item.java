@@ -6,85 +6,61 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
-  private int itemId;
-  private String type;
   private String itemName;
   private BigDecimal startingPrice;
   protected String description;
-  private  int sellerID;
+  private int sellerID;
 
-  // Constructor khi Lấy từ DB lên
-  public Item(int itemId, int sellerID, String type, String itemName, String description, BigDecimal startingPrice) {
-    this.itemId = itemId;
-    this.sellerID = sellerID;
-    this.type = type;
-    this.itemName = itemName;
-    this.description = description;
-    this.startingPrice = startingPrice;
+  protected Item() {
+    super();
   }
 
-  // Constructor khi tạo Item
-  public Item(
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String description,
-      BigDecimal startingPrice) {
-    super(createdAt);
-    this.sellerID = sellerID;
-    this.type = type;
-    this.itemName = itemName;
-    this.description = description;
-    this.startingPrice = startingPrice;
+  protected Item(Builder<?> builder) {
+    super(builder.id, builder.createdAt);
+    this.itemName = builder.itemName;
+    this.startingPrice = builder.startingPrice;
+    this.description = builder.description;
+    this.sellerID = builder.sellerID;
   }
 
-  public Item() {}
+  public abstract String getType();
 
-  // GETTERS & SETTERS
-  public String getType() {
-    return type;
+  public abstract static class Builder<T extends Builder<T>> {
+    // required
+    protected final int sellerID;
+    protected final String itemName;
+    protected final BigDecimal startingPrice;
+
+    // optional
+    protected int id;
+    protected LocalDateTime createdAt = LocalDateTime.now();
+    protected String description;
+
+    protected Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      this.sellerID = sellerID;
+      this.itemName = itemName;
+      this.startingPrice = startingPrice;
+    }
+
+    protected abstract T self();
+
+    public T id(int id) { this.id = id; return self(); }
+    public T createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return self(); }
+    public T description(String description) { this.description = description; return self(); }
+
+    public abstract Item build();
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
+  // getters/setters giữ lại nếu DAO đang cần
+  public String getItemName() { return itemName; }
+  public void setItemName(String itemName) { this.itemName = itemName; }
 
-  public String getItemName() {
-    return itemName;
-  }
+  public BigDecimal getStartingPrice() { return startingPrice; }
+  public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
 
-  public void setItemName(String itemName) {
-    this.itemName = itemName;
-  }
+  public String getDescription() { return description; }
+  public void setDescription(String description) { this.description = description; }
 
-  public int getItemId() {return itemId;}
-
-  public void setItemId(int itemId) {this.itemId = itemId;}
-
-  public BigDecimal getStartingPrice() {
-    return startingPrice;
-  }
-
-  public void setStartingPrice(BigDecimal startingPrice) {
-    this.startingPrice = startingPrice;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setSellerID(int sellerID) {
-    this.sellerID = sellerID;
-  }
-
-  public int getSellerID() {
-    return sellerID;
-  }
-
-  public abstract void printInfo();
+  public int getSellerID() { return sellerID; }
+  public void setSellerID(int sellerID) { this.sellerID = sellerID; }
 }
