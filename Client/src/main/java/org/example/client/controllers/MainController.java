@@ -1,15 +1,21 @@
 package org.example.client.controllers;
 
+import java.io.IOException;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.stage.Stage;
 
 public class MainController extends BaseController {
   @FXML private MenuButton menuDanhMuc;
   @FXML private MenuButton menuPhongDauGia;
   @FXML private MenuButton menuSearch;
-
+@FXML private MenuButton menuUser;
   @FXML
   private void handleMenuItem(ActionEvent event) {
     MenuItem item = (MenuItem) event.getSource();
@@ -33,7 +39,24 @@ public class MainController extends BaseController {
   }
 
   @FXML
-  void handleUser(ActionEvent event) {
-    System.out.println("Về trang thông tin cá nhân");
+  void handleUserui(ActionEvent event) {try {
+    Stage stage = (Stage) menuUser.getScene().getWindow();
+    Parent root = FXMLLoader.load(getClass().getResource("/views/PersonalView.fxml"));
+    stage.setScene(new Scene(root));
+    stage.setTitle("Thông tin cá nhân");
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
+  }
+  @FXML
+  void handleLogout(ActionEvent event){try {
+    Stage stage = (Stage) menuUser.getScene().getWindow();
+    Parent root = FXMLLoader.load(getClass().getResource("/views/LoginView.fxml"));
+    stage.setScene(new Scene(root));
+    stage.setTitle("Đăng nhập hệ thống");
+  } catch (IOException e) {
+    e.printStackTrace();
+  }
   }
 }
+
