@@ -22,15 +22,4 @@ public class DBConnection {
     String pass = properties.getProperty("db.pass");
     return DriverManager.getConnection(url, user, pass);
   }
-
-  static void main() {
-    try (Connection connection = getConnection()) {
-      if (connection != null) {
-        System.out.println("Ket noi thanh cong");
-        connection.close();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 }

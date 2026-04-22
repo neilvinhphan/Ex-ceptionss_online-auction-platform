@@ -12,7 +12,7 @@ import org.example.core.models.items.OtherItem;
 import java.sql.ResultSet;
 
 public class ItemFactory {
-  public static Item createItem(ResultSet rs) throws Exception {
+  public static Item takeItemFromDB(ResultSet rs) throws Exception {
     String type = rs.getString("type");
     Item item;
     switch (type) {
