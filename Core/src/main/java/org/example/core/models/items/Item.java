@@ -1,0 +1,90 @@
+package org.example.core.models.items;
+
+import org.example.core.models.entities.Entity;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public abstract class Item extends Entity {
+  private int itemId;
+  private String type;
+  private String itemName;
+  private BigDecimal startingPrice;
+  protected String description;
+  private  int sellerID;
+
+  // Constructor khi Lấy từ DB lên
+  public Item(int itemId, int sellerID, String type, String itemName, String description, BigDecimal startingPrice) {
+    this.itemId = itemId;
+    this.sellerID = sellerID;
+    this.type = type;
+    this.itemName = itemName;
+    this.description = description;
+    this.startingPrice = startingPrice;
+  }
+
+  // Constructor khi tạo Item
+  public Item(
+      int sellerID,
+      LocalDateTime createdAt,
+      String type,
+      String itemName,
+      String description,
+      BigDecimal startingPrice) {
+    super(createdAt);
+    this.sellerID = sellerID;
+    this.type = type;
+    this.itemName = itemName;
+    this.description = description;
+    this.startingPrice = startingPrice;
+  }
+
+  public Item() {}
+
+  // GETTERS & SETTERS
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getItemName() {
+    return itemName;
+  }
+
+  public void setItemName(String itemName) {
+    this.itemName = itemName;
+  }
+
+  public int getItemId() {return itemId;}
+
+  public void setItemId(int itemId) {this.itemId = itemId;}
+
+  public BigDecimal getStartingPrice() {
+    return startingPrice;
+  }
+
+  public void setStartingPrice(BigDecimal startingPrice) {
+    this.startingPrice = startingPrice;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public void setSellerID(int sellerID) {
+    this.sellerID = sellerID;
+  }
+
+  public int getSellerID() {
+    return sellerID;
+  }
+
+  public abstract void printInfo();
+}

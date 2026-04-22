@@ -9,7 +9,6 @@ public class OtherItem extends Item {
   protected double weight; // Trọng lượng (kg)
 
   public OtherItem(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -19,7 +18,7 @@ public class OtherItem extends Item {
       double weight,
       String description,
       BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.category = category;
     this.origin = origin;
     this.weight = weight;
@@ -50,7 +49,6 @@ public class OtherItem extends Item {
     this.weight = weight;
   }
 
-  @Override
   public void printInfo() {
     System.out.println("Mã sản phẩm: " + id);
     System.out.println("Sản phẩm khác: " + getItemName());

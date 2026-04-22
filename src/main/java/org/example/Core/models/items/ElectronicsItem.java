@@ -1,33 +1,56 @@
 package org.example.core.models.items;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class ElectronicsItem extends Item {
-  protected String brand;
-  protected int warrantyMonths; // Số tháng bảo hành
-  protected String condition; // tình trạng của sản phẩm
+  private String brand;
+  private int warrantyMonths; // Số tháng bảo hành
+  private String condition; // tình trạng của sản phẩm
 
-  public ElectronicsItem(
-      int id,
-      int sellerID,
-      LocalDateTime createdAt,
-      String type,
-      String itemName,
-      String brand,
-      int warrantyMonths,
-      String condition,
-      String description,
-      BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
-    this.brand = brand;
-    this.warrantyMonths = warrantyMonths;
-    this.condition = condition;
+  public ElectronicsItem() {
+    super();
   }
-  public ElectronicsItem() {}
 
-  public String getCondition() {
-    return condition;
+  private ElectronicsItem(Builder builder) {
+    super(builder);
+    this.brand = builder.brand;
+    this.warrantyMonths = builder.warrantyMonths;
+    this.condition = builder.condition;
+  }
+
+  public static class Builder extends Item.Builder<Builder> {
+    private String brand;
+    private int warrantyMonths;
+    private String condition;
+
+    public Builder(int sellerID, String itemName, BigDecimal startingPrice) {
+      super(sellerID, itemName, startingPrice);
+    }
+
+    public Builder brand(String brand) {
+      this.brand = brand;
+      return this;
+    }
+
+    public Builder warrantyMonths(int warrantyMonths) {
+      this.warrantyMonths = warrantyMonths;
+      return this;
+    }
+
+    public Builder condition(String condition) {
+      this.condition = condition;
+      return this;
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+
+    @Override
+    public ElectronicsItem build() {
+      return new ElectronicsItem(this);
+    }
   }
 
   public String getBrand() {
@@ -38,13 +61,24 @@ public class ElectronicsItem extends Item {
     return warrantyMonths;
   }
 
-  public void printInfo() {
-    System.out.println("Mã sản phẩm" + id);
-    System.out.println("Xe " + getItemName());
-    System.out.println("Thương hiệu: " + brand);
-    System.out.println("Số tháng bảo hành sản phẩm " + warrantyMonths);
-    System.out.println("Tình trạng sản phẩm: " + condition);
-    System.out.println("Mô tả sản phẩm: " + description);
-    System.out.println("Giá khởi điểm: " + getStartingPrice());
+  public String getCondition() {
+    return condition;
+  }
+
+  public void setBrand(String brand) {
+    this.brand = brand;
+  }
+
+  public void setWarrantyMonths(int warrantyMonths) {
+    this.warrantyMonths = warrantyMonths;
+  }
+
+  public void setCondition(String condition) {
+    this.condition = condition;
+  }
+
+  @Override
+  public String getType() {
+    return "ELECTRONICS";
   }
 }

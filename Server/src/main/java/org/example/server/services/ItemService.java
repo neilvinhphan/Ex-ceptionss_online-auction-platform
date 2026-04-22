@@ -25,11 +25,11 @@ public class ItemService {
       throw new Exception("Seller account is inactive.");
     }
 
-    Integer itemId = itemDAO.createItem(seller.getId(), item);
+    Integer itemId = itemDAO.insertintoItemTable(item);
     if (itemId == null || itemId <= 0) {
       throw new Exception("Cannot create item.");
     }
-    item.setId(itemId);
+    itemDAO.insertintoChildTable(item);
     return item;
   }
 
@@ -55,7 +55,7 @@ public class ItemService {
       throw new Exception("Seller not found.");
     }
 
-    Integer ownerSellerId = itemDAO.getSellerIdByItemId(itemId);
+    Integer ownerSellerId = itemDAO.getOwnerIdByItemId(itemId);
     if (ownerSellerId == null || ownerSellerId != seller.getId()) {
       throw new Exception("You are not allowed to update this item.");
     }

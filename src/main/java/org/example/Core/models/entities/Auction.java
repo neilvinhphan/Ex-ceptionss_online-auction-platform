@@ -51,15 +51,38 @@ public class Auction extends Entity {
     this.highestBid = highestBid;
   }
 
-  public void open() {}
+  // Phiên trong kho --> Pending xác nhận
+  public void open(LocalDateTime now) {
+    if (this.status == AuctionStatus.WAREHOUSE && !now.isBefore(this.startTime)) {
+      this.status = AuctionStatus.PENDING;
+    }
+  }
 
-  public void start(LocalDateTime now) {}
+  // Phiên Pending --> Running
+  public void start(LocalDateTime now) {
+    if (this.status == AuctionStatus.PENDING && now.isBefore(this.startTime)) {
+      this.status = AuctionStatus.RUNNING;
+    }
+  }
 
-  public void validateBid(BigDecimal amount) {}
+  // Đóng phiên
+  public void close(LocalDateTime now) {
+    if (this.status == AuctionStatus.RUNNING && now.isAfter(this.endTime)) {
+      this.status = AuctionStatus.FINISHED;
+    }
+  }
+
+  public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
+    // Check trạng thái
+    if (this.status != AuctionStatus.RUNNING) {
+      throw new Exception("The auction has ended.");
+    }
+
+    // Check thời gian
+    if (now.isBefore(this.startTime) || !now.isBefore() )
+  }
 
   //  public BidTransaction getHighestBid() {}
-
-  public void close(LocalDateTime now) {}
 
   public void extendEndTime(int seconds) {}
 
