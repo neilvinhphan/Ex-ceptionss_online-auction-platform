@@ -62,11 +62,11 @@ public class UserDAO {
     return null;
   }
 
-  public User getUserByUserId(int id) {
+  public User getUserByUserId(int userId) {
     String sql = "SELECT * FROM user WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           User user = new User();
@@ -86,92 +86,92 @@ public class UserDAO {
     return null;
   }
 
-  public boolean updateBalance(int id, BigDecimal balance) {
+  public boolean updateBalance(int UserId, BigDecimal balance) {
     String sql = "UPDATE user SET balance = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, balance);
-      ps.setInt(2, id);
+      ps.setInt(2, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean updatePassword(int id, String password) {
+  public boolean updatePassword(int userId, String password) {
     String sql = "UPDATE user SET password = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, password);
-      ps.setInt(2, id);
+      ps.setInt(2, userId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean updateRole(int id) {
+  public boolean updateRole(int UserId) {
     String sql = "UPDATE user SET role = 'seller' WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean updatePhonenumber(int id, String pn) {
+  public boolean updatePhonenumber(int UserId, String pn) {
     String sql = "UPDATE user SET phone_number = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, pn);
-      ps.setInt(2, id);
+      ps.setInt(2, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean updateEmail(int id, String email) {
+  public boolean updateEmail(int UserId, String email) {
     String sql = "UPDATE user SET email = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, email);
-      ps.setInt(2, id);
+      ps.setInt(2, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean banStatus(int id) {
+  public boolean banStatus(int UserId) {
     String sql = "UPDATE user SET status = false WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean unbanStatus(int id) {
+  public boolean unbanStatus(int UserId) {
     String sql = "UPDATE user SET status = true WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean getStatus(int id) {
+  public boolean getStatus(int UserId) {
     String sql = "SELECT status FROM user WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, UserId);
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class User extends Entity {
+  protected int userId;
   protected String userName;
   protected String phone;
   protected String email;
@@ -30,8 +31,7 @@ public class User extends Entity {
   }
 
   // Lấy dữ liệu từ Database
-  public User(int id, String userName, String phone, String email, LocalDateTime createdAt) {
-    this.id = id;
+  public User(String userName, String phone, String email, LocalDateTime createdAt) {
     this.createdAt = createdAt;
     this.userName = userName;
     this.phone = phone;
@@ -66,6 +66,10 @@ public class User extends Entity {
   public void setUserName(String userName) {
     this.userName = userName;
   }
+
+  public int getUserId() {return userId;}
+
+  public void setUserId(int userId) {this.userId = userId;}
 
   public String getPhone() {
     return phone;

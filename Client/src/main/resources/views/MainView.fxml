@@ -17,13 +17,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.MainController">
+<ScrollPane fx:id="mainScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.MainController">
     <content>
         <VBox spacing="30.0" stylesheets="@style.css">
             <children>
                 <AnchorPane stylesheets="@style.css">
                     <children>
-                        <ImageView fitHeight="630.0" fitWidth="1600.0" mouseTransparent="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <ImageView fitHeight="630.0" fitWidth="${mainScroll.width}" preserveRatio="false" mouseTransparent="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <image>
                                 <Image url="@../images/demohinhnen.jpg" />
                             </image>
@@ -43,15 +43,14 @@
                                 </MenuButton>
                                 <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" prefHeight="33.0" prefWidth="153.0" style="-fx-background-radius: 30;" text="Phòng đấu giá">
                                     <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="💎 Trang sức" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏠 Bất động sản" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏺 Đồ cổ" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🎨 Tác phẩm nghệ thuật" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🚗 Phương tiện" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="💎 Trang sức" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="Khác" />
                                     </items>
                                 </MenuButton>
-                                <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="104.0" style="-fx-background-radius: 30;" text="Liên hệ" />
                                 <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="113.0" style="-fx-background-radius: 30;" text="Điều khoản" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
                                 <StackPane prefHeight="36.0" prefWidth="270.0">
@@ -104,50 +103,50 @@
                         </StackPane>
                     </children>
                 </AnchorPane>
-                <FlowPane alignment="TOP_CENTER" hgap="100.0" prefHeight="110.0" prefWidth="1600.0" vgap="50.0">
+
+                <FlowPane alignment="TOP_CENTER" hgap="100.0" prefHeight="110.0" vgap="50.0">
                     <children>
                         <VBox accessibleText="🏠" alignment="CENTER" spacing="8.0" style="-fx-alignment: center;">
                             <cursor>
                                 <Cursor fx:constant="HAND" />
                             </cursor>
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏠" textAlignment="CENTER" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏠" textAlignment="CENTER" />
                                 <Label style="-fx-font-weight: bold;" text="Bất động sản" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏺" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏺" />
                                 <Label style="-fx-font-weight: bold;" text="Đồ cổ" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🚗" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🚗" />
                                 <Label alignment="CENTER" style="-fx-font-weight: bold;" text="Phương tiện" textAlignment="CENTER" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="💎" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="💎" />
                                 <Label alignment="CENTER" style="-fx-font-weight: bold;" text="Trang sức" textAlignment="CENTER" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🎨" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🎨" />
                                 <Label alignment="CENTER" prefHeight="35.0" prefWidth="83.0" style="-fx-font-weight: bold;" text="Tác phẩm nghệ thuật" textAlignment="CENTER" wrapText="true" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" style="-fx-font-size: 37; -fx-font-weight: bold;" styleClass="hinh-tron-icon" text="…" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37; -fx-font-weight: bold;" styleClass="hinh-tron-icon" text="…" />
                                 <Label style="-fx-font-weight: bold;" text="Khác" />
                             </children>
                         </VBox>
                     </children>
                 </FlowPane>
-                <FlowPane />
             </children>
         </VBox>
     </content>

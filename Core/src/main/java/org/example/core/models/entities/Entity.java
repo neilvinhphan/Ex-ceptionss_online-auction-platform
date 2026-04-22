@@ -17,12 +17,11 @@ public abstract class Entity {
   }
 
   // Create Item
-  public Entity(int id) {
-    this.id = id;
-    this.createdAt = LocalDateTime.now();
+  public Entity(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
   }
 
-  // Setter & Getter
+    // Setter & Getter
   public int getId() {
     return id;
   }

@@ -65,7 +65,7 @@ public class AuthService {
     }
 
     // Check status
-    if (!userDB.getStatus()) {
+    if (userDB.getStatus().equals("BANNED")) {
       throw new Exception("Your accound has banned.");
     }
 
