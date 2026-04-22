@@ -39,24 +39,12 @@ public class MainController extends BaseController {
   }
 
   @FXML
-  void handleUserui(ActionEvent event) {try {
-    Stage stage = (Stage) menuUser.getScene().getWindow();
-    Parent root = FXMLLoader.load(getClass().getResource("/views/PersonalView.fxml"));
-    stage.setScene(new Scene(root));
-    stage.setTitle("Thông tin cá nhân");
-  } catch (IOException e) {
-    e.printStackTrace();
-  }
+  void handleUserui(ActionEvent event) {
+    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
   }
   @FXML
-  void handleLogout(ActionEvent event){try {
-    Stage stage = (Stage) menuUser.getScene().getWindow();
-    Parent root = FXMLLoader.load(getClass().getResource("/views/LoginView.fxml"));
-    stage.setScene(new Scene(root));
-    stage.setTitle("Đăng nhập hệ thống");
-  } catch (IOException e) {
-    e.printStackTrace();
-  }
+  void handleLogout(ActionEvent event){
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
   }
 }
 

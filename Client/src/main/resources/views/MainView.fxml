@@ -51,7 +51,6 @@
                                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                                     </items>
                                 </MenuButton>
-                                <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="104.0" style="-fx-background-radius: 30;" text="Liên hệ" />
                                 <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="113.0" style="-fx-background-radius: 30;" text="Điều khoản" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
                                 <StackPane prefHeight="36.0" prefWidth="270.0">
