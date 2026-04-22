@@ -6,10 +6,16 @@ import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
-  private final UserDAO userDAO = UserDAO.getInstance();
+  private final UserDAO userDAO;
 
-  public int getUserId(User user) {
-    return userDAO.getUserByUserId(user.getId());
+  // SỬA: Thêm Constructor Injection để hỗ trợ Unit Test
+  public UserService(UserDAO userDAO) {
+    this.userDAO = userDAO;
+  }
+
+  // Default constructor giữ lại để code cũ của em không bị lỗi
+  public UserService() {
+    this.userDAO = UserDAO.getInstance();
   }
 
   // Xem thông tin
@@ -53,7 +59,7 @@ public class UserService {
     }
 
     String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-    boolean success = userDAO.updatePassword(username, hashedNewPassword);
+    boolean success = userDAO.updatePassword(user.getId(), hashedNewPassword);
     if (!success) {
       throw new Exception("Cannot change password.");
     }
