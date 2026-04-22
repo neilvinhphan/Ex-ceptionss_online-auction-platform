@@ -10,7 +10,6 @@ public class AntiqueItem extends Item {
   protected boolean isCertified;
 
   public AntiqueItem(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -21,7 +20,7 @@ public class AntiqueItem extends Item {
       boolean isCertified,
       String description,
       BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.era = era;
     this.material = material;
     this.condition = condition;
@@ -61,7 +60,6 @@ public class AntiqueItem extends Item {
     return isCertified;
   }
 
-  @Override
   public void printInfo() {
     System.out.println("Mã sản phẩm: " + id);
     System.out.println("Đồ cổ: " + getItemName());

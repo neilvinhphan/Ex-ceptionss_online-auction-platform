@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
+  private int itemId;
   private String type;
   private String itemName;
   private BigDecimal startingPrice;
@@ -13,8 +14,8 @@ public abstract class Item extends Entity {
   private  int sellerID;
 
   // Constructor khi Lấy từ DB lên
-  public Item(int id,int sellerID, String type, String itemName, String description, BigDecimal startingPrice) {
-    super(id);
+  public Item(int itemId, int sellerID, String type, String itemName, String description, BigDecimal startingPrice) {
+    this.itemId = itemId;
     this.sellerID = sellerID;
     this.type = type;
     this.itemName = itemName;
@@ -24,14 +25,13 @@ public abstract class Item extends Entity {
 
   // Constructor khi tạo Item
   public Item(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
       String itemName,
       String description,
       BigDecimal startingPrice) {
-    super(id, createdAt);
+    super(createdAt);
     this.sellerID = sellerID;
     this.type = type;
     this.itemName = itemName;
@@ -58,6 +58,10 @@ public abstract class Item extends Entity {
     this.itemName = itemName;
   }
 
+  public int getItemId() {return itemId;}
+
+  public void setItemId(int itemId) {this.itemId = itemId;}
+
   public BigDecimal getStartingPrice() {
     return startingPrice;
   }
@@ -82,5 +86,5 @@ public abstract class Item extends Entity {
     return sellerID;
   }
 
-  protected abstract void printInfo();
+  public abstract void printInfo();
 }

@@ -10,7 +10,7 @@ public class JewelryItem extends Item {
   protected String certification; // Giấy kiểm định
 
   public JewelryItem(
-      int id,
+
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -21,7 +21,7 @@ public class JewelryItem extends Item {
       String certification,
       String description,
       BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.material = material;
     this.gemstone = gemstone;
     this.weight = weight;
@@ -60,7 +60,6 @@ public class JewelryItem extends Item {
     this.certification = certification;
   }
 
-  @Override
   public void printInfo() {
     System.out.println("Mã sản phẩm: " + id);
     System.out.println("Trang sức: " + getItemName());
