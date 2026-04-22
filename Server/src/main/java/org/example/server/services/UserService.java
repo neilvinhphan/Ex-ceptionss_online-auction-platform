@@ -59,7 +59,7 @@ public class UserService {
     }
 
     String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-    boolean success = userDAO.updatePasswordInDB(getUserId(user), hashedNewPassword);
+    boolean success = userDAO.updatePasswordInDB(user.getId(), hashedNewPassword);
     if (!success) {
       throw new Exception("Cannot change password.");
     }
