@@ -1,21 +1,20 @@
 package org.example.core.models.users;
 
 import org.example.core.models.entities.Entity;
-import org.example.core.models.items.ArtItem;
-import org.example.core.models.items.ElectronicsItem;
-import org.example.core.models.items.Item;
-import org.example.core.models.items.VehicleItem;
+import org.example.core.shared.enums.RoleType;
+import org.example.core.shared.enums.UserStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class User extends Entity {
+  protected int userId;
   protected String userName;
   protected String phone;
   protected String email;
   protected String password;
-  protected String role;
-  protected boolean status;
+  protected RoleType role;
+  protected UserStatus status;
 
   // Seller contributes
   private SellerProfile sellerProfile;
@@ -32,8 +31,7 @@ public class User extends Entity {
   }
 
   // Lấy dữ liệu từ Database
-  public User(int id, String userName, String phone, String email, LocalDateTime createdAt) {
-    this.id = id;
+  public User(String userName, String phone, String email, LocalDateTime createdAt) {
     this.createdAt = createdAt;
     this.userName = userName;
     this.phone = phone;
@@ -68,6 +66,10 @@ public class User extends Entity {
   public void setUserName(String userName) {
     this.userName = userName;
   }
+
+  public int getUserId() {return userId;}
+
+  public void setUserId(int userId) {this.userId = userId;}
 
   public String getPhone() {
     return phone;
@@ -109,19 +111,19 @@ public class User extends Entity {
     this.balance = balance;
   }
 
-  public String getRole() {
+  public RoleType getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(RoleType role) {
     this.role = role;
   }
 
-  public void setStatus(boolean status) {
+  public void setStatus(UserStatus status) {
     this.status = status;
   }
 
-  public boolean getStatus() {
+  public UserStatus getStatus() {
     return status;
   }
 }

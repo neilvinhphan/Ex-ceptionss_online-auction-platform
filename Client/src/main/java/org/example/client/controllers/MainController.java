@@ -21,8 +21,14 @@ public class MainController extends BaseController {
     MenuItem item = (MenuItem) event.getSource();
     MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
     parentMenu.setText(item.getText());
+    switchScene(event,"/views/AuctionCatalogView.fxml","Danh mục sản phẩm đấu giá");
   }
-
+@FXML
+private void handleRoomAuction(ActionEvent event){
+  MenuItem item = (MenuItem) event.getSource();
+  MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
+  parentMenu.setText(item.getText());
+}
   @FXML
   void handleMain(ActionEvent event) {
     switchScene(event, "/views/MainView.fxml", "Trang chủ");
@@ -45,6 +51,10 @@ public class MainController extends BaseController {
   @FXML
   void handleLogout(ActionEvent event){
     switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+  }
+  @FXML
+  void handleButtonItem(ActionEvent event){
+    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm");
   }
 }
 

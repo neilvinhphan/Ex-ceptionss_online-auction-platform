@@ -29,7 +29,7 @@ public class AuthService {
 
     // Check username existence
     User userDB = userDAO.getUserByUsername(nameInCheck);
-    if (userDB.getUserName() != null) {
+    if (userDB != null) {
       throw new Exception("Username existed.");
     }
 
@@ -65,7 +65,7 @@ public class AuthService {
     }
 
     // Check status
-    if (!userDB.getStatus()) {
+    if (userDB.getStatus().equals("BANNED")) {
       throw new Exception("Your accound has banned.");
     }
 
