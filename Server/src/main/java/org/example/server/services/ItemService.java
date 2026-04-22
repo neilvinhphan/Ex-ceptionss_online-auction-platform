@@ -21,8 +21,8 @@ public class ItemService {
     if (seller == null || seller.getUserName() == null) {
       throw new Exception("Seller not found.");
     }
-    if (!seller.getStatus()) {
-      throw new Exception("Seller account is inactive.");
+    if (seller.getStatus().equals("BANNED")) {
+      throw new Exception("Seller account is banned.");
     }
 
     Integer itemId = itemDAO.insertintoItemTable(item);
