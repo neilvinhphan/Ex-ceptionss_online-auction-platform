@@ -17,3 +17,10 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 15, 0, 0, 5);
     -fx-padding: 8px 15px 8px 15px;
 }
+/* Đổi màu chữ bên trong MenuButton thành trắng */
+.user-menu-btn .label {
+    -fx-text-fill: white;
+}
+.user-menu-btn .arrow {
+    -fx-background-color: white;
+}
