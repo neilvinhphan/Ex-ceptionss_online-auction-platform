@@ -8,7 +8,6 @@ public class ArtItem extends Item {
   protected int creationYear;
 
   public ArtItem(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -17,12 +16,16 @@ public class ArtItem extends Item {
       int creationYear,
       String description,
       BigDecimal startingPrice) {
-    super(id,sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.artist = artist;
     this.creationYear = creationYear;
   }
 
   public ArtItem() {}
+
+  public void setArtist(String artist) {this.artist = artist;}
+
+  public void setCreationYear(int creationYear) {this.creationYear = creationYear;}
 
   public String getArtist() {
     return artist;

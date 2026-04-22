@@ -3,14 +3,13 @@ package org.example.core.models.items;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class RealEstateItem extends Item {
+public class RealEstateItem extends org.example.core.models.items.Item {
   protected String location; // Vị trí/Địa chỉ
   protected double area; // Diện tích (m2)
   protected String propertyType; // Loại hình (Đất nền, Chung cư...)
   protected String legalStatus; // Tình trạng pháp lý (Sổ đỏ, HĐMB...)
 
   public RealEstateItem(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -21,7 +20,7 @@ public class RealEstateItem extends Item {
       String legalStatus,
       String description,
       BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.location = location;
     this.area = area;
     this.propertyType = propertyType;
@@ -45,7 +44,22 @@ public class RealEstateItem extends Item {
     return legalStatus;
   }
 
-  @Override
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  public void setArea(double area) {
+    this.area = area;
+  }
+
+  public void setPropertyType(String propertyType) {
+    this.propertyType = propertyType;
+  }
+
+  public void setLegalStatus(String legalStatus) {
+    this.legalStatus = legalStatus;
+  }
+
   public void printInfo() {
     System.out.println("Mã sản phẩm: " + id);
     System.out.println("Bất động sản: " + getItemName());

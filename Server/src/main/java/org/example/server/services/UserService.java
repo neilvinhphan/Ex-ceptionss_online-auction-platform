@@ -9,7 +9,7 @@ public class UserService {
   private final UserDAO userDAO = UserDAO.getInstance();
 
   public int getUserId(User user) {
-    return userDAO.getUserByUserId(user.getId());
+    return userDAO.getUserIdInDB(user.getUserName());
   }
 
   // Xem thông tin
@@ -53,7 +53,7 @@ public class UserService {
     }
 
     String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-    boolean success = userDAO.updatePassword(username, hashedNewPassword);
+    boolean success = userDAO.updatePasswordInDB(getUserId(user), hashedNewPassword);
     if (!success) {
       throw new Exception("Cannot change password.");
     }

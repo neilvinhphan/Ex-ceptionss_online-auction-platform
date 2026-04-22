@@ -9,7 +9,6 @@ public class ElectronicsItem extends Item {
   protected String condition; // tình trạng của sản phẩm
 
   public ElectronicsItem(
-      int id,
       int sellerID,
       LocalDateTime createdAt,
       String type,
@@ -19,12 +18,24 @@ public class ElectronicsItem extends Item {
       String condition,
       String description,
       BigDecimal startingPrice) {
-    super(id, sellerID, createdAt, type, itemName, description, startingPrice);
+    super(sellerID, createdAt, type, itemName, description, startingPrice);
     this.brand = brand;
     this.warrantyMonths = warrantyMonths;
     this.condition = condition;
   }
   public ElectronicsItem() {}
+
+  public void setBrand(String brand) {
+    this.brand = brand;
+  }
+
+  public void setCondition(String condition) {
+    this.condition = condition;
+  }
+
+  public void setWarrantyMonths(int warrantyMonths) {
+    this.warrantyMonths = warrantyMonths;
+  }
 
   public String getCondition() {
     return condition;
