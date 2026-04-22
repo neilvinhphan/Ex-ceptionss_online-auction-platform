@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #F8F9FA; -fx-background: #F8F9FA;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #F8F9FA; -fx-background: #F8F9FA;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionCatalogController">
     <content>
         <VBox maxWidth="1.7976931348623157E308">
             <children>
@@ -207,38 +207,38 @@
                     </center>
 
                     <top>
-                        <HBox maxWidth="1.7976931348623157E308" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
+                        <HBox spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
                      <BorderPane.margin>
-                        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0" />
+                        <Insets bottom="20.0" left="75.0" right="75.0" top="35.0" />
                      </BorderPane.margin>
                      <children>
-                        <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                        <MenuButton mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá ">
+                        <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
+                        <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá ">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="🏠 Bất động sản" />
-                            <MenuItem mnemonicParsing="false" text="🏺 Đồ cổ" />
-                              <MenuItem mnemonicParsing="false" text="🎨 Tác phẩm nghệ thuật" />
-                              <MenuItem mnemonicParsing="false" text="🚗 Phương tiện" />
-                              <MenuItem mnemonicParsing="false" text="💎 Trang sức" />
-                              <MenuItem mnemonicParsing="false" text="Khác" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="💎 Trang sức" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                           </items>
                         </MenuButton>
-                        <MenuButton mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Phòng đấu giá">
+                        <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Phòng đấu giá">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="🏠 Bất động sản" />
-                            <MenuItem mnemonicParsing="false" text="🏺 Đồ cổ" />
-                              <MenuItem mnemonicParsing="false" text="🎨 Tác phẩm nghệ thuật" />
-                              <MenuItem mnemonicParsing="false" text="🚗 Phương tiện" />
-                              <MenuItem mnemonicParsing="false" text="💎 Trang sức" />
-                              <MenuItem mnemonicParsing="false" text="Khác" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏠 Bất động sản" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏺 Đồ cổ" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🎨 Tác phẩm nghệ thuật" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🚗 Phương tiện" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="💎 Trang sức" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="Khác" />
                           </items>
                         </MenuButton>
                         <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
-                        <Region prefHeight="36.0" prefWidth="240.0" />
-                        <MenuButton mnemonicParsing="false" prefHeight="36.0" prefWidth="164.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                        <Region HBox.hgrow="ALWAYS" />
+                        <MenuButton mnemonicParsing="false" prefHeight="34.0" prefWidth="58.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="👤 Hồ sơ cá nhân" />
-                            <MenuItem mnemonicParsing="false" text="➜] Đăng xuất" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                            <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
                           </items>
                         </MenuButton>
                      </children></HBox>
