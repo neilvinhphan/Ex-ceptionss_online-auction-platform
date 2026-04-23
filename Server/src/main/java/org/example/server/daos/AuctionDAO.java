@@ -108,13 +108,36 @@ public class AuctionDAO {
   }
 
   public String getAuctionStatus(int auctionId) {
-    String sql = "SELECT status FROM auction WHERE auction_id = ?";
+    String sql = "SELECT status FROM auction_items WHERE id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
-      return ps.executeQuery().getString("status");
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("status");
+        }
+      }
+      return null;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public List<Integer> getExpiredRunningAuctionIds(LocalDateTime now) {
+    List<Integer> auctionIds = new ArrayList<>();
+    String sql = "SELECT id FROM auction_items WHERE status = ? AND end_time <= ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, AuctionStatus.RUNNING.name());
+      ps.setTimestamp(2, Timestamp.valueOf(now));
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          auctionIds.add(rs.getInt("id"));
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return auctionIds;
   }
 }
