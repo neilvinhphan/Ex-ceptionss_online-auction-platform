@@ -8,6 +8,7 @@ import org.example.core.models.items.JewelryItem;
 import org.example.core.models.items.OtherItem;
 import org.example.core.models.items.RealEstateItem;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class ItemDAO {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setItemId(rs.getInt("item_id"));
+          item.setId(rs.getInt("item_id"));
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
@@ -70,7 +71,7 @@ public class ItemDAO {
         }
         return items;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+          throw new RuntimeException(e);
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
@@ -225,7 +226,7 @@ public class ItemDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setItemId(rs.getInt("item_id"));
+          item.setId(rs.getInt("item_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("starting_price"));
@@ -252,6 +253,22 @@ public class ItemDAO {
     return null;
   }
 
+  public String getItemStatusById(int itemId) {
+    String sql = "SELECT status FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("status");
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
   public boolean updateOwnerIdInDB(int itemId, int ownerId) {
     String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -260,9 +277,7 @@ public class ItemDAO {
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
-    }
-    return false;
-  }
+    } return false;}
 
   public boolean updateFinalPriceByItemId(int id) {
     String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
@@ -271,8 +286,7 @@ public class ItemDAO {
       ps.setInt(1, id);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
-    }
-    return false;
+  }return false;
   }
 
   public boolean updateItemDescription(int itemId, String description) {
@@ -282,15 +296,15 @@ public class ItemDAO {
       ps.setString(1, description);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (SQLException | IOException e ) {
       throw new RuntimeException(e);
     }
   }
 
-  public void updateItemStatus(int itemId, Enum status) {
+  public void updateItemStatus(int itemId, ItemStatus status) {
     String sql = "UPDATE items SET status = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+    PreparedStatement ps = connection.prepareStatement(sql)    ) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
       ps.executeUpdate();
@@ -298,4 +312,16 @@ public class ItemDAO {
       throw new RuntimeException(e);
     }
   }
+
+  public boolean deleteItem(int itemId) {
+    String sql = "DELETE FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
+
