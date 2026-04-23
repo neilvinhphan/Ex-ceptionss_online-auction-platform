@@ -22,36 +22,36 @@ public class BidService {
     this(BidDAO.getInstance(), AuctionDAO.getInstance());
   }
 
-  public void placeManualBid(int auctionId, int userId, BigDecimal bidAmount) throws Exception {
+  public void placeManualBid(int auctionId, int userId, BigDecimal bidAmount) {
     if (auctionId <= 0) {
-      throw new Exception("Invalid auction id.");
+      throw new IllegalArgumentException("Invalid auction id.");
     }
     if (userId <= 0) {
-      throw new Exception("Invalid user id.");
+      throw new IllegalArgumentException("Invalid user id.");
     }
     if (bidAmount == null || bidAmount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new Exception("Bid amount must be greater than zero.");
+      throw new IllegalArgumentException("Bid amount must be greater than zero.");
     }
 
     String status = auctionDAO.getAuctionStatus(auctionId);
     if (status == null || !AuctionStatus.RUNNING.name().equalsIgnoreCase(status)) {
-      throw new Exception("Auction is not running.");
+      throw new IllegalStateException("Auction is not running.");
     }
 
     BigDecimal currentPrice = bidDAO.getCurrentPrice(auctionId);
     if (currentPrice != null && bidAmount.compareTo(currentPrice) <= 0) {
-      throw new Exception("Bid amount must be greater than current price.");
+      throw new IllegalArgumentException("Bid amount must be greater than current price.");
     }
 
     boolean success = bidDAO.updateNewBid(auctionId, userId, bidAmount);
     if (!success) {
-      throw new Exception("Cannot place bid.");
+      throw new IllegalStateException("Cannot place bid.");
     }
   }
 
-  public List<BidTransaction> getBidHistory(int auctionId) throws Exception {
+  public List<BidTransaction> getBidHistory(int auctionId) {
     if (auctionId <= 0) {
-      throw new Exception("Invalid auction id.");
+      throw new IllegalArgumentException("Invalid auction id.");
     }
     return bidDAO.getBidTransactionByAuctionId(auctionId);
   }

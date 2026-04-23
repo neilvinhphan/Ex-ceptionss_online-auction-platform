@@ -27,13 +27,13 @@ public class BidDAO {
         } return instance;
     }
 
-    public boolean updateNewBid(int auctionId, int userId, BigDecimal currentprice) {
+    public boolean updateNewBid(int auctionId, int userId, BigDecimal bidAmount) {
         String sql = "INSERT INTO bid (auction_id, user_id, bid_amount, bid_time) VALUES (?,?,?,?)";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, auctionId);
             ps.setInt(2, userId);
-            ps.setBigDecimal(3, currentprice);
+            ps.setBigDecimal(3, bidAmount);
             ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
             int rowsUpdated = ps.executeUpdate();
             return rowsUpdated > 0;
