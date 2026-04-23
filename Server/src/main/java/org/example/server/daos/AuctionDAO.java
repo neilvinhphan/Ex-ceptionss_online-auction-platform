@@ -81,10 +81,11 @@ public class AuctionDAO {
   }
 
   public boolean updateNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
-    String sql = "INSERT INTO auction_items (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
+    String sql =
+        "INSERT INTO auction_items (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, item.getId());
+      //      ps.setInt(1, item.getId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
       LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);

@@ -56,7 +56,7 @@ public class ItemService {
     }
 
     Integer ownerSellerId = itemDAO.getOwnerIdByItemId(itemId);
-    if (ownerSellerId == null || ownerSellerId != seller.getId()) {
+    if (ownerSellerId == null || ownerSellerId != seller.getUserId()) {
       throw new Exception("You are not allowed to update this item.");
     }
 
