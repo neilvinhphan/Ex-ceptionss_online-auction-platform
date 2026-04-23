@@ -111,7 +111,7 @@ public class UserDAO {
     }
   }
 
-  public boolean updateRole(int UserId) {
+  public boolean updateRoleInDB(int UserId) {
     String sql = "UPDATE user SET role = 'seller' WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -122,7 +122,7 @@ public class UserDAO {
     }
   }
 
-  public boolean updatePhonenumber(int UserId, String pn) {
+  public boolean updatePhonenumberInDB(int UserId, String pn) {
     String sql = "UPDATE user SET phone_number = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -134,7 +134,7 @@ public class UserDAO {
     }
   }
 
-  public boolean updateEmail(int UserId, String email) {
+  public boolean updateEmailInDB(int UserId, String email) {
     String sql = "UPDATE user SET email = ? WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -168,7 +168,7 @@ public class UserDAO {
     }
   }
 
-  public boolean getStatus(int UserId) {
+  public boolean getStatusInDB(int UserId) {
     String sql = "SELECT status FROM user WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {

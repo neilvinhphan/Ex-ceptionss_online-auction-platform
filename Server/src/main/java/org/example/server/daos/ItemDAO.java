@@ -8,6 +8,7 @@ import org.example.core.models.items.JewelryItem;
 import org.example.core.models.items.OtherItem;
 import org.example.core.models.items.RealEstateItem;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class ItemDAO {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setItemId(rs.getInt("item_id"));
+          item.setId(rs.getInt("item_id"));
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
@@ -225,7 +226,7 @@ public class ItemDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setItemId(rs.getInt("item_id"));
+          item.setId(rs.getInt("item_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("starting_price"));
@@ -287,13 +288,24 @@ public class ItemDAO {
     }
   }
 
-  public void updateItemStatus(int itemId, Enum status) {
+  public void updateItemStatus(int itemId, ItemStatus status) {
     String sql = "UPDATE items SET status = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
       ps.executeUpdate();
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean deleteItem(int itemId) {
+    String sql = "DELETE FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
