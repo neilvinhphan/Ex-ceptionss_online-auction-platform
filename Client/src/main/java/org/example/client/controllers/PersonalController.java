@@ -75,12 +75,12 @@ public class PersonalController extends BaseController implements Initializable 
             String newPhone = result.get().trim();
             int currentUserId = currentUser.getUserId();
             boolean success = UserDAO.getInstance().updatePhonenumberInDB(currentUserId, newPhone);
-            if (success) {
+            if (success == true) {
                 currentUser.setPhone(newPhone);
                 lbPhoneNum.setText(newPhone);
                 showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");
             } else {
-                showAlert("Lỗi", "Không thể cập nhật số điện thoại vào Database!");
+                showAlert("Lỗi", "Không thể cập nhật số điện thoại vào Database!" +success);
             }
         }
     }
