@@ -235,7 +235,7 @@
                         </MenuButton>
                         <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <MenuButton mnemonicParsing="false" prefHeight="34.0" prefWidth="58.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                        <MenuButton fx:id="menuUser" mnemonicParsing="false" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                           <items>
                             <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
                             <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />

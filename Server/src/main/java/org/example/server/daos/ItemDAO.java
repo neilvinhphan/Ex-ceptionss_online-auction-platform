@@ -253,6 +253,22 @@ public class ItemDAO {
     return null;
   }
 
+  public String getItemStatusById(int itemId) {
+    String sql = "SELECT status FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("status");
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
   public boolean updateOwnerIdInDB(int itemId, int ownerId) {
     String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
