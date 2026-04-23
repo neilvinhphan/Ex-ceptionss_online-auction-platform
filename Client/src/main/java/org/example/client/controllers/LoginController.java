@@ -29,6 +29,7 @@ public class LoginController extends BaseController {
         showAlert("Thất bại", "Tài khoản hoặc mật khẩu không chính xác!");
     }
      */
+
     else {
       System.out.println("Chuyển sang trang chủ");
       switchScene(event, "/views/MainView.fxml", "Trang chủ");
