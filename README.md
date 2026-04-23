@@ -13,14 +13,15 @@
 
 ## 🛠️ 2. Công nghệ sử dụng
 
-| Công nghệ | Mục đích                           |
-|-----------|------------------------------------|
-| Java      | Ngôn ngữ lập trình chính           |
-| JavaFX    | Xây dựng giao diện người dùng (UI) |
-| MySQL     | Hệ quản trị cơ sở dữ liệu          |
-| Maven     | Quản lý dependency & build tool    |
-| BCrypt    | Mã hóa mật khẩu                    |
-| JDBC      | Kết nối Java với cơ sở dữ liệu     |
+| Công nghệ | Mục đích                                                         |
+|-----------|------------------------------------------------------------------|
+| Java      | Ngôn ngữ lập trình chính                                         |
+| JavaFX    | Thư viện xây dựng giao diện người dùng (UI)                      |
+| FXML      | Ngôn ngữ đánh dấu nhằm thiết kế và cấu trúc giao diện người dùng |
+| MySQL     | Hệ quản trị cơ sở dữ liệu                                        |
+| Maven     | Quản lý dependency & build tool                                  |
+| BCrypt    | Mã hóa mật khẩu                                                  |
+| JDBC      | Kết nối Java với cơ sở dữ liệu                                   |
 
 ---
 
@@ -29,9 +30,10 @@
 - 🔐 **Xác thực người dùng** — Đăng ký, Đăng nhập, mã hóa mật khẩu bằng BCrypt
 - 👤 **Hồ sơ người dùng** — Xem và chỉnh sửa thông tin cá nhân
 - 🔨 **Đấu giá Real-time** — Cơ chế đặt giá, Anti-sniping, State Machine quản lý trạng thái phiên đấu
-  giá
-- 📦 **Quản lý kho đồ** — Quản lý danh sách sản phẩm (Item) theo phân cấp đối tượng
-- 🛡️ **Phân quyền** — Cấu trúc phân quyền người dùng rõ ràng
+  giá *(Đang phát triển...)*
+- 📦 **Quản lý kho đồ** — Quản lý danh sách sản phẩm (Item) theo phân cấp đối tượng *(Đang phát
+  triển...)*
+- 🛡️ **Phân quyền** — Cấu trúc phân quyền người dùng rõ ràng *(Đang phát triển...)*
 
 ---
 
@@ -65,7 +67,14 @@
 
 ## 📸 6. Hình ảnh minh họa
 
-> *Team chèn ảnh chụp màn hình UI đã hoàn thiện tại đây.*
+![img.png](img.png)
+*Trang đăng nhập*
+
+![img_1.png](img_1.png)
+*Trang chủ*
+
+![img_2.png](img_2.png)
+*Hồ sơ người dunng*
 
 ---
 

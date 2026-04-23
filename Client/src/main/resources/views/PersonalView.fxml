@@ -124,7 +124,7 @@
                <children>
                   <VBox spacing="10.0">
                      <children>
-                        <Label style="-fx-text-fill: #28a745; -fx-font-size: 22; -fx-font-weight: bold;" text="EX-CEPTION" />
+                        <Label style="-fx-text-fill: #28a745; -fx-font-size: 22; -fx-font-weight: bold;" text="EX-CEPTIONS" />
                         <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="Hân hạnh đồng hành !" />
                      </children>
                   </VBox>

@@ -48,7 +48,7 @@ public class UserDAO {
         if (rs.next()) {
           User user = new User();
           user.setPassword(rs.getString("password"));
-          user.setId(rs.getInt("user_id"));
+          user.setUserId(rs.getInt("user_id"));
           user.setUserName(rs.getString("user_name"));
           user.setBalance(rs.getBigDecimal("balance"));
           user.setEmail(rs.getString("email"));
@@ -72,7 +72,7 @@ public class UserDAO {
         if (rs.next()) {
           User user = new User();
           user.setPassword(rs.getString("password"));
-          user.setId(rs.getInt("user_id"));
+          user.setUserId(rs.getInt("user_id"));
           user.setUserName(rs.getString("user_name"));
           user.setBalance(rs.getBigDecimal("balance"));
           user.setEmail(rs.getString("email"));
@@ -128,7 +128,6 @@ public class UserDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, pn);
       ps.setInt(2, UserId);
-      ps.executeUpdate();
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -13,13 +13,14 @@ public abstract class Item extends Entity {
   protected String description;
   private int sellerID;
   protected ItemStatus status;
+  private int itemId;
 
   protected Item() {
     super();
   }
 
   protected Item(Builder<?> builder) {
-    super(builder.id, builder.createdAt);
+    super(builder.createdAt);
     this.itemName = builder.itemName;
     this.startingPrice = builder.startingPrice;
     this.description = builder.description;
@@ -36,7 +37,7 @@ public abstract class Item extends Entity {
     protected final BigDecimal startingPrice;
 
     // optional
-    protected int id;
+    protected int itemId;
     protected LocalDateTime createdAt = LocalDateTime.now();
     protected String description;
     protected ItemStatus status;
@@ -51,7 +52,7 @@ public abstract class Item extends Entity {
     protected abstract T self();
 
     public T id(int id) {
-      this.id = id;
+      this.itemId = itemId;
       return self();
     }
 
@@ -107,5 +108,13 @@ public abstract class Item extends Entity {
 
   public void setStatus(ItemStatus status) {
     this.status = status;
+  }
+
+  public void setItemId(int itemId) {
+    this.itemId = itemId;
+  }
+
+  public int getItemId() {
+    return itemId;
   }
 }

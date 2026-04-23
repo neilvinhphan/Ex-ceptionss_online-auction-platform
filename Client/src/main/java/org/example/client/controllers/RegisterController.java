@@ -33,7 +33,15 @@ public class RegisterController extends BaseController {
     boolean checkCommit = cbCommit.isSelected();
     try {
       RegisterRequestDTO registerRequestDTO =
-          new RegisterRequestDTO(userName, phone, email, password);
+          new RegisterRequestDTO(
+              userName,
+              phone,
+              email,
+              password,
+              repassword,
+              passwordhidden,
+              repasswordhidden,
+              checkCommit);
       User checkRegister = AuthService.register(registerRequestDTO);
       switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     } catch (Exception e) {

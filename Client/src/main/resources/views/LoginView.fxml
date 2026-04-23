@@ -21,17 +21,17 @@
             </image>
         </ImageView>
 
-        <VBox maxHeight="550.0" maxWidth="370.0" spacing="7.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);" StackPane.alignment="CENTER_RIGHT">
+        <VBox alignment="CENTER_LEFT" maxHeight="550.0" maxWidth="370.0" spacing="7.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);" StackPane.alignment="CENTER_RIGHT">
             <padding>
                 <Insets bottom="30.0" left="30.0" right="30.0" top="70.0" />
             </padding>
             <children>
                 <Label prefHeight="46.0" style="-fx-font-size: 24; -fx-font-weight: bold;" text="ĐĂNG NHẬP" />
 
-                <Label style="-fx-font-size: 15;" text="Tên đăng nhập:" />
+                <Label style="-fx-font-size: 14;" text="Tên đăng nhập:" />
                 <TextField fx:id="tfuserName" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" />
 
-                <Label style="-fx-font-size: 15;" text="Mật khẩu:" />
+                <Label style="-fx-font-size: 14;" text="Mật khẩu:" />
                 <StackPane>
                     <children>
                         <PasswordField fx:id="pass_an" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" />

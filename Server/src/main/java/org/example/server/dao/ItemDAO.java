@@ -62,7 +62,7 @@ public class ItemDAO {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          item.setId(rs.getInt("item_id"));
+          //          item.setId(rs.getInt("item_id"));
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
@@ -226,7 +226,7 @@ public class ItemDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          item.setId(rs.getInt("item_id"));
+          //          item.setId(rs.getInt("item_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("starting_price"));
