@@ -12,96 +12,68 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane
-        style="-fx-background-image: url('/images/xanhla.png'); -fx-background-size: cover; -fx-background-position: center;"
-        xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-        fx:controller="org.example.client.controllers.RegisterController">
+<StackPane style="-fx-background-image: url('/images/xanhla.png'); -fx-background-size: cover; -fx-background-position: center;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.RegisterController">
     <children>
-        <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="320.0" spacing="7.0"
-              style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);"
-              StackPane.alignment="CENTER_RIGHT">
+        <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="650.0" prefWidth="370.0" spacing="7.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);" StackPane.alignment="CENTER_RIGHT">
             <children>
-                <Label lineSpacing="17.0" style="-fx-font-size: 20; -fx-font-weight: bold;"
-                       text="ĐĂNG KÝ TÀI KHOẢN">
+                <Label lineSpacing="17.0" style="-fx-font-size: 20; -fx-font-weight: bold;" text="ĐĂNG KÝ TÀI KHOẢN">
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                     </padding>
                 </Label>
-                <Label style="-fx-font-size: 13;" text="Tên đăng nhập:"/>
-                <TextField fx:id="tfuserName"
-                           style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;"/>
-                <Label style="-fx-font-size: 13;" text="Số điện thoại:"/>
-                <TextField fx:id="tfphone"
-                           style="-fx-border-color: #ddd; -fx-background-radius: 10; -fx-border-radius: 10;"/>
-                <Label style="-fx-font-size: 13;" text="Email:"/>
-                <TextField fx:id="tfemail"
-                           style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;"/>
-                <Label style="-fx-font-size: 13;" text="Mật khẩu:"/>
+                <Label style="-fx-font-size: 13;" text="Tên đăng nhập:" />
+                <TextField fx:id="tfuserName" style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;" />
+                <Label style="-fx-font-size: 13;" text="Số điện thoại:" />
+                <TextField fx:id="tfphone" style="-fx-border-color: #ddd; -fx-background-radius: 10; -fx-border-radius: 10;" />
+                <Label style="-fx-font-size: 13;" text="Email:" />
+                <TextField fx:id="tfemail" style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;" />
+                <Label style="-fx-font-size: 13;" text="Mật khẩu:" />
                 <StackPane>
                     <children>
-                        <PasswordField fx:id="pass_an"
-                                       style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;"/>
-                        <TextField fx:id="pass_hien"
-                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;"
-                                   visible="false"/>
-                        <Button mnemonicParsing="false" onAction="#DisplayPassword"
-                                style="-fx-background-color: transparent; -fx-border-radius: 10; -fx-background-radius: 10;"
-                                text="👀" StackPane.alignment="CENTER_RIGHT">
+                        <PasswordField fx:id="pass_an" style="-fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #ddd;" />
+                        <TextField fx:id="pass_hien" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" visible="false" />
+                        <Button mnemonicParsing="false" onAction="#DisplayPassword" style="-fx-background-color: transparent; -fx-border-radius: 10; -fx-background-radius: 10;" text="👀" StackPane.alignment="CENTER_RIGHT">
                             <StackPane.margin>
-                                <Insets right="6.0"/>
+                                <Insets right="6.0" />
                             </StackPane.margin>
                         </Button>
                     </children>
                 </StackPane>
-                <Label style="-fx-font-size: 13;" text="Nhập lại mật khẩu:"/>
+                <Label style="-fx-font-size: 13;" text="Nhập lại mật khẩu:" />
                 <StackPane>
                     <children>
-                        <PasswordField fx:id="repass_an"
-                                       style="-fx-border-color: #ddd; -fx-border-radius: 10; -fx-background-radius: 10;"/>
-                        <TextField fx:id="repass_hien"
-                                   style="-fx-border-color: #ddd; -fx-background-radius: 10; -fx-border-radius: 10;"
-                                   visible="false"/>
-                        <Button mnemonicParsing="false" onAction="#ReDisplayPassword"
-                                style="-fx-background-color: transparent; -fx-background-radius: 10;"
-                                text="👀" StackPane.alignment="CENTER_RIGHT">
+                        <PasswordField fx:id="repass_an" style="-fx-border-color: #ddd; -fx-border-radius: 10; -fx-background-radius: 10;" />
+                        <TextField fx:id="repass_hien" style="-fx-border-color: #ddd; -fx-background-radius: 10; -fx-border-radius: 10;" visible="false" />
+                        <Button mnemonicParsing="false" onAction="#ReDisplayPassword" style="-fx-background-color: transparent; -fx-background-radius: 10;" text="👀" StackPane.alignment="CENTER_RIGHT">
                             <StackPane.margin>
-                                <Insets right="6.0"/>
+                                <Insets right="6.0" />
                             </StackPane.margin>
                         </Button>
                     </children>
                 </StackPane>
                 <VBox>
                     <children>
-                        <CheckBox fx:id="cbCommit" mnemonicParsing="false"
-                                  style="-fx-font-size: 13;"
-                                  text="Tôi cam kết tuân thủ quyền và trách nhiệm của người tham gia đấu giá, chính sách và mọi Điều khoản dịch vụ tại website đấu giá team Exception"
-                                  wrapText="true">
+                        <CheckBox fx:id="cbCommit" mnemonicParsing="false" style="-fx-font-size: 13;" text="Tôi cam kết tuân thủ quyền và trách nhiệm của người tham gia đấu giá, chính sách và mọi Điều khoản dịch vụ tại website đấu giá team Exception" wrapText="true">
                             <font>
-                                <Font size="13.0"/>
+                                <Font size="13.0" />
                             </font>
                         </CheckBox>
-                        <Hyperlink onAction="#handleDieuKhoan" style="-fx-text-fill: #28a745;"
-                                   text="Điều khoản"/>
+                        <Hyperlink onAction="#handleDieuKhoan" style="-fx-text-fill: #28a745;" text="Điều khoản" />
                     </children>
                 </VBox>
-                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                        onAction="#handleRegister"
-                        style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #28a745; -fx-font-size: 15;"
-                        text="Đăng ký"/>
-                <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRegister" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-color: #28a745; -fx-font-size: 15;" text="Đăng ký" />
+                <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="32.0" prefWidth="350.0">
                     <children>
-                        <Label style="-fx-font-size: 14;" text="Đã có tài khoản? "/>
-                        <Hyperlink onAction="#handleLogin"
-                                   style="-fx-font-size: 13; -fx-text-fill: #28a745; -fx-font-weight: bold;"
-                                   text="Đăng nhập"/>
+                        <Label style="-fx-font-size: 14;" text="Đã có tài khoản? " />
+                        <Hyperlink onAction="#handleLogin" style="-fx-font-size: 13; -fx-text-fill: #28a745; -fx-font-weight: bold;" text="Đăng nhập" />
                     </children>
                 </HBox>
             </children>
             <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
             <StackPane.margin>
-                <Insets right="60.0"/>
+                <Insets bottom="100.0" right="100.0" top="100.0" />
             </StackPane.margin>
         </VBox>
     </children>
