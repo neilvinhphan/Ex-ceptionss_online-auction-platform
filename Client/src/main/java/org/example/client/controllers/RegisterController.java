@@ -30,22 +30,11 @@ public class RegisterController extends BaseController {
     String passwordhidden = pass_hien.getText();
     String repassword = repass_an.getText();
     String repasswordhidden = repass_hien.getText();
-    if (userName.isEmpty()
-        || phone.isEmpty()
-        || email.isEmpty()
-        || password.isEmpty()
-        || repassword.isEmpty()) {
-      showAlert("Lỗi", "Vui lòng nhập đủ thông tin!");
-    } else if (!password.equals(repassword)) {
-      showAlert("Lỗi", "Mật khẩu không khớp! Vui lòng kiểm tra lại! ");
-    } else if (!cbCommit.isSelected()) {
-      showAlert("Thông báo", "Vui lòng đồng ý với điều khoản dịch vụ để tiếp tục!");
-    }
+    boolean checkCommit = cbCommit.isSelected();
     try {
       RegisterRequestDTO registerRequestDTO =
           new RegisterRequestDTO(userName, phone, email, password);
       User checkRegister = AuthService.register(registerRequestDTO);
-      System.out.println("Đăng ký thành công! Chuyển sang trang đăng nhập...");
       switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     } catch (Exception e) {
       showAlert("Register Failed!", e.getMessage());
