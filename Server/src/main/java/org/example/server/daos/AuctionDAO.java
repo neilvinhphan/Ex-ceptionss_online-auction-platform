@@ -69,6 +69,31 @@ public class AuctionDAO {
     return items;
   }
 
+  public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
+    List<Auction> auctions = new ArrayList<>();
+    String sql = "SELECT * FROM auction_items WHERE status =?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, String.valueOf(status));
+      ResultSet rs = ps.executeQuery();
+      while (rs.next()) {
+        Auction auction = new Auction(
+            rs.getInt("auction_id"),
+            rs.getTimestamp("created_at").toLocalDateTime(),
+            null,
+            AuctionStatus.valueOf(rs.getString("status")),
+            rs.getTimestamp("start_time").toLocalDateTime(),
+            rs.getTimestamp("end_time").toLocalDateTime(),
+            null,
+            null);
+        auctions.add(auction);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return auctions;
+  }
+
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
