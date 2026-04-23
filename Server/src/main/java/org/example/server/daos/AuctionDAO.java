@@ -54,24 +54,25 @@ public class AuctionDAO {
             + "WHERE i.status = ?\n"
             + "ORDER BY i.item_id DESC;";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ResultSet rs = ps.executeQuery();
-      while(rs.next()) {
+      while (rs.next()) {
         Item item = ItemFactory.takeItemFromDB(rs);
         items.add(item);
       }
     } catch (SQLException e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     } catch (Exception e) {
-        throw new RuntimeException(e);
-    } return items;
+      throw new RuntimeException(e);
+    }
+    return items;
   }
 
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeQuery().getInt("id");
     } catch (SQLException | IOException e) {
@@ -97,22 +98,23 @@ public class AuctionDAO {
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
     String sql = "UPDATE auction_items SET status = ? WHERE id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, auctionId);
       ps.executeUpdate();
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
-  }}
+    }
+  }
 
   public String getAuctionStatus(int auctionId) {
     String sql = "SELECT status FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       return ps.executeQuery().getString("status");
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
+    }
   }
-}
 }

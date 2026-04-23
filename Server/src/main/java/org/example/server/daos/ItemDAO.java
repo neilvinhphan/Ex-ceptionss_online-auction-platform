@@ -71,7 +71,7 @@ public class ItemDAO {
         }
         return items;
       } catch (Exception e) {
-          throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
@@ -261,7 +261,9 @@ public class ItemDAO {
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
-    } return false;}
+    }
+    return false;
+  }
 
   public boolean updateFinalPriceByItemId(int id) {
     String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
@@ -270,7 +272,8 @@ public class ItemDAO {
       ps.setInt(1, id);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
-  }return false;
+    }
+    return false;
   }
 
   public boolean updateItemDescription(int itemId, String description) {
@@ -280,7 +283,7 @@ public class ItemDAO {
       ps.setString(1, description);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e ) {
+    } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -288,7 +291,7 @@ public class ItemDAO {
   public void updateItemStatus(int itemId, ItemStatus status) {
     String sql = "UPDATE items SET status = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)    ) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
       ps.executeUpdate();
@@ -308,4 +311,3 @@ public class ItemDAO {
     }
   }
 }
-

@@ -1,5 +1,10 @@
 package org.example.client.controllers;
 
+import org.example.core.dto.LoginRequestDTO;
+import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.models.users.User;
+import org.example.server.services.AuthService;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -36,10 +41,14 @@ public class RegisterController extends BaseController {
     } else if (!cbCommit.isSelected()) {
       showAlert("Thông báo", "Vui lòng đồng ý với điều khoản dịch vụ để tiếp tục!");
     }
-    // sẽ có 1 cái gì đó check xem trong database tồn tại tài kh đó chưa;)) t chưa nghĩ ra
-    else {
-      System.out.println("Chuyển sang trang Login");
-      switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    try {
+      RegisterRequestDTO registerRequestDTO =
+          new RegisterRequestDTO(userName, phone, email, password);
+      User checkRegister = AuthService.register(registerRequestDTO);
+      System.out.println("Đăng ký thành công! Chuyển sang trang đăng nhập...");
+      switchScene(event, "/views/MainView.fxml", "Đăng nhập");
+    } catch (Exception e) {
+      showAlert("Register Failed!", e.getMessage());
     }
   }
 
