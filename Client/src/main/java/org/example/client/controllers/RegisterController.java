@@ -46,7 +46,7 @@ public class RegisterController extends BaseController {
           new RegisterRequestDTO(userName, phone, email, password);
       User checkRegister = AuthService.register(registerRequestDTO);
       System.out.println("Đăng ký thành công! Chuyển sang trang đăng nhập...");
-      switchScene(event, "/views/MainView.fxml", "Đăng nhập");
+      switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     } catch (Exception e) {
       showAlert("Register Failed!", e.getMessage());
     }

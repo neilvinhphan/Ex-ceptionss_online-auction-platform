@@ -62,7 +62,7 @@ public class PersonalController extends BaseController implements Initializable 
     void handleCreateAuction(ActionEvent event) {
         switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
     }
-    /*
+
     @FXML
     void handleEditPhone(ActionEvent event) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -74,7 +74,7 @@ public class PersonalController extends BaseController implements Initializable 
         if (result.isPresent() && !result.get().trim().isEmpty()) {
             String newPhone = result.get().trim();
             int currentUserId = currentUser.getUserId();
-            boolean success = UserDAO.getInstance().updatePhonenumber(currentUserId, newPhone);
+            boolean success = UserDAO.getInstance().updatePhonenumberInDB(currentUserId, newPhone);
             if (success) {
                 currentUser.setPhone(newPhone);
                 lbPhoneNum.setText(newPhone);
@@ -96,17 +96,17 @@ public class PersonalController extends BaseController implements Initializable 
         if (result.isPresent() && !result.get().trim().isEmpty()) {
             String newEmail = result.get().trim();
             int currentUserId = currentUser.getUserId();
-            boolean success = UserDAO.getInstance().updatePhonenumber(currentUserId, newEmail);
+            boolean success = UserDAO.getInstance().updateEmailInDB(currentUserId, newEmail);
             if (success) {
-                currentUser.setPhone(newEmail);
-                lbPhoneNum.setText(newEmail);
+                currentUser.setEmail(newEmail);
+                lbEmail.setText(newEmail);
                 showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");
             } else {
                 showAlert("Lỗi", "Không thể cập nhật số điện thoại vào Database!");
             }
         }
     }
-*/
+
     @FXML
     void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
