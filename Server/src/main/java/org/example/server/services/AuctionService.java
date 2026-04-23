@@ -28,7 +28,7 @@ public class AuctionService {
       throw new Exception("Item không tồn tại!");
     }
 
-    ItemStatus checkStatus = ItemDAO.getInstance().getItemStatusById(itemId);
+    //    ItemStatus checkStatus = ItemDAO.getInstance().getItemStatusById(itemId);
 
     // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor của bro)
     // Auction newAuction = new Auction(item, durationMinutes);
@@ -40,7 +40,7 @@ public class AuctionService {
 
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     // TODO: Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING
-    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionByStatus(status);
+    //    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionByStatus(status);
     // để show lên UI)
     return null;
   }
@@ -83,7 +83,6 @@ public class AuctionService {
   // ⏱️ 4. NHÓM TỰ ĐỘNG ĐÓNG PHÒNG (AUTO-CLOSE)
   // ==========================================
 
-  // Nơi này đang chờ Kỹ sư trưởng chốt phương án:
   // Dùng Lazy Check hay Background Job (Luồng ngầm) để xử lý các phòng hết giờ?
 
 }

@@ -128,7 +128,6 @@ public class UserDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, pn);
       ps.setInt(2, UserId);
-      ps.executeUpdate();
       return ps.executeUpdate() > 0;
     } catch (Exception e) {
       throw new RuntimeException(e);
