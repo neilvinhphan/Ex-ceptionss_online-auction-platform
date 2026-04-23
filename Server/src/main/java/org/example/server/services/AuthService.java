@@ -27,7 +27,20 @@ public class AuthService {
       throw new Exception("Please enter a phone number");
     }
 
-    // Check username existence
+    // Check định dạng Email (Dùng Regular Expression)
+    String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
+    if (!mailInCheck.matches(emailRegex)) {
+      throw new Exception("Invalid email format (e.g., example@gmail.com).");
+    }
+
+    // Check định dạng Số điện thoại (VN)
+    // Quy tắc: Bắt đầu bằng số 0, theo sau là đúng 9 chữ số (tổng 10 số)
+    String phoneRegex = "^0\\d{9}$";
+    if (!phoneInCheck.matches(phoneRegex)) {
+      throw new Exception("Invalid phone number format (must be 10 digits starting with 0).");
+    }
+
+    // Check username
     User userDB = userDAO.getUserByUsername(nameInCheck);
     if (userDB != null) {
       throw new Exception("Username existed.");
@@ -41,7 +54,7 @@ public class AuthService {
 
     boolean isSuccess = userDAO.registerUser(newUser);
     if (!isSuccess) {
-      throw new Exception("Something wrong in DB.");
+      throw new Exception("Something went wrong in DB.");
     }
 
     return newUser;
