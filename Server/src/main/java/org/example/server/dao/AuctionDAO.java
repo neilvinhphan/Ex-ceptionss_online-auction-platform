@@ -54,49 +54,25 @@ public class AuctionDAO {
             + "WHERE i.status = ?\n"
             + "ORDER BY i.item_id DESC;";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ResultSet rs = ps.executeQuery();
-      while(rs.next()) {
+      while (rs.next()) {
         Item item = ItemFactory.takeItemFromDB(rs);
         items.add(item);
       }
     } catch (SQLException e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     } catch (Exception e) {
-        throw new RuntimeException(e);
-    } return items;
-  }
-
-  public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
-    List<Auction> auctions = new ArrayList<>();
-    String sql = "SELECT * FROM auction_items WHERE status =?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setString(1, String.valueOf(status));
-      ResultSet rs = ps.executeQuery();
-      while (rs.next()) {
-        Auction auction = new Auction(
-            rs.getInt("auction_id"),
-            rs.getTimestamp("created_at").toLocalDateTime(),
-            null,
-            AuctionStatus.valueOf(rs.getString("status")),
-            rs.getTimestamp("start_time").toLocalDateTime(),
-            rs.getTimestamp("end_time").toLocalDateTime(),
-            null,
-            null);
-        auctions.add(auction);
-      }
-    } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
-    return auctions;
+    return items;
   }
 
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeQuery().getInt("id");
     } catch (SQLException | IOException e) {
@@ -122,22 +98,46 @@ public class AuctionDAO {
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
     String sql = "UPDATE auction_items SET status = ? WHERE id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, auctionId);
       ps.executeUpdate();
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
-  }}
+    }
+  }
 
   public String getAuctionStatus(int auctionId) {
-    String sql = "SELECT status FROM auction WHERE auction_id = ?";
+    String sql = "SELECT status FROM auction_items WHERE id = ?";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
-      return ps.executeQuery().getString("status");
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("status");
+        }
+      }
+      return null;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
+    }
   }
-}
+
+  public List<Integer> getExpiredRunningAuctionIds(LocalDateTime now) {
+    List<Integer> auctionIds = new ArrayList<>();
+    String sql = "SELECT id FROM auction_items WHERE status = ? AND end_time <= ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, AuctionStatus.RUNNING.name());
+      ps.setTimestamp(2, Timestamp.valueOf(now));
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          auctionIds.add(rs.getInt("id"));
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return auctionIds;
+  }
 }

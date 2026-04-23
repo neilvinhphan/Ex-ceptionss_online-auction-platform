@@ -53,7 +53,7 @@
                                 </MenuButton>
                                 <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="113.0" style="-fx-background-radius: 30;" text="Điều khoản" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
-                                  <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
+                                  <MenuButton fx:id="menuUser" accessibleText="người dùng" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
                                       <items>
                                           <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
                                           <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
