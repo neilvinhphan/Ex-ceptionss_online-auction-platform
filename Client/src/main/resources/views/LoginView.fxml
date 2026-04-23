@@ -21,7 +21,7 @@
             </image>
         </ImageView>
 
-        <VBox maxHeight="-Infinity" maxWidth="-Infinity" prefWidth="566.0" spacing="17.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+        <VBox maxHeight="-Infinity" maxWidth="-Infinity" spacing="17.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);" StackPane.alignment="CENTER_RIGHT">
             <padding>
                 <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
             </padding>
@@ -58,6 +58,9 @@
                     </children>
                 </HBox>
             </children>
+         <StackPane.margin>
+            <Insets bottom="100.0" right="60.0" top="100.0" />
+         </StackPane.margin>
         </VBox>
 
     </children>
