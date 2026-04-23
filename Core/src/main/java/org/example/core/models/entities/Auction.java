@@ -11,25 +11,17 @@ public class Auction extends Entity {
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
-  private LocalDateTime endTime;
+  private long duration;
   private List<BidTransaction> bidHistory;
   private BidTransaction highestBid;
 
   // Constructor tạo mới đấu giá
-  public Auction(
-      Item item,
-      AuctionStatus status,
-      LocalDateTime startTime,
-      LocalDateTime endTime,
-      List<BidTransaction> bidHistory,
-      BidTransaction highestBid) {
+  public Auction(Item item, AuctionStatus status, LocalDateTime startTime, long duration) {
     super(0, LocalDateTime.now());
     this.item = item;
     this.status = status;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    this.bidHistory = bidHistory;
-    this.highestBid = highestBid;
+    this.startTime = LocalDateTime.now();
+    this.duration = duration;
   }
 
   // Constructor from DB
@@ -46,22 +38,39 @@ public class Auction extends Entity {
     this.item = item;
     this.status = status;
     this.startTime = startTime;
-    this.endTime = endTime;
+    this.duration = duration;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
   }
 
-  public void open() {}
+  // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
+  public void start(LocalDateTime now) {
+    if (this.status == AuctionStatus.WAREHOUSE && now.isBefore(this.startTime)) {
+      this.status = AuctionStatus.RUNNING;
+    }
+  }
 
-  public void start(LocalDateTime now) {}
+  // Đóng phiên
+  //  public void close(LocalDateTime now) {
+  //    if (this.status == AuctionStatus.RUNNING && now.isAfter(this.endTime)) {
+  //      this.status = AuctionStatus.FINISHED;
+  //    }
+  //  }
 
-  public void validateBid(BigDecimal amount) {}
+  public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
+    // Check trạng thái
+    if (this.status != AuctionStatus.RUNNING) {
+      throw new Exception("The auction has ended.");
+    }
 
-  //  public BidTransaction getHighestBid() {}
+    //    // Check thời gian
+    //    if (now.isAfter(this.endTime)) {
+    //  }
 
-  public void close(LocalDateTime now) {}
+    //  public BidTransaction getHighestBid() {}
 
-  public void extendEndTime(int seconds) {}
+    //  public void extendEndTime(int seconds) {}
 
-  //  public boolean isAntiSniping(LocalDateTime at) {}
+    //  public boolean isAntiSniping(LocalDateTime at) {}
+  }
 }

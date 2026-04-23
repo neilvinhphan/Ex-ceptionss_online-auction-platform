@@ -1,8 +1,7 @@
 package org.example.core.shared.enums;
 
 public enum AuctionStatus {
-  PENDING,
-  OPEN,
+  WAREHOUSE,
   RUNNING,
   FINISHED,
   PAID,

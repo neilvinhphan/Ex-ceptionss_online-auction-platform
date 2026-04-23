@@ -1,5 +1,9 @@
 package org.example.client.controllers;
 
+import org.example.core.dto.LoginRequestDTO;
+import org.example.core.models.users.User;
+import org.example.server.services.AuthService;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
@@ -12,27 +16,24 @@ public class LoginController extends BaseController {
   @FXML private TextField pass_hien;
 
   @FXML
-  void handleLogin(ActionEvent event) {
+  void handleLogin(ActionEvent event) throws Exception {
     String userName = tfuserName.getText();
     String password = pass_an.getText();
     String passwordhidden = pass_hien.getText();
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
-
     }
 
-    /* Giả lập kiểm tra tài khoản (Sau này bạn sẽ gọi vào Database ở đây)
-    if (userName.equals("admin") && password.equals("123")) {
-        System.out.println("Đăng nhập thành công!");
-    } else {
-        showAlert("Thất bại", "Tài khoản hoặc mật khẩu không chính xác!");
-    }
-     */
-
-    else {
-      System.out.println("Chuyển sang trang chủ");
-      switchScene(event, "/views/MainView.fxml", "Trang chủ");
+    try {
+      LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
+      User checkLogin = AuthService.login(loginRequestDTO);
+      if (checkLogin != null) {
+        System.out.println("Đăng nhập thành công! Chuyển sang trang chủ...");
+        switchScene(event, "/views/MainView.fxml", "Trang chủ");
+      }
+    } catch (Exception e) {
+      showAlert("Login Failed!", e.getMessage());
     }
   }
 
