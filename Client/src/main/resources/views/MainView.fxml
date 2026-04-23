@@ -23,7 +23,7 @@
             <children>
                 <AnchorPane stylesheets="@style.css">
                     <children>
-                        <ImageView fitHeight="630.0" fitWidth="${mainScroll.width}" preserveRatio="false" mouseTransparent="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <ImageView fitHeight="630.0" fitWidth="${mainScroll.width}" mouseTransparent="false" preserveRatio="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <image>
                                 <Image url="@../images/demohinhnen.jpg" />
                             </image>
@@ -53,22 +53,12 @@
                                 </MenuButton>
                                 <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="113.0" style="-fx-background-radius: 30;" text="Điều khoản" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
-                                <StackPane prefHeight="36.0" prefWidth="270.0">
-                                    <children>
-                                        <HBox pickOnBounds="false" prefHeight="100.0" prefWidth="200.0" spacing="10.0" style="-fx-managed: false;" visible="false">
-                                            <children>
-                                                <Button mnemonicParsing="false" onAction="#handleLogin" prefHeight="33.0" prefWidth="128.0" style="-fx-background-radius: 30; -fx-padding: 8 20; -fx-background-color: #28a745; -fx-font-weight: bold; -fx-text-fill: white;" text="Đăng nhập" />
-                                                <Button mnemonicParsing="false" onAction="#handleRegister" prefHeight="34.0" prefWidth="138.0" style="-fx-background-radius: 30; -fx-padding: 8 20; -fx-font-weight: bold;" text="Đăng ký" />
-                                            </children>
-                                        </HBox>
-                                        <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" prefHeight="52.0" prefWidth="149.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
-                                            <items>
-                                                <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
-                                                <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
-                                            </items>
-                                        </MenuButton>
-                                    </children>
-                                </StackPane>
+                                  <MenuButton fx:id="menuUser" accessibleText="người dùng" mnemonicParsing="false" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
+                                      <items>
+                                          <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                                          <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                                      </items>
+                                  </MenuButton>
                             </children>
                         </HBox>
                         <StackPane layoutY="250.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">

@@ -90,27 +90,26 @@
                         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                            <children>
                               <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Username:" />
-                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="hmi2447@" />
+                              <Label fx:id="lbUserName" style="-fx-font-size: 15; -fx-text-fill: #333;" text="hmi2447@" />
                               <Region HBox.hgrow="ALWAYS" />
-                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
                            </children>
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                            <children>
                               <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số điện thoại:" />
-                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="0987.xxx.xxx" />
+                              <Label fx:id="lbPhoneNum" style="-fx-font-size: 15; -fx-text-fill: #333;" text="0987.xxx.xxx" />
                               <Region HBox.hgrow="ALWAYS" />
-                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
+                              <Button onAction="#handleEditPhone" style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
                            </children>
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                            <children>
                               <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Email:" />
-                              <Label style="-fx-font-size: 15; -fx-text-fill: #333;" text="hm2447@gmail.com" />
+                              <Label fx:id="lbEmail" style="-fx-font-size: 15; -fx-text-fill: #333;" text="hm2447@gmail.com" />
                               <Region HBox.hgrow="ALWAYS" />
-                              <Button style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
+                              <Button onAction="#handleEditEmail" style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
                            </children>
                         </HBox>
                      </children>

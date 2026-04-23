@@ -1,21 +1,34 @@
 package org.example.client.controllers;
 
+import org.example.client.utils.UserSession;
+import org.example.core.models.users.User;
+
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
-public class MainController extends BaseController {
+public class MainController extends BaseController implements Initializable {
   @FXML private MenuButton menuDanhMuc;
   @FXML private MenuButton menuPhongDauGia;
   @FXML private MenuButton menuSearch;
 @FXML private MenuButton menuUser;
+  @Override
+  public void initialize(URL location, ResourceBundle resources) {
+    User currentUser = UserSession.getInstance().getCurrentUser();
+    if (currentUser != null) {
+      menuUser.setText(currentUser.getUserName());
+    }
+  }
   @FXML
   private void handleMenuItem(ActionEvent event) {
     MenuItem item = (MenuItem) event.getSource();
@@ -50,6 +63,7 @@ private void handleRoomAuction(ActionEvent event){
   }
   @FXML
   void handleLogout(ActionEvent event){
+    UserSession.getInstance().cleanUserSession();
     switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
   }
   @FXML
