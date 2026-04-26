@@ -8,20 +8,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Auction extends Entity {
+  private int itemId;
+  private int auctionId;
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
-  private long duration;
+  private long durationMinutes;
+  private LocalDateTime endTime;
   private List<BidTransaction> bidHistory;
-  private BidTransaction highestBid;
+  private BigDecimal highestBid;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, AuctionStatus status, LocalDateTime startTime, long duration) {
+  public Auction(Item item, long durationMinutes) {
     super(0, LocalDateTime.now());
     this.item = item;
-    this.status = status;
+    this.status = AuctionStatus.WAREHOUSE;
     this.startTime = LocalDateTime.now();
-    this.duration = duration;
+    this.durationMinutes = durationMinutes;
   }
 
   // Constructor from DB
@@ -31,46 +34,136 @@ public class Auction extends Entity {
       Item item,
       AuctionStatus status,
       LocalDateTime startTime,
-      LocalDateTime endTime,
+      long durationMinutes,
       List<BidTransaction> bidHistory,
-      BidTransaction highestBid) {
+      BigDecimal highestBid) {
     super(id, createdAt);
     this.item = item;
     this.status = status;
     this.startTime = startTime;
-    this.duration = duration;
+    this.durationMinutes = durationMinutes;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
   }
 
+  public Auction() {
+
+  }
+
   // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
   public void start(LocalDateTime now) {
-    if (this.status == AuctionStatus.WAREHOUSE && now.isBefore(this.startTime)) {
+    if (this.status == AuctionStatus.WAREHOUSE) {
       this.status = AuctionStatus.RUNNING;
+      this.startTime = LocalDateTime.now();
+      this.endTime = this.startTime.plusMinutes(this.durationMinutes);
+    } else if (this.status == AuctionStatus.RUNNING) {
+      throw new RuntimeException("Phiên đấu giá đang diễn ra!");
+    } else {
+      throw new RuntimeException("Phiên đấu giá đã kết thúc!");
     }
   }
 
-  // Đóng phiên
-  //  public void close(LocalDateTime now) {
-  //    if (this.status == AuctionStatus.RUNNING && now.isAfter(this.endTime)) {
-  //      this.status = AuctionStatus.FINISHED;
-  //    }
-  //  }
+  // Hết time --> Đóng phiên
+  public void close(LocalDateTime now) {
+    if (this.status == AuctionStatus.RUNNING
+        && (now.isEqual(this.endTime) || now.isAfter(this.endTime))) {
+      this.status = AuctionStatus.FINISHED;
+    }
+  }
 
   public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
     // Check trạng thái
     if (this.status != AuctionStatus.RUNNING) {
-      throw new Exception("The auction has ended.");
+      throw new Exception("Phiên đấu giá đã kết thúc!");
     }
 
-    //    // Check thời gian
-    //    if (now.isAfter(this.endTime)) {
-    //  }
-
-    //  public BidTransaction getHighestBid() {}
-
-    //  public void extendEndTime(int seconds) {}
-
-    //  public boolean isAntiSniping(LocalDateTime at) {}
+    // Check thời gian
+    if (now.isBefore(this.startTime) || now.isAfter(this.endTime)) {
+      throw new Exception("Đã hết thời gian đặt giá!");
+    }
   }
+
+  //  public BidTransaction getHighestBid() {}
+
+  // Anti-Sniping
+  public void extendEndTime(long seconds) {
+    if (this.endTime != null) {
+      this.endTime = this.endTime.plusSeconds(seconds);
+    }
+  }
+
+  public boolean isAntiSniping(LocalDateTime now, long thresholdSeconds) {
+    if (this.endTime == null || now.isAfter(this.endTime)) {
+      return false;
+    }
+
+    LocalDateTime snipingWindowStart = this.endTime.minusSeconds(thresholdSeconds);
+    boolean rangeCheck =
+        (now.isEqual(snipingWindowStart) || now.isAfter(snipingWindowStart))
+            && (now.isBefore(this.endTime) || now.isEqual(this.endTime));
+
+    return rangeCheck;
+  }
+
+  public int getItemId() {return itemId;}
+
+  public void setItemId(int itemId) {this.itemId = itemId;}
+
+  public int getAuctionId() {return auctionId;}
+
+  public void setAuctionId(int auctionId) {this.auctionId = auctionId;}
+
+  public Item getItem() {
+    return item;
+  }
+
+  public void setItem(Item item) {
+    this.item = item;
+  }
+
+  public AuctionStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(AuctionStatus status) {
+    this.status = status;
+  }
+
+  public LocalDateTime getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(LocalDateTime startTime) {
+    this.startTime = startTime;
+  }
+
+  public long getDurationMinutes() {
+    return durationMinutes;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
+  }
+
+  public LocalDateTime getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(LocalDateTime endTime) {
+    this.endTime = endTime;
+  }
+
+  public List<BidTransaction> getBidHistory() {
+    return bidHistory;
+  }
+
+  public void setBidHistory(List<BidTransaction> bidHistory) {
+    this.bidHistory = bidHistory;
+  }
+
+  public BigDecimal getHighestBid() {
+    return highestBid;
+  }
+
+  public void setHighestBid(BigDecimal highestBid) {this.highestBid = highestBid;}
 }

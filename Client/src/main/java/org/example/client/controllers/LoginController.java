@@ -1,5 +1,6 @@
 package org.example.client.controllers;
 
+import org.example.client.utils.UserSession;
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.models.users.User;
 import org.example.server.services.AuthService;
@@ -23,6 +24,7 @@ public class LoginController extends BaseController {
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+      return;
     }
 
     try {
@@ -30,6 +32,7 @@ public class LoginController extends BaseController {
       User checkLogin = AuthService.login(loginRequestDTO);
       if (checkLogin != null) {
         System.out.println("Đăng nhập thành công! Chuyển sang trang chủ...");
+        UserSession.getInstance().setCurrentUser(checkLogin);
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
       }
     } catch (Exception e) {

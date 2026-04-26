@@ -12,6 +12,7 @@ import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +36,7 @@ public class ItemDAO {
     return instance;
   }
 
-  public List<Item> getAllItemByUserId(int id) {
+  public List<Item> getAllItemByUserId(int userId) {
     String sql =
         "SELECT \n"
             + "    i.*, \n"
@@ -57,7 +58,7 @@ public class ItemDAO {
             + "WHERE i.owner_id = ?;";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
@@ -78,7 +79,7 @@ public class ItemDAO {
     }
   }
 
-  public int insertintoItemTable(Item item) {
+  public int insertIntoItemTable(Item item) {
     String sql =
         "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
@@ -103,8 +104,8 @@ public class ItemDAO {
     return -1;
   }
 
-  public boolean insertintoChildTable(Item item) {
-    int itemId = insertintoItemTable(item);
+  public boolean insertIntoChildTable(Item item) {
+    int itemId = insertIntoItemTable(item);
     if (itemId == -1) {
       return false;
     }
@@ -217,9 +218,9 @@ public class ItemDAO {
     return false;
   }
 
-  public Item getItemById(int itemId) throws Exception {
+  public Item getItemById(int itemId) {
     String sql =
-        "SELECT item_id, item_type, item_name, description, starting_price FROM item WHERE item_id = ?";
+        "SELECT item_id, item_type, item_name, description, starting_price FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
@@ -232,25 +233,103 @@ public class ItemDAO {
           item.setStartingPrice(rs.getBigDecimal("starting_price"));
           return item;
         }
+      } catch (Exception e) {
+          throw new RuntimeException(e);
       }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
     }
     return null;
   }
 
   public Integer getOwnerIdByItemId(int itemId) {
-    String sql = "SELECT user_id FROM item WHERE item_id = ?";
+    String sql = "SELECT user_id FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getInt("seller_id");
+          return rs.getInt("owner_id");
         }
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
     return null;
+  }
+
+  public String getItemTypeByItemId(int itemId) {
+    String sql = "SELECT type FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("type");
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
+  public ItemStatus getItemStatusById(int itemId) {
+    String sql = "SELECT status FROM items WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, itemId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return ItemStatus.valueOf(rs.getString("status"));
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
+  public int getItemIdByItemName(String itemName) {
+    String sql = "SELECT item_id FROM items WHERE items_name = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, itemName);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("item_id");
+        }
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return -1;
+  }
+
+  public boolean updateOwnerIdByItemId(int itemId, int userId) {
+    String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateStartPriceByItemId(int itemId, BigDecimal startPrice) {
+    String sql = "UPDATE items SET start_price = ? WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setBigDecimal(1, startPrice);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public boolean updateOwnerIdInDB(int itemId, int ownerId) {
@@ -261,22 +340,23 @@ public class ItemDAO {
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
     }
-    return false;
   }
 
-  public boolean updateFinalPriceByItemId(int id) {
+  public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
     String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+      ps.setBigDecimal(1, finalPrice);
+      ps.setInt(2, id);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
     }
     return false;
   }
 
-  public boolean updateItemDescription(int itemId, String description) {
+  public boolean updateItemDescriptionByItemId(int itemId, String description) {
     String sql = "UPDATE items SET description = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -288,13 +368,13 @@ public class ItemDAO {
     }
   }
 
-  public void updateItemStatus(int itemId, ItemStatus status) {
+  public boolean updateItemStatus(int itemId, ItemStatus status) {
     String sql = "UPDATE items SET status = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
-      ps.executeUpdate();
+      return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
