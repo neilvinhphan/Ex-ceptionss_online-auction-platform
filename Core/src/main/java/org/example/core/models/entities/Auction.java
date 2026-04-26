@@ -36,7 +36,7 @@ public class Auction extends Entity {
       LocalDateTime startTime,
       long durationMinutes,
       List<BidTransaction> bidHistory,
-      BidTransaction highestBid) {
+      BigDecimal highestBid) {
     super(id, createdAt);
     this.item = item;
     this.status = status;
@@ -165,7 +165,5 @@ public class Auction extends Entity {
     return highestBid;
   }
 
-  public void setHighestBid(BigDecimal highestBid) {
-    this.highestBid = highestBid;
-  }
+  public void setHighestBid(BigDecimal highestBid) {this.highestBid = highestBid;}
 }
