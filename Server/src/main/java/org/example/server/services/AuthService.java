@@ -7,7 +7,7 @@ import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
-  static UserDAO userDAO = UserDAO.getInstance();
+  protected static UserDAO userDAO = UserDAO.getInstance();
 
   public static User register(RegisterRequestDTO requestPayLoad) throws Exception {
 

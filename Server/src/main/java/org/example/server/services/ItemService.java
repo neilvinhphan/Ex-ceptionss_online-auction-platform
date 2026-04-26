@@ -25,11 +25,11 @@ public class ItemService {
       throw new Exception("Seller account is banned.");
     }
 
-    Integer itemId = itemDAO.insertintoItemTable(item);
+    Integer itemId = itemDAO.insertIntoItemTable(item);
     if (itemId == null || itemId <= 0) {
       throw new Exception("Cannot create item.");
     }
-    itemDAO.insertintoChildTable(item);
+    itemDAO.insertIntoChildTable(item);
     return item;
   }
 
@@ -61,7 +61,7 @@ public class ItemService {
     }
 
     String normalizedDescription = newDescription.trim();
-    boolean success = itemDAO.updateItemDescription(itemId, normalizedDescription);
+    boolean success = itemDAO.updateItemDescriptionByItemId(itemId, normalizedDescription);
     if (!success) {
       throw new Exception("Cannot update item description.");
     }

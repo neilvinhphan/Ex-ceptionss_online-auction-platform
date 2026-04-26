@@ -16,20 +16,20 @@ public class ItemFactory {
     String type = rs.getString("type");
     Item item;
     switch (type) {
-      case "ArtItem" -> {
+      case "Art" -> {
         ArtItem artItem = new ArtItem();
         artItem.setArtist(rs.getString("artist"));
         artItem.setCreationYear(rs.getInt("creation_year"));
         item = artItem;
       }
-      case "ElectronicsItem" -> {
+      case "Electronics" -> {
         ElectronicsItem electronicsItem = new ElectronicsItem();
         electronicsItem.setBrand(rs.getString("brand"));
         electronicsItem.setWarrantyMonths(rs.getInt("warranty_months"));
         electronicsItem.setCondition(rs.getString("condition"));
         item = electronicsItem;
       }
-      case "AntiqueItem" -> {
+      case "Antique" -> {
         AntiqueItem antiqueItem = new AntiqueItem();
         antiqueItem.setEra(rs.getString("era"));
         antiqueItem.setMaterial(rs.getString("material"));
@@ -37,7 +37,7 @@ public class ItemFactory {
         antiqueItem.setCertified(rs.getBoolean("is_certified"));
         item = antiqueItem;
       }
-      case "JewelryItem" -> {
+      case "Jewelry" -> {
         JewelryItem jewelryItem = new JewelryItem();
         jewelryItem.setCertification(rs.getString("certification"));
         jewelryItem.setGemstone(rs.getString("gemstone"));
@@ -45,7 +45,7 @@ public class ItemFactory {
         jewelryItem.setWeight(rs.getDouble("weight"));
         item = jewelryItem;
       }
-      case "RealEstateItem" -> {
+      case "RealEstate" -> {
         RealEstateItem realEstateItem = new RealEstateItem();
         realEstateItem.setLocation(rs.getString("location"));
         realEstateItem.setArea(rs.getDouble("area"));
@@ -53,7 +53,7 @@ public class ItemFactory {
         realEstateItem.setLegalStatus(rs.getString("legal_status"));
         item = realEstateItem;
       }
-      case "VehicleItem" -> {
+      case "Vehicle" -> {
         VehicleItem vehicleItem = new VehicleItem();
         vehicleItem.setBrand(rs.getString("brand"));
         vehicleItem.setModel(rs.getString("model"));
