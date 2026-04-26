@@ -7,15 +7,15 @@ import org.example.server.dao.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
-  static UserDAO userDAO = UserDAO.getInstance();
+  protected static UserDAO userDAO = UserDAO.getInstance();
 
   public static User register(RegisterRequestDTO requestPayLoad) throws Exception {
 
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
     String rePassword = requestPayLoad.getRePassword();
-    String passInCheckHide = requestPayLoad.getPassword();
-    String rePasswordHide = requestPayLoad.getRePassword();
+    String passInCheckHide = requestPayLoad.getPasswordHide();
+    String rePasswordHide = requestPayLoad.getRePasswordHide();
     String mailInCheck = requestPayLoad.getEmail();
     String phoneInCheck = requestPayLoad.getPhone();
 
@@ -23,6 +23,8 @@ public class AuthService {
     if (nameInCheck == null || nameInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an username");
     } else if (passInCheck == null || passInCheck.trim().isEmpty()) {
+      throw new Exception("Please enter a password");
+    } else if (passInCheckHide == null || passInCheckHide.trim().isEmpty()) {
       throw new Exception("Please enter a password");
     } else if (mailInCheck == null || mailInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an email");

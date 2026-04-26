@@ -24,8 +24,8 @@ public class RegisterRequestDTO {
     this.email = email;
     this.password = password;
     this.rePassword = rePassword;
-    this.password = passwordHide;
-    this.rePassword = rePasswordHide;
+    this.passwordHide = passwordHide;
+    this.rePasswordHide = rePasswordHide;
     this.tickCheck = tickCheck;
   }
 

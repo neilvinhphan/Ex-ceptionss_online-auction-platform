@@ -1,5 +1,6 @@
 package org.example.server.services;
 
+import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -20,29 +21,35 @@ public class AuctionService {
   // 📦 1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
   // ==========================================
 
-  public static Auction createAuction(int itemId, long durationMinutes) throws Exception {
-    // TODO 1: Gọi ItemDAO lấy Item lên, check xem có tồn tại không.
-    // TODO 2: Check xem Item này có đang bị khóa ở phiên đấu giá khác không.
-    Item checkItem = ItemDAO.getInstance().getItemById(itemId);
-    if (itemDAO == null) {
-      throw new Exception("Item không tồn tại!");
+  public static Auction createAuction(AuctionRequestDTO requestPayLoad) throws Exception {
+
+    Item checkItem = requestPayLoad.getItem();
+    long durationMinutes = requestPayLoad.getDurationMinutes();
+
+    // Check sự tồn tại của vật phẩm
+    if (checkItem == null) {
+      throw new Exception("Vật phẩm không tồn tại!");
     }
 
-    //    ItemStatus checkStatus = ItemDAO.getInstance().getItemStatusById(itemId);
+    // Check trạng thái của vật phẩm (có đang được đấu giá không)
+    ItemStatus checkStatus = checkItem.getStatus();
+    if (checkStatus == ItemStatus.LISTED) {
+      throw new Exception("Vật phẩm đang được đấu giá!");
+    }
 
     // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor của bro)
-    // Auction newAuction = new Auction(item, durationMinutes);
+    Auction newAuction = new Auction(checkItem, durationMinutes);
 
     // TODO 3: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
-    return null; // Trả về newAuction sau khi hoàn thiện TODO
+    return newAuction;
   }
 
+  // Lấy các phiên đấu giá theo trạng thái
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     // TODO: Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING
-    //    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionByStatus(status);
-    // để show lên UI)
-    return null;
+    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionByStatus(status);
+    return auction;
   }
 
   // ==========================================
