@@ -31,7 +31,7 @@ public class AuctionDAO {
     return instance;
   }
 
-  public List<Item> getAllAuctionByStatus(AuctionStatus status) {
+  public List<Item> getAllItemByStatus(AuctionStatus status) {
     List<Item> items = new ArrayList<>();
     String sql =
         "SELECT \n"
@@ -51,8 +51,7 @@ public class AuctionDAO {
             + "LEFT JOIN real_estate_items re ON i.item_id = re.item_id\n"
             + "LEFT JOIN vehicle_items veh ON i.item_id = veh.item_id\n"
             + "LEFT JOIN other_items oth ON i.item_id = oth.item_id\n"
-            + "WHERE i.status = ?\n"
-            + "ORDER BY i.item_id DESC;";
+            + "WHERE i.status = ?\n";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
@@ -77,15 +76,10 @@ public class AuctionDAO {
       ps.setString(1, String.valueOf(status));
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
-        Auction auction = new Auction(
-            rs.getInt("auction_id"),
-            rs.getTimestamp("created_at").toLocalDateTime(),
-            null,
-            AuctionStatus.valueOf(rs.getString("status")),
-            rs.getTimestamp("start_time").toLocalDateTime(),
-            rs.getTimestamp("end_time").toLocalDateTime(),
-            null,
-            null);
+        Auction auction = new Auction();
+        auction.setId(rs.getInt("id"));
+        auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+        auction.setDurationMinutes(rs.getLong("duration_minutes"));
         auctions.add(auction);
       }
     } catch (SQLException | IOException e) {

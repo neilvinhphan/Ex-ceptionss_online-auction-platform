@@ -44,6 +44,10 @@ public class Auction extends Entity {
     this.highestBid = highestBid;
   }
 
+  public Auction() {
+
+  }
+
   // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
   public void start(LocalDateTime now) {
     if (this.status == AuctionStatus.WAREHOUSE) {
