@@ -70,13 +70,14 @@ public class AuctionDAO {
 
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
-    String sql = "SELECT a.*, " +
-            "COALESCE(MAX(b.bid_amount), i.starting_price) AS highest_price " +
-            "FROM auction a " +
-            "JOIN items i ON a.item_id = i.item_id " +
-            "LEFT JOIN bids b ON a.auction_id = b.auction_id " +
-            "WHERE a.status = ? " +
-            "GROUP BY a.auction_id";
+    String sql =
+        "SELECT a.*, "
+            + "COALESCE(MAX(b.bid_amount), i.starting_price) AS highest_price "
+            + "FROM auction a "
+            + "JOIN items i ON a.item_id = i.item_id "
+            + "LEFT JOIN bids b ON a.auction_id = b.auction_id "
+            + "WHERE a.status = ? "
+            + "GROUP BY a.auction_id";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, String.valueOf(status));
@@ -94,6 +95,28 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
     return auctions;
+  }
+
+  public Auction getAuctionByAuctionId(int auctionId) {
+    String sql = "SELECT * FROM auction WHERE auction_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, auctionId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          Auction auction = new Auction();
+          auction.setAuctionId(rs.getInt("auction_id"));
+          auction.setItemId(rs.getInt("item_id"));
+          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+          auction.setHighestBid(rs.getBigDecimal("highest_price"));
+          return auction;
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
   }
 
   public int getAuctionIdByItemId(int itemId) {
