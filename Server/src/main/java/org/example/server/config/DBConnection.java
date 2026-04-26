@@ -22,4 +22,11 @@ public class DBConnection {
     String pass = properties.getProperty("db.pass");
     return DriverManager.getConnection(url, user, pass);
   }
+  public static void main(String[] args){
+    try (Connection conn = getConnection()) {
+      System.out.println("Kết nối thành công!");
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
