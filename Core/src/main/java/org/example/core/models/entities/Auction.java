@@ -8,13 +8,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Auction extends Entity {
+  private int itemId;
+  private int auctionId;
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
   private long durationMinutes;
   private LocalDateTime endTime;
   private List<BidTransaction> bidHistory;
-  private BidTransaction highestBid;
+  private BigDecimal highestBid;
 
   // Constructor tạo mới đấu giá
   public Auction(Item item, long durationMinutes) {
@@ -103,6 +105,14 @@ public class Auction extends Entity {
     return rangeCheck;
   }
 
+  public int getItemId() {return itemId;}
+
+  public void setItemId(int itemId) {this.itemId = itemId;}
+
+  public int getAuctionId() {return auctionId;}
+
+  public void setAuctionId(int auctionId) {this.auctionId = auctionId;}
+
   public Item getItem() {
     return item;
   }
@@ -151,11 +161,11 @@ public class Auction extends Entity {
     this.bidHistory = bidHistory;
   }
 
-  public BidTransaction getHighestBid() {
+  public BigDecimal getHighestBid() {
     return highestBid;
   }
 
-  public void setHighestBid(BidTransaction highestBid) {
+  public void setHighestBid(BigDecimal highestBid) {
     this.highestBid = highestBid;
   }
 }

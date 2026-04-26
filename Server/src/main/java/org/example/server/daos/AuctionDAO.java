@@ -70,16 +70,24 @@ public class AuctionDAO {
 
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
-    String sql = "SELECT * FROM auction_items WHERE status =?";
+    String sql = "SELECT a.*, " +
+            "COALESCE(MAX(b.bid_amount), i.starting_price) AS highest_price " +
+            "FROM auction a " +
+            "JOIN items i ON a.item_id = i.item_id " +
+            "LEFT JOIN bids b ON a.auction_id = b.auction_id " +
+            "WHERE a.status = ? " +
+            "GROUP BY a.auction_id";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, String.valueOf(status));
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
         Auction auction = new Auction();
-        auction.setId(rs.getInt("id"));
+        auction.setAuctionId(rs.getInt("auction_id"));
+        auction.setItemId(rs.getInt("item_id"));
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-        auction.setDurationMinutes(rs.getLong("duration_minutes"));
+        auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        auction.setHighestBid(rs.getBigDecimal("highest_price"));
         auctions.add(auction);
       }
     } catch (SQLException | IOException e) {
@@ -132,6 +140,18 @@ public class AuctionDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       return ps.executeQuery().getString("status");
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateHighestPriceByItemId(int itemId, BigDecimal newPrice) {
+    String sql = "UPDATE auction SET highest_price = ? WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setBigDecimal(1, newPrice);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
