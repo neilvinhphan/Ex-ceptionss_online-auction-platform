@@ -14,8 +14,6 @@ public class AuthService {
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
     String rePassword = requestPayLoad.getRePassword();
-    String passInCheckHide = requestPayLoad.getPassword();
-    String rePasswordHide = requestPayLoad.getRePassword();
     String mailInCheck = requestPayLoad.getEmail();
     String phoneInCheck = requestPayLoad.getPhone();
 
@@ -44,7 +42,7 @@ public class AuthService {
     }
 
     // Check password & repassword
-    if (!passInCheck.equals(rePassword) || (!passInCheckHide.equals(rePasswordHide))) {
+    if (!passInCheck.equals(rePassword) ) {
       throw new Exception("Passwords do not matched.");
     }
 
