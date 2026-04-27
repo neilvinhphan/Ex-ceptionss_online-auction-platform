@@ -95,7 +95,7 @@ public class AuctionDAO {
     }
     return auctions;
   }
-  //1
+
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction_items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -140,7 +140,7 @@ public class AuctionDAO {
     }
   }
   //1
-  public Auction getAuctionById(int auctionId) {
+  public Auction getAuctionByAuctionId(int auctionId) {
     String sql = "SELECT * FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
