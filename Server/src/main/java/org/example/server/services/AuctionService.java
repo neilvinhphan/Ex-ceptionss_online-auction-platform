@@ -11,6 +11,9 @@ import org.example.server.daos.ItemDAO;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class AuctionService {
 
@@ -40,14 +43,14 @@ public class AuctionService {
     // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor)
     Auction newAuction = new Auction(checkItem, durationMinutes);
 
-    // TODO 3: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
+    // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
     return newAuction;
   }
 
   // Lấy các phiên đấu giá theo trạng thái
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
-    // TODO: Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING
+    // Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING)
     List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatus(status);
     return auction;
   }
@@ -69,7 +72,7 @@ public class AuctionService {
   }
 
   public static void forceCancelAuction(int auctionId, String reason) throws Exception {
-    // TODO: Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
+    // Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
     // (Dành cho Admin hoặc người bán hủy ngang khi có biến)
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
     AuctionStatus status = auction.getStatus();
@@ -99,6 +102,53 @@ public class AuctionService {
   // 4. NHÓM TỰ ĐỘNG ĐÓNG PHÒNG (AUTO-CLOSE)
   // ==========================================
 
-  // Dùng Lazy Check hay Background Job (Luồng ngầm) để xử lý các phòng hết giờ?
+  // Dùng Background Job (Luồng ngầm) để xử lý các phòng hết giờ
+  // Khai báo Scheduler (Quản lý luồng dọn dẹp)
+  private static ScheduledExecutorService scheduler;
 
+  // Khởi động luồng ngầm
+  public static void startAutoCloseJob() {
+    // Nếu đã chạy rồi thì không khởi tạo lại
+    if (scheduler != null && !scheduler.isShutdown()) {
+      return;
+    }
+
+    scheduler = Executors.newScheduledThreadPool(1);
+
+    Runnable autoCloseTask =
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              System.out.println(
+                  "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
+
+              // Lấy list các phiên RUNNING đã qua giờ endTime
+              List<Auction> expiredAuctions =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+
+              // Lặp qua list và đổi trạng thái thành FINISHED
+              for (Auction a : expiredAuctions) {
+                auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+              }
+
+            } catch (Exception e) {
+              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
+            }
+          }
+        };
+
+    // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
+    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);
+    System.out.println("Đã kích hoạt hệ thống Auto-Close ngầm!");
+  }
+
+  // Hàm dọn dẹp khi sập server
+  public static void stopAutoCloseJob() {
+    if (scheduler != null) {
+      scheduler.shutdown();
+      System.out.println("Đã tắt hệ thống Auto-Close ngầm!");
+    }
+  }
 }
