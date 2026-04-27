@@ -8,6 +8,7 @@ import org.example.server.daos.BidDAO;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -15,16 +16,23 @@ public class BiddingService {
 
     private static volatile BiddingService instance;
 
-    private final BidDAO bidDAO = BidDAO.getInstance();
-    private final AuctionDAO auctionDAO = AuctionDAO.getInstance();
+    private final BidDAO bidDAO;
+    private final AuctionDAO auctionDAO;
 
     // lock theo từng auction để tránh đè giá cùng lúc
     private final ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
 
     private static final long ANTI_SNIPING_THRESHOLD_SECONDS = 5 * 60; // 5 phút cuối
-    private static final long ANTI_SNIPING_EXTEND_SECONDS = 5 * 60;    // +5 phút
+    private static final long ANTI_SNIPING_EXTEND_SECONDS = 5 * 60;// +5 phút
 
-    private BiddingService() {}
+    BiddingService() {
+        this(BidDAO.getInstance(), AuctionDAO.getInstance());
+    }
+
+    BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO) {
+        this.bidDAO = Objects.requireNonNull(bidDAO, "bidDAO must not be null");
+        this.auctionDAO = Objects.requireNonNull(auctionDAO, "auctionDAO must not be null");
+    }
 
     public static BiddingService getInstance() {
         if (instance == null) {
