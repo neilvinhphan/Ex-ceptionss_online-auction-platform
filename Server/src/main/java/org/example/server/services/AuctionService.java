@@ -129,8 +129,10 @@ public class AuctionService {
 
               // Lặp qua list và đổi trạng thái thành FINISHED
               for (Auction a : expiredAuctions) {
-                auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
-                System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+                if (LocalDateTime.now().isAfter(a.getEndTime())) {
+                  auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                  System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+                }
               }
 
             } catch (Exception e) {
