@@ -36,13 +36,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
     }
 
     @FXML
-    public void handleRoomAuction(ActionEvent event) {
-        MenuItem item = (MenuItem) event.getSource();
-        MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-        parentMenu.setText(item.getText());
-    }
-
-    @FXML
     public void handleUserui(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
 
@@ -53,5 +46,9 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
         UserSession.getInstance().cleanUserSession();
         switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    }
+
+    public void handleJoinAuction(ActionEvent event) {
+        switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá trực tiếp");
     }
 }

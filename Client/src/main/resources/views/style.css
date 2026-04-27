@@ -24,3 +24,47 @@
 .user-menu-btn .arrow {
     -fx-background-color: white;
 }
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* CARD */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);
+}
+
+/* BUTTON */
+.button {
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+
+.button:hover {
+    -fx-opacity: 0.85;
+}
+
+/* PRICE */
+.price {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+
+/* STATUS */
+.status-running {
+    -fx-background-color: #e6f4ea;
+    -fx-text-fill: #28a745;
+    -fx-padding: 4 10;
+    -fx-background-radius: 10;
+}
+
+/* ERROR */
+.error {
+    -fx-text-fill: #e74c3c;
+}
+
+/* CHART */
+.chart-series-line {
+    -fx-stroke-width: 2px;
+}
