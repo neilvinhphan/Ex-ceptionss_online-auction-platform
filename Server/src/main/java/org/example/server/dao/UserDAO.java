@@ -29,7 +29,7 @@ public class UserDAO {
 
   private User mapResultSetToUser(ResultSet rs) throws SQLException {
     User user = new User();
-    //    user.setId(rs.getInt("user_id"));
+    user.setUserId(rs.getInt("user_id"));
     user.setUserName(rs.getString("user_name"));
     user.setPassword(rs.getString("password"));
     user.setEmail(rs.getString("email"));
@@ -172,7 +172,7 @@ public class UserDAO {
   public UserStatus getUserStatusInDB(int userId) {
     String sql = "SELECT status FROM user WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {

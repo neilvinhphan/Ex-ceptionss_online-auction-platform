@@ -97,44 +97,28 @@ public class AuctionDAO {
     return auctions;
   }
 
-  public Auction getAuctionByAuctionId(int auctionId) {
-    String sql = "SELECT * FROM auction WHERE auction_id = ?";
+  public int getAuctionIdByItemId(int itemId) {
+    String sql = "SELECT auction_id FROM auction_items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, auctionId);
+      ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          Auction auction = new Auction();
-          auction.setAuctionId(rs.getInt("auction_id"));
-          auction.setItemId(rs.getInt("item_id"));
-          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-          auction.setHighestBid(rs.getBigDecimal("highest_price"));
-          return auction;
+          return rs.getInt("auction_id");
         }
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
-    return null;
-  }
-
-  public int getAuctionIdByItemId(int itemId) {
-    String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      return ps.executeQuery().getInt("id");
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
+    return -1;
   }
 
   public boolean updateNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
-    String sql = "INSERT INTO auction_items (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
+    String sql =
+        "INSERT INTO auction_items (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, item.getId());
+      //      ps.setInt(1, item.getId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
       LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);
@@ -144,9 +128,9 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
   }
-
+  //1
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
-    String sql = "UPDATE auction_items SET status = ? WHERE id = ?";
+    String sql = "UPDATE auction_items SET status = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
@@ -156,16 +140,72 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
   }
-
-  public String getAuctionStatus(int auctionId) {
-    String sql = "SELECT status FROM auction WHERE auction_id = ?";
+  //1
+  public Auction getAuctionByAuctionId(int auctionId) {
+    String sql = "SELECT * FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
-      return ps.executeQuery().getString("status");
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          Auction auction = new Auction();
+          auction.setAuctionId(rs.getInt("auction_id"));
+          auction.setItemId(rs.getInt("items_id"));
+          auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
+          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+          auction.setHighestBid(rs.getBigDecimal("current_price"));
+          return auction;
+        }
+      }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
+    return null;
+  }
+  //1
+  public BigDecimal getBidIncrementByAuctionId(int auctionId) {
+    String sql = "SELECT bid_increment FROM auction_items WHERE auction_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, auctionId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getBigDecimal("bid_increment");
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+//1
+  public boolean updateAuctionEndTime(int auctionId, LocalDateTime endTime) {
+    String sql = "UPDATE auction_items SET end_time = ? WHERE auction_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setTimestamp(1, Timestamp.valueOf(endTime));
+      ps.setInt(2, auctionId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  //1
+  public String getAuctionStatus(int auctionId) {
+    String sql = "SELECT status FROM auction_items WHERE auction_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, auctionId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("status");
+        }
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
   }
 
   public boolean updateHighestPriceByItemId(int itemId, BigDecimal newPrice) {
