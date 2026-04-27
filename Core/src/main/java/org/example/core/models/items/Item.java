@@ -52,7 +52,7 @@ public abstract class Item extends Entity {
     protected abstract T self();
 
     public T id(int id) {
-      this.itemId = itemId;
+      this.itemId = id;
       return self();
     }
 
