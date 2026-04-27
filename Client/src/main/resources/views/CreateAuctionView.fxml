@@ -41,16 +41,6 @@
                                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                                     </items>
                                 </MenuButton>
-                                <MenuButton fx:id="menuPhongDauGia" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Phòng đấu giá">
-                                    <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏠 Bất động sản" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🏺 Đồ cổ" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🎨 Tác phẩm nghệ thuật" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="🚗 Phương tiện" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="💎 Trang sức" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleRoomAuction" text="Khác" />
-                                    </items>
-                                </MenuButton>
                                 <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
