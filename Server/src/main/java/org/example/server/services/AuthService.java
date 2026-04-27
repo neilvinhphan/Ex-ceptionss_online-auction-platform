@@ -14,8 +14,6 @@ public class AuthService {
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
     String rePassword = requestPayLoad.getRePassword();
-    String passInCheckHide = requestPayLoad.getPasswordHide();
-    String rePasswordHide = requestPayLoad.getRePasswordHide();
     String mailInCheck = requestPayLoad.getEmail();
     String phoneInCheck = requestPayLoad.getPhone();
 
@@ -23,8 +21,6 @@ public class AuthService {
     if (nameInCheck == null || nameInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an username");
     } else if (passInCheck == null || passInCheck.trim().isEmpty()) {
-      throw new Exception("Please enter a password");
-    } else if (passInCheckHide == null || passInCheckHide.trim().isEmpty()) {
       throw new Exception("Please enter a password");
     } else if (mailInCheck == null || mailInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an email");
@@ -46,7 +42,7 @@ public class AuthService {
     }
 
     // Check password & repassword
-    if (!passInCheck.equals(rePassword) || (!passInCheckHide.equals(rePasswordHide))) {
+    if (!passInCheck.equals(rePassword) ) {
       throw new Exception("Passwords do not matched.");
     }
 

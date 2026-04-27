@@ -16,16 +16,12 @@ public class RegisterRequestDTO {
       String email,
       String password,
       String rePassword,
-      String passwordHide,
-      String rePasswordHide,
       boolean tickCheck) {
     this.username = username;
     this.phone = phone;
     this.email = email;
     this.password = password;
     this.rePassword = rePassword;
-    this.passwordHide = passwordHide;
-    this.rePasswordHide = rePasswordHide;
     this.tickCheck = tickCheck;
   }
 

@@ -26,10 +26,8 @@ public class RegisterController extends BaseController {
     String userName = tfuserName.getText();
     String phone = tfphone.getText();
     String email = tfemail.getText();
-    String password = pass_an.getText();
-    String passwordhidden = pass_hien.getText();
-    String repassword = repass_an.getText();
-    String repasswordhidden = repass_hien.getText();
+    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
+    String repassword = repass_an.isVisible() ? repass_an.getText() : repass_hien.getText();
     boolean checkCommit = cbCommit.isSelected();
     try {
       RegisterRequestDTO registerRequestDTO =
@@ -39,8 +37,6 @@ public class RegisterController extends BaseController {
               email,
               password,
               repassword,
-              passwordhidden,
-              repasswordhidden,
               checkCommit);
       User checkRegister = AuthService.register(registerRequestDTO);
       switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
