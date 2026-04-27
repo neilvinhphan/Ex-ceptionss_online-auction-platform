@@ -97,28 +97,6 @@ public class AuctionDAO {
     return auctions;
   }
 
-  public Auction getAuctionByAuctionId(int auctionId) {
-    String sql = "SELECT * FROM auction WHERE auction_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, auctionId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          Auction auction = new Auction();
-          auction.setAuctionId(rs.getInt("auction_id"));
-          auction.setItemId(rs.getInt("item_id"));
-          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-          auction.setHighestBid(rs.getBigDecimal("highest_price"));
-          return auction;
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction_items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();

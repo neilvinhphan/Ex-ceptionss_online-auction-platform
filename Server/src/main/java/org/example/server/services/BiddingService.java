@@ -63,7 +63,7 @@ public class BiddingService {
         try {
             LocalDateTime now = LocalDateTime.now();
 
-            Auction auction = auctionDAO.getAuctionById(auctionId);
+            Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
             if (auction == null) {
                 throw new Exception("Không tìm thấy phiên đấu giá.");
             }
