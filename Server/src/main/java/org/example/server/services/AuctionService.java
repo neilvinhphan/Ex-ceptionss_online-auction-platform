@@ -1,5 +1,6 @@
 package org.example.server.services;
 
+import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -10,6 +11,9 @@ import org.example.server.daos.ItemDAO;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class AuctionService {
 
@@ -17,73 +21,136 @@ public class AuctionService {
   private static final ItemDAO itemDAO = ItemDAO.getInstance();
 
   // ==========================================
-  // 📦 1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
+  //  1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
   // ==========================================
 
-  public static Auction createAuction(int itemId, long durationMinutes) throws Exception {
-    // TODO 1: Gọi ItemDAO lấy Item lên, check xem có tồn tại không.
-    // TODO 2: Check xem Item này có đang bị khóa ở phiên đấu giá khác không.
-    Item checkItem = ItemDAO.getInstance().getItemById(itemId);
-    if (itemDAO == null) {
-      throw new Exception("Item không tồn tại!");
+  public static Auction createAuction(AuctionRequestDTO requestPayLoad) throws Exception {
+
+    Item checkItem = requestPayLoad.getItem();
+    long durationMinutes = requestPayLoad.getDurationMinutes();
+
+    // Check sự tồn tại của vật phẩm
+    if (checkItem == null) {
+      throw new Exception("Vật phẩm không tồn tại!");
     }
 
-    ItemStatus checkStatus = ItemDAO.getInstance().getItemStatusById(itemId);
+    // Check trạng thái của vật phẩm (có đang được đấu giá không)
+    ItemStatus checkStatus = checkItem.getStatus();
+    if (checkStatus == ItemStatus.LISTED) {
+      throw new Exception("Vật phẩm đang được đấu giá!");
+    }
 
-    // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor của bro)
-    // Auction newAuction = new Auction(item, durationMinutes);
+    // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor)
+    Auction newAuction = new Auction(checkItem, durationMinutes);
 
-    // TODO 3: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
+    // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
-    return null; // Trả về newAuction sau khi hoàn thiện TODO
+    return newAuction;
   }
 
+  // Lấy các phiên đấu giá theo trạng thái
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
-    // TODO: Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING
-    List<Auction> auctions = AuctionDAO.getInstance().getAllAuctionsByStatus(status);
-    // để show lên UI)
-    return null;
+    // Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING)
+    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatus(status);
+    return auction;
   }
 
   // ==========================================
-  // 🚀 2. NHÓM VẬN HÀNH (ĐIỀU KHIỂN LUỒNG)
+  // 2. NHÓM VẬN HÀNH (ĐIỀU KHIỂN LUỒNG)
   // ==========================================
 
   public static void openAuction(int auctionId) throws Exception {
-    // 1. Lôi phòng đấu giá từ DB lên
-    // Auction auction = auctionDAO.getAuctionById(auctionId);
-    // if (auction == null) throw new Exception("Không tìm thấy phiên đấu giá!");
+    // Lấy phiên đấu giá từ DB lên
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+    if (auction == null) throw new Exception("Không tìm thấy phiên đấu giá!");
 
-    // 2. Ra lệnh cho Entity tự chạy logic của nó
-    // auction.start(LocalDateTime.now());
+    // Bắt đầu phiên đấu giá (Auction.java)
+    auction.start(LocalDateTime.now());
 
-    // 3. Lưu trạng thái mới (RUNNING) và startTime, endTime xuống Database
-    // auctionDAO.updateAuction(auction);
+    // Lưu trạng thái mới (RUNNING) và startTime, endTime xuống Database
+    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.RUNNING);
   }
 
   public static void forceCancelAuction(int auctionId, String reason) throws Exception {
-    // TODO: Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
+    // Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
     // (Dành cho Admin hoặc người bán hủy ngang khi có biến)
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+    AuctionStatus status = auction.getStatus();
+    if (status == AuctionStatus.CANCELED) throw new Exception("Phiên ấu giá đã bị hủy!");
+
+    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
+
+    // Còn reason chưa biết lưu đâu
   }
 
   // ==========================================
-  // 🔄 3. NHÓM HỖ TRỢ ĐẤU GIÁ (CHO BIDDING SERVICE GỌI)
+  // 3. NHÓM HỖ TRỢ ĐẤU GIÁ (CHO BIDDING SERVICE GỌI)
   // ==========================================
 
   public static Auction getAuctionById(int auctionId) throws Exception {
-    // TODO: Lấy thông tin phòng đấu giá. BiddingService sẽ dùng hàm này để check liên tục.
-    return null;
+    // Lấy thông tin phòng đấu giá. BiddingService sẽ dùng hàm này để check liên tục.
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+    return auction;
   }
 
   public static void updateHighestBid(int auctionId, BidTransaction newBid) throws Exception {
-    // TODO: Gọi DAO cập nhật ID của người đang trả giá cao nhất vào bảng Auction.
+    // Gọi DAO cập nhật ID của người đang trả giá cao nhất vào bảng Auction.
+
   }
 
   // ==========================================
-  // ⏱️ 4. NHÓM TỰ ĐỘNG ĐÓNG PHÒNG (AUTO-CLOSE)
+  // 4. NHÓM TỰ ĐỘNG ĐÓNG PHÒNG (AUTO-CLOSE)
   // ==========================================
 
-  // Nơi này đang chờ Kỹ sư trưởng chốt phương án:
-  // Dùng Lazy Check hay Background Job (Luồng ngầm) để xử lý các phòng hết giờ?
+  // Dùng Background Job (Luồng ngầm) để xử lý các phòng hết giờ
+  // Khai báo Scheduler (Quản lý luồng dọn dẹp)
+  private static ScheduledExecutorService scheduler;
 
+  // Khởi động luồng ngầm
+  public static void startAutoCloseJob() {
+    // Nếu đã chạy rồi thì không khởi tạo lại
+    if (scheduler != null && !scheduler.isShutdown()) {
+      return;
+    }
+
+    scheduler = Executors.newScheduledThreadPool(1);
+
+    Runnable autoCloseTask =
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              System.out.println(
+                  "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
+
+              // Lấy list các phiên RUNNING đã qua giờ endTime
+              List<Auction> expiredAuctions =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+
+              // Lặp qua list và đổi trạng thái thành FINISHED
+              for (Auction a : expiredAuctions) {
+                if (LocalDateTime.now().isAfter(a.getEndTime())) {
+                  auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                  System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+                }
+              }
+
+            } catch (Exception e) {
+              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
+            }
+          }
+        };
+
+    // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
+    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);
+    System.out.println("Đã kích hoạt hệ thống Auto-Close ngầm!");
+  }
+
+  // Hàm dọn dẹp khi sập server
+  public static void stopAutoCloseJob() {
+    if (scheduler != null) {
+      scheduler.shutdown();
+      System.out.println("Đã tắt hệ thống Auto-Close ngầm!");
+    }
+  }
 }
