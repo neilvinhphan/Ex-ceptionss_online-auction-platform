@@ -1,67 +1,70 @@
 package org.example.core.models.entities;
 
 import java.math.BigDecimal;
-import java.rmi.server.ObjID;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class BidTransaction {
-  private int id;
-  private int aucionId; //thuộc về phiên đấu giá nào
-  private int userId;
-  private BigDecimal bidAmount;
-  private LocalDateTime bidTime;
-  //
-  public BidTransaction(){
+  private BigDecimal amount;
+  private LocalDateTime time;
+  private int bidderID;
+  private int bidId;
+  private int auctionId;
 
+  public BidTransaction() {}
+
+  public BidTransaction(int bidId, int bidderID, int auctionId, BigDecimal amount, LocalDateTime bidTime) {
+    this.bidId = bidId;
+    this.bidderID = bidderID;
+    this.auctionId = auctionId;
+    this.amount = amount;
+    this.time =  bidTime;
   }
 
-
-    public BidTransaction(int id, int aucionId, int userId, BigDecimal bidAmount, LocalDateTime bidTime) {
-        this.id = id;
-        this.aucionId = aucionId;
-        this.userId = userId;
-        this.bidAmount = bidAmount;
-        this.bidTime = bidTime;
-    }
-
-  public int getAucionId() {
-    return aucionId;
+  public BidTransaction(BigDecimal amount, LocalDateTime time, int bidderID) {
+    this.amount = amount;
+    this.time = time;
+    this.bidderID = bidderID;
   }
 
-  public void setAucionId(int aucionId) {
-    this.aucionId = aucionId;
+  public void setBidAmount(BigDecimal amount) {
+    this.amount = amount;
   }
 
-  public int getId() {
-    return id;
+  public void setBidTime(LocalDateTime time) {
+    this.time = time;
   }
 
-  public void setId(int id) {
-    this.id = id;
+  public void setBidderId(int bidderID) {
+    this.bidderID = bidderID;
   }
 
-  public int getUserId() {
-    return userId;
+  public void setBidId(int bidId) {
+    this.bidId = bidId;
   }
 
-  public void setUserId(int userId) {
-    this.userId = userId;
+  public void setAuctionId(int auctionId) {
+    this.auctionId = auctionId;
   }
 
-  public BigDecimal getBidAmount() {
-    return bidAmount;
+  public BigDecimal getAmount() {
+    return amount;
   }
 
-  public void setBidAmount(BigDecimal bidAmount) {
-    this.bidAmount = bidAmount;
+  public LocalDateTime getTime() {
+    return time;
   }
 
-  public LocalDateTime getBidTime() {
-    return bidTime;
+  public int getBidderId() {
+    return bidderID;
   }
 
-  public void setBidTime(LocalDateTime bidTime) {
-    this.bidTime = bidTime;
+  public int getBidId() {
+    return bidId;
   }
+
+  public int getAuctionId() {
+    return auctionId;
+  }
+  //  public int compareTo(BidTransaction other) {}
 }
