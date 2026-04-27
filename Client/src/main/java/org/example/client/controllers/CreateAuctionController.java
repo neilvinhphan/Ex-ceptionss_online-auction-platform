@@ -19,34 +19,30 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class CreateAuctionController extends BaseController implements Initializable {
-
-    // =========================================================
-    // 🔹 UI COMPONENTS (FXML binding)
-    // =========================================================
-
-    @FXML private MenuButton menuUser;
-    @FXML private Spinner<Integer> durationHourSpinner;
-    @FXML private Spinner<Integer> durationMinuteSpinner;
-    @FXML private DatePicker dpStartDate;
-    @FXML private TextField tfItemName;
-    @FXML private TextField tfStartingPrice;
-    @FXML private ComboBox<String> cbCategory;
-    @FXML private TextArea taDescription;
-    @FXML private Button btnChooseImage;
-    @FXML private ImageView imagePreview;
-
-    // =========================================================
-    // 🔹 STATE (UI giữ tạm)
-    // =========================================================
-
+    @FXML
+    private MenuButton menuUser;
+    @FXML
+    private Spinner<Integer> durationHourSpinner;
+    @FXML
+    private Spinner<Integer> durationMinuteSpinner;
+    @FXML
+    private DatePicker dpStartDate;
+    @FXML
+    private TextField tfItemName;
+    @FXML
+    private TextField tfStartingPrice;
+    @FXML
+    private ComboBox<String> cbCategory;
+    @FXML
+    private TextArea taDescription;
+    @FXML
+    private Button btnChooseImage;
+    @FXML
+    private ImageView imagePreview;
     private File selectedImageFile;
 
-    // =========================================================
-    // 🔹 INITIALIZE
-    // =========================================================
-
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initialize(URL location, ResourceBundle resources) { // hàm khởi tạo của controller (nơi setup UI sau khi FXML load xong)
         initUser();
         initSpinners();
     }
@@ -60,7 +56,7 @@ public class CreateAuctionController extends BaseController implements Initializ
 
     private void initSpinners() {
         durationHourSpinner.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 72, 1)
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 72, 1) // định dạng giờ: interger, min = 0, max = 72, bước nhảy 1
         );
 
         durationMinuteSpinner.setValueFactory(
@@ -68,12 +64,8 @@ public class CreateAuctionController extends BaseController implements Initializ
         );
 
         durationHourSpinner.setEditable(true);
-        durationMinuteSpinner.setEditable(true);
+        durationMinuteSpinner.setEditable(true); // cho phép người dùng gõ trực tiếp vào ô
     }
-
-    // =========================================================
-    // 🔹 NAVIGATION (UI only)
-    // =========================================================
 
     public void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
@@ -106,33 +98,26 @@ public class CreateAuctionController extends BaseController implements Initializ
         switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
     }
 
-    // =========================================================
-    // 🔹 IMAGE HANDLING
-    // =========================================================
-
     public void handleChooseImage(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser();
+        FileChooser fileChooser = new FileChooser(); //tạo ra một công cụ cho phép user chọn file từ máy
         fileChooser.setTitle("Chọn ảnh tài sản");
         fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")//lọc loại file
         );
 
         Stage stage = (Stage) btnChooseImage.getScene().getWindow();
-        File file = fileChooser.showOpenDialog(stage);
+        File file = fileChooser.showOpenDialog(stage); //mở thư viện
 
         if (file != null) {
             selectedImageFile = file;
 
-            Image image = new Image(file.toURI().toString());
+            Image image = new Image(file.toURI().toString()); //chuyển file thành đường dẫn dạng URL
             imagePreview.setImage(image);
         }
     }
 
-    // =========================================================
-    // 🔹 BUILD DATA (UI → SERVER)
-    // =========================================================
 
-    public CreateAuctionPayload buildPayload() {
+    public CreateAuctionPayload buildPayload() { // Tạo ra một object chứa dữ liệu từ UI (UI → SERVER)
         return new CreateAuctionPayload(
                 safeText(tfItemName),
                 safeText(cbCategory),
@@ -145,10 +130,14 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
 
     public void handleSubmit(ActionEvent event) {
+        if (tfItemName.getText().trim().isEmpty() || tfStartingPrice.getText().trim().isEmpty()) {
+            showAlert("Lỗi", "Vui lòng điền đầy đủ các thông tin bắt buộc!");
+            return;
+        }
         CreateAuctionPayload payload = buildPayload();
 
-        // UI chỉ log/demo, không xử lý business
         System.out.println(payload);
+        // gửi dữ liệu qua server ở chộ này
     }
 
     // =========================================================
@@ -156,15 +145,11 @@ public class CreateAuctionController extends BaseController implements Initializ
     // =========================================================
 
     private String safeText(TextInputControl field) {
-        return (field == null || field.getText() == null)
-                ? ""
-                : field.getText().trim();
+        return (field == null || field.getText() == null) ? "" : field.getText().trim();
     }
 
     private String safeText(ComboBox<String> cb) {
-        return (cb == null || cb.getValue() == null)
-                ? ""
-                : cb.getValue().trim();
+        return (cb == null || cb.getValue() == null) ? "" : cb.getValue().trim();
     }
 
     private double safeNumber(TextField field) {
@@ -176,9 +161,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
 
     private int getSpinnerValue(Spinner<Integer> spinner) {
-        return (spinner == null || spinner.getValue() == null)
-                ? 0
-                : spinner.getValue();
+        return (spinner == null || spinner.getValue() == null) ? 0 : spinner.getValue();
     }
 
     private Duration getDuration() {
@@ -190,7 +173,9 @@ public class CreateAuctionController extends BaseController implements Initializ
         return dpStartDate != null ? dpStartDate.getValue() : null;
     }
 }
-class CreateAuctionPayload {
+
+
+class CreateAuctionPayload { // gom dữ liệu => SERVER
     private final String itemName;
     private final String category;
     private final double startingPrice;
@@ -198,7 +183,6 @@ class CreateAuctionPayload {
     private final Duration duration;
     private final LocalDate startDate;
     private final File imageFile;
-
     public CreateAuctionPayload(String itemName,
                                 String category,
                                 double startingPrice,
@@ -215,13 +199,33 @@ class CreateAuctionPayload {
         this.imageFile = imageFile;
     }
 
-    public String getItemName() { return itemName; }
-    public String getCategory() { return category; }
-    public double getStartingPrice() { return startingPrice; }
-    public String getDescription() { return description; }
-    public Duration getDuration() { return duration; }
-    public LocalDate getStartDate() { return startDate; }
-    public File getImageFile() { return imageFile; }
+    public String getItemName() {
+        return itemName;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getStartingPrice() {
+        return startingPrice;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public File getImageFile() {
+        return imageFile;
+    }
 /*
     @Override
     public String toString() {
