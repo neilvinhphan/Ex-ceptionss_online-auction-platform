@@ -1,10 +1,16 @@
 package org.example.client.controllers;
 
+import com.google.gson.Gson;
+
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.LoginRequestDTO;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
 import org.example.core.models.users.User;
-import org.example.server.services.AuthService;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
@@ -16,27 +22,55 @@ public class LoginController extends BaseController {
   @FXML private PasswordField pass_an;
   @FXML private TextField pass_hien;
 
+  private final Gson gson = new Gson();
+  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
+
     String userName = tfuserName.getText();
-    String password = pass_an.getText();
-    String passwordhidden = pass_hien.getText();
+// Lấy giá trị của ô đang được hiển thị
+    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
       return;
     }
-
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
-      User checkLogin = AuthService.login(loginRequestDTO);
-      if (checkLogin != null) {
-        System.out.println("Đăng nhập thành công! Chuyển sang trang chủ...");
-        UserSession.getInstance().setCurrentUser(checkLogin);
-        switchScene(event, "/views/MainView.fxml", "Trang chủ");
-      }
+      Request request = new Request("LOGIN", loginRequestDTO);
+      String jsonRequest = gson.toJson(request);
+      System.out.println("[DEBUG] 1. Đã đóng gói dữ liệu gửi đi: " + jsonRequest);
+      new Thread(
+              () -> {
+                try {
+                  System.out.println("[DEBUG] 2. Đang gửi request tới Server...");
+                  String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                  System.out.println("[DEBUG] 3. Nhận được phản hồi: " + jsonResponse);
+                  Response response = gson.fromJson(jsonResponse, Response.class);
+                  Platform.runLater(
+                      () -> {
+                        if (response.getStatus().equals("SUCCESS")) {
+                          System.out.println("[DEBUG] 4. Bắt đầu xử lý giao diện UI");
+                          String dataUserJson = gson.toJson(response.getData());
+                          User loggedInUser = gson.fromJson(dataUserJson, User.class);
+                          UserSession.getInstance().setCurrentUser(loggedInUser);
+                          System.out.println("Đăng nhập thành công! Người dùng: ");
+                          switchScene(event, "/views/MainView.fxml", "Trang chủ");
+                        } else {
+                          showAlert("Đăng nhập thất bại!", response.getMessage());
+                        }
+                      });
+                } catch (Exception e) {
+                  Platform.runLater(
+                      () ->
+                          showAlert(
+                              "Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
+                }
+              })
+          .start();
     } catch (Exception e) {
-      showAlert("Login Failed!", e.getMessage());
+      showAlert("Lỗi", "Đã xảy ra lỗi khi gửi yêu cầu đăng nhập: " + e.getMessage());
     }
   }
 
