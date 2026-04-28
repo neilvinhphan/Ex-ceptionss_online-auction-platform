@@ -1,9 +1,12 @@
 package org.example.server.services;
 
+import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.models.items.Item;
 import org.example.core.models.users.User;
-import org.example.server.dao.ItemDAO;
-import org.example.server.dao.UserDAO;
+import org.example.server.daos.ItemDAO;
+import org.example.server.daos.UserDAO;
+import org.example.server.validator.ItemCreationFactory;
+import org.example.server.validator.ItemValidatorFactory;
 
 import java.math.BigDecimal;
 
@@ -21,8 +24,8 @@ public class ItemService {
     if (seller == null || seller.getUserName() == null) {
       throw new Exception("Seller not found.");
     }
-    if (!seller.getStatus()) {
-      throw new Exception("Seller account is inactive.");
+    if (seller.getStatus().equals("BANNED")) {
+      throw new Exception("Seller account is banned.");
     }
 
     Integer itemId = itemDAO.insertIntoItemTable(item);
@@ -34,7 +37,7 @@ public class ItemService {
   }
 
   public Item updateItemDescription(int itemId, String sellerUsername, String newDescription)
-      throws Exception {
+          throws Exception {
     if (itemId <= 0) {
       throw new Exception("Invalid item id.");
     }
@@ -79,8 +82,43 @@ public class ItemService {
     if (item.getItemName() == null || item.getItemName().trim().isEmpty()) {
       throw new Exception("Item name is required.");
     }
+    BigDecimal startingPrice = item.getStartingPrice();
+    if (startingPrice == null || startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exception("Starting price must be greater than zero.");
+    }
     if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
       throw new Exception("Item description is required.");
     }
+  }
+
+  private void validateCommonData(CreateItemRequestDTO dto) throws Exception {
+    if (dto == null) {
+      throw new Exception("Dữ liệu sản phẩm không được để trống.");
+    }
+    if (dto.getType() == null || dto.getType().trim().isEmpty()) {
+      throw new Exception("Loại danh mục sản phẩm là bắt buộc.");
+    }
+    if (dto.getItemName() == null || dto.getItemName().trim().isEmpty()) {
+      throw new Exception("Tên sản phẩm là bắt buộc.");
+    }
+    if (dto.getStartingPrice() == null || dto.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exception("Giá khởi điểm phải lớn hơn 0.");
+    }
+    // Ông có thể thêm check Description ở đây nếu DTO cha có trường đó
+  }
+
+  public Item createItem(String sellerUsername, CreateItemRequestDTO requestDTO) throws Exception {
+    // 1. Kiểm tra logic chung (Giá, Tên sản phẩm, Người bán tồn tại...)
+    validateCommonData(requestDTO);
+
+    // 2. Kích hoạt Strategy Pattern để kiểm tra thuộc tính riêng của từng subItem
+    // Dù là Art hay Vehicle, chỉ cần gọi 1 dòng này!
+    ItemValidatorFactory.validateSpecifics(requestDTO);
+
+    // 3. Gọi Factory để tạo Object và ném xuống DAO lưu Database
+    Item newItem = ItemCreationFactory.build(requestDTO);
+    itemDAO.insertIntoItemTable(newItem);
+
+    return newItem;
   }
 }

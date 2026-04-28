@@ -12,13 +12,14 @@ import javafx.stage.Stage;
 
 public class ClientMain extends Application {
     public static void main(String[] args){
+        // Khởi tạo kết nối server qua ClientManager
         ClientManager.getInstance().connect("localhost", 9000);
         launch();
     }
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/CreateItemView.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setTitle("Đăng nhập hệ thống");

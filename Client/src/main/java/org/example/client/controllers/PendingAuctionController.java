@@ -23,7 +23,7 @@ public class PendingAuctionController extends BaseController {
     }
 
     public void handleAddProduct(ActionEvent event) {
-        switchScene(event, "/views/CreateAuctionView.fxml", "Thêm sản phẩm đấu giá");
+        switchScene(event, "/views/CreateItemView.fxml", "Thêm sản phẩm đấu giá");
     }
 
     public void handleEditProduct(ActionEvent event) {
@@ -34,7 +34,6 @@ public class PendingAuctionController extends BaseController {
     public void handleDeleteProduct(ActionEvent event) {
 
     }
-
     public void handleCreateAuction(ActionEvent event) {switchScene(event, "/views/CreateAuctionView.fxml", "Tạo sản phẩm đấu giá");
     }
 }
