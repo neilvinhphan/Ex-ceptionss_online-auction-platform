@@ -5,24 +5,14 @@ public class RegisterRequestDTO {
   private String phone;
   private String email;
   private String password;
-  private String rePassword;
-  private String passwordHide;
-  private String rePasswordHide;
-  private boolean tickCheck;
 
-  public RegisterRequestDTO(
-      String username,
-      String phone,
-      String email,
-      String password,
-      String rePassword,
-      boolean tickCheck) {
+  public RegisterRequestDTO() {}
+
+  public RegisterRequestDTO(String username, String phone, String email, String password) {
     this.username = username;
     this.phone = phone;
     this.email = email;
     this.password = password;
-    this.rePassword = rePassword;
-    this.tickCheck = tickCheck;
   }
 
   public String getUsername() {
@@ -55,37 +45,5 @@ public class RegisterRequestDTO {
 
   public void setPassword(String password) {
     this.password = password;
-  }
-
-  public String getRePasswordHide() {
-    return rePasswordHide;
-  }
-
-  public void setRePasswordHide(String rePasswordHide) {
-    this.rePasswordHide = rePasswordHide;
-  }
-
-  public String getPasswordHide() {
-    return passwordHide;
-  }
-
-  public void setPasswordHide(String passwordHide) {
-    this.passwordHide = passwordHide;
-  }
-
-  public String getRePassword() {
-    return rePassword;
-  }
-
-  public void setRePassword(String rePassword) {
-    this.rePassword = rePassword;
-  }
-
-  public boolean isTickCheck() {
-    return tickCheck;
-  }
-
-  public void setTickCheck(boolean tickCheck) {
-    this.tickCheck = tickCheck;
   }
 }

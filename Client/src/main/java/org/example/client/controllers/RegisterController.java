@@ -1,10 +1,16 @@
 package org.example.client.controllers;
 
-import org.example.core.dto.LoginRequestDTO;
-import org.example.core.dto.RegisterRequestDTO;
-import org.example.core.models.users.User;
-import org.example.server.services.AuthService;
+import com.google.gson.Gson;
 
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
+import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
+import org.example.core.models.users.User;
+
+
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -21,6 +27,8 @@ public class RegisterController extends BaseController {
   @FXML private PasswordField repass_an;
   @FXML private CheckBox cbCommit;
 
+  private final Gson gson = new Gson();
+  private AuctionClient clientSocket = ClientManager.getInstance().getClient();
   @FXML
   void handleRegister(ActionEvent event) {
     String userName = tfuserName.getText();
@@ -28,18 +36,33 @@ public class RegisterController extends BaseController {
     String email = tfemail.getText();
     String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
     String repassword = repass_an.isVisible() ? repass_an.getText() : repass_hien.getText();
-    boolean checkCommit = cbCommit.isSelected();
+   // boolean checkCommit = cbCommit.isSelected();
+    if (!password.equals(repassword)) {
+      showAlert("Error", "Passwords do not matched ");
+    } else if (!cbCommit.isSelected()) {
+      showAlert("Thông báo", "Please accept the terms and conditions to proceed!");
+    }
     try {
-      RegisterRequestDTO registerRequestDTO =
-          new RegisterRequestDTO(
-              userName,
-              phone,
-              email,
-              password,
-              repassword,
-              checkCommit);
-      User checkRegister = AuthService.register(registerRequestDTO);
-      switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+      RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO(userName, phone, email, password);
+      Request request = new Request("REGISTER", registerRequestDTO);
+      String jsonRequest = gson.toJson(request);
+      new Thread(() -> {
+        try {
+          String jsonResponse = clientSocket.sendRequest(jsonRequest);
+          Response response = gson.fromJson(jsonResponse, Response.class);
+          Platform.runLater(() -> {
+            if (response.getStatus().equals("SUCCESS")) {
+              showAlert("Thành công", "Đăng ký thành công! Chuyển sang trang đăng nhập...");
+              switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+            } else {
+              showAlert("Đăng ký thất bại!", response.getMessage());
+            }
+          });
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
+        }
+      }).start();
     } catch (Exception e) {
       showAlert("Register Failed!", e.getMessage());
     }

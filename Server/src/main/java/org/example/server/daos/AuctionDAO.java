@@ -1,6 +1,7 @@
 package org.example.server.daos;
 
 import org.example.core.models.items.Item;
+import org.example.core.models.items.ItemFactory;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.config.DBConnection;
 import org.example.core.models.entities.Auction;
@@ -119,7 +120,6 @@ public class AuctionDAO {
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       //      ps.setInt(1, item.getId());
-      ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
       LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);
       ps.setTimestamp(4, Timestamp.valueOf(endtime));
