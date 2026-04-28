@@ -1,17 +1,15 @@
 package org.example.client.controllers;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.util.Duration;
-
 import java.net.URL;
 import java.util.ResourceBundle;
-
 public class AuctionRoomController extends BaseController implements Initializable {
     @FXML private Label lblItemName;
     @FXML private Label lblTimer;
@@ -34,7 +32,14 @@ public class AuctionRoomController extends BaseController implements Initializab
 
     // ===== CALLBACK (inject từ ngoài) =====
     private BidHandler bidHandler;
-
+    @FXML
+    public void handleMain(ActionEvent event) {
+        switchScene(event, "/views/MainView.fxml", "Trang chủ");
+    }
+    @FXML
+    public void handleExit(ActionEvent event) {
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sách phòng đấu giá");
+    }
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (lineChart == null) return; // tránh crash ui
