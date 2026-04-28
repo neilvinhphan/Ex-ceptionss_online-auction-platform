@@ -82,9 +82,5 @@ public class ItemService {
     if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
       throw new Exception("Item description is required.");
     }
-    BigDecimal startingPrice = item.getStartingPrice();
-    if (startingPrice == null || startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new Exception("Starting price must be greater than zero.");
-    }
   }
 }
