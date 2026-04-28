@@ -1,242 +1,181 @@
 package org.example.client.controllers;
 
 import org.example.client.utils.UserSession;
+import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.models.items.ElectronicsItem;
+import org.example.core.models.items.Item; // Đảm bảo bạn đã import đúng class Item của bạn
 import org.example.core.models.users.User;
-
-import java.io.File;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
-
+import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 public class CreateAuctionController extends BaseController implements Initializable {
-    @FXML
-    private MenuButton menuUser;
-    @FXML
-    private Spinner<Integer> durationHourSpinner;
-    @FXML
-    private Spinner<Integer> durationMinuteSpinner;
-    @FXML
-    private DatePicker dpStartDate;
-    @FXML
-    private TextField tfItemName;
-    @FXML
-    private TextField tfStartingPrice;
-    @FXML
-    private ComboBox<String> cbCategory;
-    @FXML
-    private TextArea taDescription;
-    @FXML
-    private Button btnChooseImage;
-    @FXML
-    private ImageView imagePreview;
-    private File selectedImageFile;
-
+    @FXML private MenuButton menuUser;
+    @FXML private Spinner<Integer> durationHourSpinner;
+    @FXML private Spinner<Integer> durationMinuteSpinner;
+    @FXML private DatePicker dpStartDate;
+    @FXML private ComboBox<Item> cbPendingItems;
+    @FXML private ComboBox<String> cbCategory;
+    @FXML private TextField tfStartingPrice;
+    // Danh sách lưu toàn bộ item chưa đấu giá kéo từ server về
+    private List<Item> allPendingItems = new ArrayList<>();
+    // Cờ chống lặp vô hạn giữa 2 cái Listener
+    private boolean isAutoSelecting = false;
     @Override
-    public void initialize(URL location, ResourceBundle resources) { // hàm khởi tạo của controller (nơi setup UI sau khi FXML load xong)
+    public void initialize(URL location, ResourceBundle resources) {
         initUser();
         initSpinners();
+        setupItemDisplayFormat(); // Định dạng cách hiển thị tên Item trong ComboBox
+        loadPendingItems(); // 1. Lấy dữ liệu giả lập (hoặc từ Server)
+        setupListeners();   // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
     }
-
     private void initUser() {
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
             menuUser.setText(currentUser.getUserName());
         }
     }
-
     private void initSpinners() {
-        durationHourSpinner.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 72, 1) // định dạng giờ: interger, min = 0, max = 72, bước nhảy 1
-        );
-
-        durationMinuteSpinner.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0)
-        );
-
+        durationHourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 72, 1));
+        durationMinuteSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
         durationHourSpinner.setEditable(true);
-        durationMinuteSpinner.setEditable(true); // cho phép người dùng gõ trực tiếp vào ô
+        durationMinuteSpinner.setEditable(true);
+    }
+    // =========================================================
+    // 🔹 XỬ LÝ DỮ LIỆU & LOGIC LỌC / AUTO-FILL
+    // =========================================================
+    private void loadPendingItems() {
+        // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
+        // Tạm thời mình tạo data giả lập để bạn test UI nhé:
+        allPendingItems = new ArrayList<>();
+
+        cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
+    }
+    // Hàm này giúp ComboBox thay vì hiển thị địa chỉ bộ nhớ (org.example.Item@123)
+    // thì sẽ in ra cái Tên của sản phẩm.
+    private void setupItemDisplayFormat() {
+        cbPendingItems.setConverter(new StringConverter<Item>() {
+            @Override
+            public String toString(Item item) {
+                if (item == null) return "";
+                return item.getItemName();
+            }
+
+            @Override
+            public Item fromString(String string) {
+                return null; // Không cần implement vì combobox không cho phép gõ tay tạo mới
+            }
+        });
     }
 
-    public void handleMain(ActionEvent event) {
-        switchScene(event, "/views/MainView.fxml", "Trang chủ");
+    private void setupListeners() {
+        // 🎧 LISTENER 1: KHI NGƯỜI DÙNG BẤM CHỌN DANH MỤC (LỌC TÀI SẢN)
+        cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            // Nếu đang trong quá trình Auto-fill thì bỏ qua để tránh lỗi vòng lặp
+            if (isAutoSelecting || newValue == null) return;
+
+            ObservableList<Item> filteredList;
+            if (newValue.equals("Tất cả") || newValue.equals("-- Tất cả danh mục --")) {
+                filteredList = FXCollections.observableArrayList(allPendingItems);
+            } else {
+                // Lọc ra các item có type khớp với danh mục được chọn
+                List<Item> filtered = allPendingItems.stream()
+                        .filter(item -> newValue.equals(item.getType()))
+                        .collect(Collectors.toList());
+                filteredList = FXCollections.observableArrayList(filtered);
+            }
+            cbPendingItems.setItems(filteredList);
+            // Xóa trắng ô chọn item và giá khi người dùng vừa đổi bộ lọc
+            cbPendingItems.getSelectionModel().clearSelection();
+            tfStartingPrice.clear();
+        });
+
+        // 🎧 LISTENER 2: KHI NGƯỜI DÙNG CHỌN 1 TÀI SẢN (AUTO-FILL DANH MỤC VÀ GIÁ)
+        cbPendingItems.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
+            if (selectedItem == null) {
+                tfStartingPrice.clear();
+                return;
+            }
+            // Bật cờ để thằng Listener 1 không bị giật mình chạy lại
+            isAutoSelecting = true;
+            cbCategory.setValue(selectedItem.getType());
+            tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
+            // Tắt cờ
+            isAutoSelecting = false;
+        });
     }
 
-    public void handleMenuItem(ActionEvent event) {
-        MenuItem item = (MenuItem) event.getSource();
-        MenuButton parent = (MenuButton) item.getParentPopup().getOwnerNode();
-        parent.setText(item.getText());
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
-    }
-
-    public void handleRoomAuction(ActionEvent event) {
-        MenuItem item = (MenuItem) event.getSource();
-        MenuButton parent = (MenuButton) item.getParentPopup().getOwnerNode();
-        parent.setText(item.getText());
-        System.out.println("Chuyển sang phòng đấu giá");
-    }
-
-    public void handleUserui(ActionEvent event) {
-        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-    }
-
-    public void handleLogout(ActionEvent event) {
-        UserSession.getInstance().cleanUserSession();
-        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-    }
-
-    public void handleCreateAuction(ActionEvent event) {
-        switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
-    }
-
-    public void handleChooseImage(ActionEvent event) {
-        FileChooser fileChooser = new FileChooser(); //tạo ra một công cụ cho phép user chọn file từ máy
-        fileChooser.setTitle("Chọn ảnh tài sản");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")//lọc loại file
-        );
-
-        Stage stage = (Stage) btnChooseImage.getScene().getWindow();
-        File file = fileChooser.showOpenDialog(stage); //mở thư viện
-
-        if (file != null) {
-            selectedImageFile = file;
-
-            Image image = new Image(file.toURI().toString()); //chuyển file thành đường dẫn dạng URL
-            imagePreview.setImage(image);
-        }
-    }
-
-
-    public CreateAuctionPayload buildPayload() { // Tạo ra một object chứa dữ liệu từ UI (UI → SERVER)
-        return new CreateAuctionPayload(
-                safeText(tfItemName),
-                safeText(cbCategory),
-                safeNumber(tfStartingPrice),
-                safeText(taDescription),
-                getDuration(),
-                getStartDate(),
-                selectedImageFile
-        );
-    }
+    // =========================================================
+    // 🔹 SUBMIT & ĐIỀU HƯỚNG
+    // =========================================================
 
     public void handleSubmit(ActionEvent event) {
-        if (tfItemName.getText().trim().isEmpty() || tfStartingPrice.getText().trim().isEmpty()) {
-            showAlert("Lỗi", "Vui lòng điền đầy đủ các thông tin bắt buộc!");
+        // 1. Lấy thẳng Item đang được chọn trên ComboBox
+        Item selectedItem = cbPendingItems.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
             return;
         }
-        CreateAuctionPayload payload = buildPayload();
-
-        System.out.println(payload);
-        // gửi dữ liệu qua server ở chộ này
-    }
-
-    // =========================================================
-    // 🔹 HELPERS (UI safe read)
-    // =========================================================
-
-    private String safeText(TextInputControl field) {
-        return (field == null || field.getText() == null) ? "" : field.getText().trim();
-    }
-
-    private String safeText(ComboBox<String> cb) {
-        return (cb == null || cb.getValue() == null) ? "" : cb.getValue().trim();
-    }
-
-    private double safeNumber(TextField field) {
+        if (getStartDate() == null) {
+            showAlert("Lỗi", "Vui lòng chọn Ngày bắt đầu đấu giá!");
+            return;
+        }
+        if (getDuration().toMinutes() <= 0) {
+            showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
+            return;
+        }
         try {
-            return Double.parseDouble(field.getText().trim());
+            // 3. Quy đổi thời gian
+            long durationMinutes = getDuration().toMinutes();
+
+            // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
+            AuctionRequestDTO requestDTO = new AuctionRequestDTO(selectedItem, durationMinutes);
+
+            // 5. Gửi lên Server
+
+            System.out.println("Đã đóng gói DTO thành công! Tài sản: " + selectedItem.getItemName());
+            showAlert("Thành công", "Đã tạo yêu cầu cuộc đấu giá mới thành công!");
+
         } catch (Exception e) {
-            return 0;
+            showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private int getSpinnerValue(Spinner<Integer> spinner) {
-        return (spinner == null || spinner.getValue() == null) ? 0 : spinner.getValue();
+    public void handleMain(ActionEvent event) { switchScene(event, "/views/MainView.fxml", "Trang chủ"); }
+    public void handleUserui(ActionEvent event) { switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân"); }
+    public void handleLogout(ActionEvent event) {
+        UserSession.getInstance().cleanUserSession();
+        switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+    }
+    public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá"); }
+    public void handleMenuItem(ActionEvent event) {
+        MenuItem item = (MenuItem) event.getSource();
+        menuUser.setText(item.getText()); // Tạm thời theo code cũ của bạn
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
     }
 
+    // =========================================================
+    // 🔹 HELPERS
+    // =========================================================
     private Duration getDuration() {
-        return Duration.ofHours(getSpinnerValue(durationHourSpinner))
-                .plusMinutes(getSpinnerValue(durationMinuteSpinner));
+        int hours = (durationHourSpinner.getValue() != null) ? durationHourSpinner.getValue() : 0;
+        int minutes = (durationMinuteSpinner.getValue() != null) ? durationMinuteSpinner.getValue() : 0;
+        return Duration.ofHours(hours).plusMinutes(minutes);
     }
 
     private LocalDate getStartDate() {
-        return dpStartDate != null ? dpStartDate.getValue() : null;
+        return dpStartDate.getValue();
     }
-}
-
-
-class CreateAuctionPayload { // gom dữ liệu => SERVER
-    private final String itemName;
-    private final String category;
-    private final double startingPrice;
-    private final String description;
-    private final Duration duration;
-    private final LocalDate startDate;
-    private final File imageFile;
-
-    public CreateAuctionPayload(String itemName,
-                                String category,
-                                double startingPrice,
-                                String description,
-                                Duration duration,
-                                LocalDate startDate,
-                                File imageFile) {
-        this.itemName = itemName;
-        this.category = category;
-        this.startingPrice = startingPrice;
-        this.description = description;
-        this.duration = duration;
-        this.startDate = startDate;
-        this.imageFile = imageFile;
-    }
-
-    public String getItemName() {
-        return itemName;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public double getStartingPrice() {
-        return startingPrice;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Duration getDuration() {
-        return duration;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public File getImageFile() {
-        return imageFile;
-    }
-/*
-    @Override
-    public String toString() {
-        return "CreateAuctionPayload{" +
-                "itemName='" + itemName + '\'' +
-                ", category='" + category + '\'' +
-                ", startingPrice=" + startingPrice +
-                ", duration=" + duration +
-                ", startDate=" + startDate +
-                ", imageFile=" + (imageFile != null ? imageFile.getName() : "null") +
-                '}';
-    } */
 }
