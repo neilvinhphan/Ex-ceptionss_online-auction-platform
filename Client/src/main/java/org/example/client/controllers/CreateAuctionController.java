@@ -110,7 +110,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             // Bật cờ để thằng Listener 1 không bị giật mình chạy lại
             isAutoSelecting = true;
             cbCategory.setValue(selectedItem.getType());
-            tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
+          //  tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
             // Tắt cờ
             isAutoSelecting = false;
         });

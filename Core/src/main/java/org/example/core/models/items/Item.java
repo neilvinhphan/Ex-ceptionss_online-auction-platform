@@ -13,7 +13,7 @@ public abstract class Item extends Entity {
   private int sellerID;
   protected ItemStatus status;
   private int itemId;
-private double startingPrice;
+  private BigDecimal startingPrice;
   protected Item() {
     super();
   }
@@ -106,5 +106,4 @@ private double startingPrice;
     return itemId;
   }
 
-  public double getStartingPrice(){return startingPrice;}
 }

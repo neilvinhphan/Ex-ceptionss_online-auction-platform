@@ -26,27 +26,22 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML private TextField tfItemName;
     @FXML private ComboBox<String> cbCategory;
     @FXML private TextField tfDescription;
-
     // --- Các VBox chứa thuộc tính riêng biệt ---
     @FXML private VBox vbArtAttributes;
     @FXML private VBox vbElectronicAttributes;
     @FXML private VBox vbVehicleAttributes;
-
     // Các TextField của Tác phẩm nghệ thuật
     @FXML private TextField tfArtist;
     @FXML private TextField tfCreationYear;
-
     // Các TextField của Đồ điện tử
     @FXML private TextField tfBrand;
     @FXML private TextField tfWarranty;
     @FXML private TextField tfCondition;
-
     // Các TextField của Phương tiện
     @FXML private TextField tfVehicleBrand;
     @FXML private TextField tfModel;
     @FXML private TextField tfMfgYear;
     @FXML private TextField tfMileage;
-
     // --- Thành phần tải ảnh ---
     @FXML private Button btnChooseImage;
     @FXML private ImageView imagePreview;
