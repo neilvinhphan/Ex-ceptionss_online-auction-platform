@@ -113,6 +113,12 @@
                                                 </VBox>
                                             </children>
                                         </HBox>
+                              <VBox>
+                                 <children>
+                                    <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Giá khởi điểm " />
+                                    <TextField fx:id="tfItemName1" promptText="Nhập giá khởi điểm" style="-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14;" />
+                                 </children>
+                              </VBox>
 
                                         <HBox spacing="30.0" />
 
@@ -122,24 +128,24 @@
                                                 <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-border-style: dashed; -fx-padding: 20; -fx-background-color: #FAFAFA; -fx-background-radius: 8;">
                                                     <children>
                                                         <Button fx:id="btnChooseImage" mnemonicParsing="false" onAction="#handleChooseImage" style="-fx-background-color: #E9ECEF; -fx-text-fill: #495057; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="📁 Chọn ảnh từ máy tính" />
-                                                        <Label style="-fx-text-fill: #999;" text="Chưa có tệp nào được chọn. Hỗ trợ JPG, PNG (Tối đa 5MB)." />
                                                         <ImageView fx:id="imagePreview" fitHeight="120" fitWidth="120" preserveRatio="true" />
                                                     </children>
                                                 </HBox>
                                             </children>
                                         </VBox>
-                              <VBox prefHeight="200.0" prefWidth="100.0">
+                              <VBox>
                                  <children>
-                                    <Label text="Mô tả" />
+                                    <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Mô tả:" />
+                                    <TextField fx:id="tfItemName11" promptText="Mô tả sản phẩm" style="-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14;" />
                                  </children>
                               </VBox>
 
-                                        <Region style="-fx-border-color: #EEEEEE; -fx-border-width: 1 0 0 0;" />
+                                        <Region style="-fx-border-width: 1 0 0 0;" />
 
                                         <HBox alignment="CENTER_RIGHT" spacing="15.0">
                                             <children>
                                                 <Button mnemonicParsing="false" style="-fx-background-color: #F1F3F5; -fx-text-fill: #333; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand; -fx-font-size: 15;" text="Hủy bỏ" />
-                                                <Button mnemonicParsing="false" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 15; -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);" text="LƯU &amp; TẠO ĐẤU GIÁ" />
+                                                <Button mnemonicParsing="false" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 15; -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);" text="LƯU &amp; TẠO SẢN PHẨM" />
                                             </children>
                                         </HBox>
 
