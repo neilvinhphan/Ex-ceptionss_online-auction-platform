@@ -13,9 +13,6 @@ public class AuthService {
 
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
-    String rePassword = requestPayLoad.getRePassword();
-    String passInCheckHide = requestPayLoad.getPasswordHide();
-    String rePasswordHide = requestPayLoad.getRePasswordHide();
     String mailInCheck = requestPayLoad.getEmail();
     String phoneInCheck = requestPayLoad.getPhone();
 
@@ -23,8 +20,6 @@ public class AuthService {
     if (nameInCheck == null || nameInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an username");
     } else if (passInCheck == null || passInCheck.trim().isEmpty()) {
-      throw new Exception("Please enter a password");
-    } else if (passInCheckHide == null || passInCheckHide.trim().isEmpty()) {
       throw new Exception("Please enter a password");
     } else if (mailInCheck == null || mailInCheck.trim().isEmpty()) {
       throw new Exception("Please enter an email");
@@ -43,17 +38,6 @@ public class AuthService {
     String phoneRegex = "^0\\d{9}$";
     if (!phoneInCheck.matches(phoneRegex)) {
       throw new Exception("Invalid phone number format (must be 10 digits starting with 0).");
-    }
-
-    // Check password & repassword
-    if (!passInCheck.equals(rePassword) || (!passInCheckHide.equals(rePasswordHide))) {
-      throw new Exception("Passwords do not matched.");
-    }
-
-    // Check Terms and Conditions tick
-    boolean tickCheck = requestPayLoad.isTickCheck();
-    if (!tickCheck) {
-      throw new Exception("Please accept the terms and conditions to proceed");
     }
 
     // Check username
