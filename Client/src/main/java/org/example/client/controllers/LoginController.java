@@ -27,32 +27,35 @@ public class LoginController extends BaseController {
 
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
+
     String userName = tfuserName.getText();
-    String password = pass_an.getText();
-    String passwordHidden = pass_hien.getText();
+// Lấy giá trị của ô đang được hiển thị
+    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
       return;
     }
-
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
       Request request = new Request("LOGIN", loginRequestDTO);
       String jsonRequest = gson.toJson(request);
+      System.out.println("[DEBUG] 1. Đã đóng gói dữ liệu gửi đi: " + jsonRequest);
       new Thread(
               () -> {
                 try {
+                  System.out.println("[DEBUG] 2. Đang gửi request tới Server...");
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                  System.out.println("[DEBUG] 3. Nhận được phản hồi: " + jsonResponse);
                   Response response = gson.fromJson(jsonResponse, Response.class);
                   Platform.runLater(
                       () -> {
                         if (response.getStatus().equals("SUCCESS")) {
+                          System.out.println("[DEBUG] 4. Bắt đầu xử lý giao diện UI");
                           String dataUserJson = gson.toJson(response.getData());
                           User loggedInUser = gson.fromJson(dataUserJson, User.class);
                           UserSession.getInstance().setCurrentUser(loggedInUser);
                           System.out.println("Đăng nhập thành công! Người dùng: ");
-                          showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
                           switchScene(event, "/views/MainView.fxml", "Trang chủ");
                         } else {
                           showAlert("Đăng nhập thất bại!", response.getMessage());

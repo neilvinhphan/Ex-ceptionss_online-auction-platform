@@ -102,6 +102,8 @@ public class ClientHandler implements Runnable {
             } else {
                 response = new Response("ERROR", "Login failed");
             }
+            // Dòng này lúc nãy bị thiếu khiến Client đợi mòn mỏi nè!
+            sendMessage(gson.toJson(response));
         } catch (Exception e) {
             e.printStackTrace();
             Response errorRespone = new Response("ERROR", e.getMessage());
