@@ -7,6 +7,7 @@ import org.example.client.network.ClientManager;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.models.users.User;
 
 
 import javafx.application.Platform;
@@ -28,26 +29,18 @@ public class RegisterController extends BaseController {
 
   private final Gson gson = new Gson();
   private AuctionClient clientSocket = ClientManager.getInstance().getClient();
-
   @FXML
   void handleRegister(ActionEvent event) {
     String userName = tfuserName.getText();
     String phone = tfphone.getText();
     String email = tfemail.getText();
-    String password = pass_an.getText();
-    String passwordhidden = pass_hien.getText();
-    String repassword = repass_an.getText();
-    String repasswordhidden = repass_hien.getText();
-    if (userName.isEmpty()
-        || phone.isEmpty()
-        || email.isEmpty()
-        || password.isEmpty()
-        || repassword.isEmpty()) {
-      showAlert("Lỗi", "Vui lòng nhập đủ thông tin!");
-    } else if (!password.equals(repassword)) {
-      showAlert("Lỗi", "Mật khẩu không khớp! Vui lòng kiểm tra lại! ");
+    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
+    String repassword = repass_an.isVisible() ? repass_an.getText() : repass_hien.getText();
+   // boolean checkCommit = cbCommit.isSelected();
+    if (!password.equals(repassword)) {
+      showAlert("Error", "Passwords do not matched ");
     } else if (!cbCommit.isSelected()) {
-      showAlert("Thông báo", "Vui lòng đồng ý với điều khoản dịch vụ để tiếp tục!");
+      showAlert("Thông báo", "Please accept the terms and conditions to proceed!");
     }
     try {
       RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO(userName, phone, email, password);
