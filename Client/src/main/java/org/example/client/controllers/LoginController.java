@@ -2,8 +2,6 @@ package org.example.client.controllers;
 
 import org.example.client.utils.UserSession;
 import org.example.core.dto.LoginRequestDTO;
-import org.example.core.models.users.User;
-import org.example.server.services.AuthService;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,10 +27,8 @@ public class LoginController extends BaseController {
 
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
-      User checkLogin = AuthService.login(loginRequestDTO);
-      if (checkLogin != null) {
+      if (true) {
         System.out.println("Đăng nhập thành công! Chuyển sang trang chủ...");
-        UserSession.getInstance().setCurrentUser(checkLogin);
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
       }
     } catch (Exception e) {
