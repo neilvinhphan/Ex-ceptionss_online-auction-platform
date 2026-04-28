@@ -112,7 +112,7 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="Danh sách bất động sản">
+                                        <Label text="Danh sách sản phẩm">
                                             <font>
                                                 <Font name="System Bold" size="24.0" />
                                             </font>

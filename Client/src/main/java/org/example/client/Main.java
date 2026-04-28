@@ -10,7 +10,7 @@ public class Main extends Application {
 
   @Override
   public void start(Stage primaryStage) throws Exception {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/LoginView.fxml"));
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/AuctionRoomView.fxml"));
     Parent root = loader.load();
     Scene scene = new Scene(root);
     primaryStage.setTitle("Đăng nhập hệ thống");

@@ -2,9 +2,10 @@ package org.example.client.controllers;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.util.Duration;
 
@@ -12,35 +13,88 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class AuctionRoomController extends BaseController implements Initializable {
-
-    // Các thành phần UI từ FXML
+    @FXML private Label lblItemName;
     @FXML private Label lblTimer;
+    @FXML private Label lblStatus;
+    @FXML private TextArea taDescription;
+    @FXML private Label lblCurrentPrice;
+    @FXML private Label lblHighestBidder;
+    @FXML private Label lblWinner;
     @FXML private TextField tfBidAmount;
+    @FXML private Button btnBid;
+    @FXML private Label lblError;
     @FXML private ListView<String> lvBidHistory;
-
-    // Biến quản lý thời gian
+    @FXML private LineChart<Number, Number> lineChart;
+    // ===== TIMER =====
     private Timeline countdownTimeline;
-    private int secondsRemaining = 9015; // Giả sử lấy từ Server (02:30:15)
+    private long endTime;
+    // ===== CHART =====
+    private XYChart.Series<Number, Number> priceSeries = new XYChart.Series<>();
+    private int bidIndex = 0;
+
+    // ===== CALLBACK (inject từ ngoài) =====
+    private BidHandler bidHandler;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (lineChart == null) return; // tránh crash ui
+        // setup chart
+        lineChart.getData().add(priceSeries);
+        lineChart.setCreateSymbols(false);
+        // xử lý nhập bidAmount: vd 123->123, abc-> " "
+        tfBidAmount.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.matches("\\d*")) {
+                tfBidAmount.setText(newVal.replaceAll("[^\\d]", ""));
+            }
+        });
+        // UI state ban đầu
+        btnBid.setDisable(true); // chưa có data thì chưa cho bid
+    }
+
+    // ================= NHẬN DATA TỪ SERVER =================
+    // lấy dữ liệu từ server → đổ vào giao diện
+    public void renderAuction(String itemName, double price, String bidder, String status, long endTimeFromServer) {
+        lblItemName.setText(itemName);
+        lblCurrentPrice.setText(formatPrice(price));
+        lblHighestBidder.setText(bidder);
+        lblStatus.setText(status);
+        this.endTime = endTimeFromServer;
+        btnBid.setDisable(false);
         startCountdown();
     }
 
+    // ================= UPDATE KHI CÓ NGƯỜI BID =================
+    // 👉 server push về thì gọi cái này
+    public void onNewBid(double price, String bidder) {
+        bidIndex++; //mỗi lần có bid mới → tăng trục X
+        lvBidHistory.getItems().add(bidder + ": " + formatPrice(price)); //Thêm vào lịch sử
+        priceSeries.getData().add(new XYChart.Data<>(bidIndex, price)); //Vẽ lên biểu đồ
+        lblCurrentPrice.setText(formatPrice(price));
+        lblHighestBidder.setText(bidder);
+        highlightPrice();
+    }
+
+    // ================= TIMER =================
     private void startCountdown() {
-        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        if (countdownTimeline != null) { // nếu có timer cũ -> dừng nó trước -> tạo timer mới
+            countdownTimeline.stop();
+        }
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> { //cứ 1 giây chạy đoạn code bên trong
+            long now = System.currentTimeMillis();
+            long secondsRemaining = (endTime - now) / 1000;
             if (secondsRemaining > 0) {
-                secondsRemaining--;
-                updateTimerLabel();
+                updateTimerLabel((int) secondsRemaining);
             } else {
                 stopAuction();
             }
+
         }));
-        countdownTimeline.setCycleCount(Timeline.INDEFINITE);
-        countdownTimeline.play();
+
+        countdownTimeline.setCycleCount(Timeline.INDEFINITE); // chạy mãi
+        countdownTimeline.play(); // kích hoạt timer
     }
 
-    private void updateTimerLabel() {
+    private void updateTimerLabel(int secondsRemaining) { // hàm hiển thị tgian còn lại
         int h = secondsRemaining / 3600;
         int m = (secondsRemaining % 3600) / 60;
         int s = secondsRemaining % 60;
@@ -51,31 +105,59 @@ public class AuctionRoomController extends BaseController implements Initializab
         if (countdownTimeline != null) countdownTimeline.stop();
         lblTimer.setText("ĐÃ KẾT THÚC");
         lblTimer.setStyle("-fx-text-fill: gray;");
+        btnBid.setDisable(true);
         tfBidAmount.setDisable(true);
+        lblStatus.setText("FINISHED");
     }
 
-    // Xử lý sự kiện nhấn nút "Đặt giá ngay"
+    // ================= USER ACTION =================
     @FXML
-    public void handlePlaceBid(ActionEvent event) {
+    public void handlePlaceBid() { //lấy giá user nhập → kiểm tra → gửi ra ngoài → chờ server phản hồi
         String bidText = tfBidAmount.getText().trim();
-
+        if (bidText.isEmpty()) {
+            lblError.setText("Không được để trống!");
+            return;
+        }
         try {
             double bidAmount = Double.parseDouble(bidText);
-            // TODO: Gửi bidAmount lên Server qua WebSocket hoặc API ở đây
+            // disable để tránh spam
+            btnBid.setDisable(true);
+            lblStatus.setText("Đang gửi giá...");
 
-            // Tạm thời hiển thị vào danh sách lịch sử
-            lvBidHistory.getItems().add("Bạn vừa đặt: " + bidAmount + " đ");
+            // 👉 gọi ra ngoài (UI KHÔNG biết server làm gì)
+            if (bidHandler != null) {
+                bidHandler.onBid(bidAmount); // thực chất là socket.senBid()
+            }
+
             tfBidAmount.clear();
+            lblError.setText(""); //dọn UI sau khi gửi
+
         } catch (NumberFormatException e) {
-            showAlert("Lỗi", "Vui lòng nhập số tiền hợp lệ!");
+            lblError.setText("Giá không hợp lệ!");
         }
     }
 
-    // Xử lý sự kiện nhấn nút "Rời phòng"
-    @FXML
-    public void handleExitRoom(ActionEvent event) {
-        if (countdownTimeline != null) countdownTimeline.stop();
-        // Quay lại màn hình danh mục hoặc trang chủ
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+    // ================= CALLBACK SETTER =================
+    public void setBidHandler(BidHandler handler) {
+        this.bidHandler = handler;
+    }
+
+    // server phản hồi (success/fail)
+    public void onBidResult(boolean success) {
+        btnBid.setDisable(false);
+        lblStatus.setText(success ? "Đang đấu giá" : "Bid thất bại");
+    }
+
+    private void highlightPrice() {
+        lblCurrentPrice.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold; -fx-font-size: 28;");
+    }
+
+    private String formatPrice(double price) {
+        return String.format("%,.0f đ", price);
+    }
+
+    // ================= INTERFACE =================
+    public interface BidHandler {
+        void onBid(double amount);
     }
 }
