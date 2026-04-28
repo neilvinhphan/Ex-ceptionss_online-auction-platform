@@ -116,7 +116,7 @@ public class PersonalController extends BaseController implements Initializable 
     }
 
     @FXML
-    void handleUserui(ActionEvent event) {
+    void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
     }
 

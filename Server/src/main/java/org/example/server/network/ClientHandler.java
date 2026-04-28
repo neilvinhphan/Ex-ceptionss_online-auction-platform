@@ -41,7 +41,7 @@ public class ClientHandler implements Runnable {
                         case "REGISTER":
                             handleRegister(request);
                             break;
-                        case "GET_AUCTIONS":
+                        case "LOGIN":
                             // Handle get auctions logic
                             break;
                         default:
