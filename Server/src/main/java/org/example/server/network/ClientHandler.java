@@ -2,6 +2,7 @@ package org.example.server.network;
 
 import com.google.gson.Gson;
 
+import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 
@@ -43,7 +44,7 @@ public class ClientHandler implements Runnable {
                             handleRegister(request);
                             break;
                         case "LOGIN":
-                            // Handle get auctions logic
+                            handleLogin(request);
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
@@ -76,6 +77,31 @@ public class ClientHandler implements Runnable {
                 response = new Response("ERROR", "Registration failed");
             }
             sendMessage(gson.toJson(response));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Response errorRespone = new Response("ERROR", e.getMessage());
+            sendMessage(gson.toJson(errorRespone));
+        }
+    }
+
+    private void handleLogin(Request request) {
+        try{
+            LoginRequestDTO loginRequest;
+
+            if (request.getData() instanceof LoginRequestDTO) {
+                loginRequest = (LoginRequestDTO) request.getData();
+            } else {
+                String dataJson = gson.toJson(request.getData());
+                loginRequest = gson.fromJson(dataJson, LoginRequestDTO.class);
+            }
+            User newUser = AuthService.login(loginRequest);
+
+            Response response;
+            if(newUser != null) {
+                response = new Response("SUCCESS", newUser);
+            } else {
+                response = new Response("ERROR", "Login failed");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Response errorRespone = new Response("ERROR", e.getMessage());

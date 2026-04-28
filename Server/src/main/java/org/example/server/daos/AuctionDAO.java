@@ -1,6 +1,7 @@
 package org.example.server.daos;
 
 import org.example.core.models.items.Item;
+import org.example.core.models.items.ItemFactory;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.config.DBConnection;
 import org.example.core.models.entities.Auction;
