@@ -6,9 +6,9 @@ import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.BidDAO;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,23 +16,20 @@ public class BiddingService {
 
     private static volatile BiddingService instance;
 
-    private final BidDAO bidDAO;
-    private final AuctionDAO auctionDAO;
+    private static final BidDAO bidDAO = BidDAO.getInstance();
+    private static final AuctionDAO auctionDAO = AuctionDAO.getInstance();
 
     // lock theo từng auction để tránh đè giá cùng lúc
     private final ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
 
-    private static final long ANTI_SNIPING_THRESHOLD_SECONDS = 5 * 60; // 5 phút cuối
-    private static final long ANTI_SNIPING_EXTEND_SECONDS = 5 * 60;// +5 phút
-
-    BiddingService() {
-        this(BidDAO.getInstance(), AuctionDAO.getInstance());
-    }
-
-    BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO) {
-        this.bidDAO = Objects.requireNonNull(bidDAO, "bidDAO must not be null");
-        this.auctionDAO = Objects.requireNonNull(auctionDAO, "auctionDAO must not be null");
-    }
+//    BiddingService() {
+//        this(BidDAO.getInstance(), AuctionDAO.getInstance());
+//    }
+//
+//    BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO) {
+//        this.bidDAO = Objects.requireNonNull(bidDAO, "bidDAO must not be null");
+//        this.auctionDAO = Objects.requireNonNull(auctionDAO, "auctionDAO must not be null");
+//    }
 
     public static BiddingService getInstance() {
         if (instance == null) {
@@ -106,13 +103,22 @@ public class BiddingService {
 
     /**
      * handleAntiSniping:
-     * nếu bid vào 5 phút cuối thì +5 phút vào endTime
+     * nếu bid trong 1/10 thời gian cuối thì cộng thêm 1/10 thời lượng phiên
      */
     private void handleAntiSniping(int auctionId, Auction auction, LocalDateTime now) {
-        boolean inSnipingWindow = auction.isAntiSniping(now, ANTI_SNIPING_THRESHOLD_SECONDS);
+        LocalDateTime startTime = auction.getStartTime();
+        LocalDateTime endTime = auction.getEndTime();
+        if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
+            return;
+        }
+
+        long totalSeconds = Duration.between(startTime, endTime).getSeconds();
+        long antiSnipingSeconds = Math.max(1, totalSeconds / 10);
+
+        boolean inSnipingWindow = auction.isAntiSniping(now, antiSnipingSeconds);
         if (!inSnipingWindow) return;
 
-        auction.extendEndTime(ANTI_SNIPING_EXTEND_SECONDS);
+        auction.extendEndTime(antiSnipingSeconds);
 
         // TODO: bạn cần method update end_time trong AuctionDAO
         auctionDAO.updateAuctionEndTime(auctionId, auction.getEndTime());

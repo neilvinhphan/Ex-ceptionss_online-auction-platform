@@ -3,7 +3,6 @@ package org.example.server.services;
 import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.Item;
-import org.example.core.models.items.OtherItem;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
 import org.junit.jupiter.api.Test;
