@@ -57,7 +57,7 @@ public class AuctionDAO {
       ps.setString(1, status.name());
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
-        Item item = ItemFactory.takeItemFromDB(rs);
+        Item item = org.example.core.models.items.ItemFactory.takeItemFromDB(rs);
         items.add(item);
       }
     } catch (SQLException e) {

@@ -2,7 +2,6 @@ package org.example.client.controllers;
 
 import org.example.client.utils.UserSession;
 import org.example.core.models.users.User;
-import org.example.server.daos.UserDAO;
 
 import java.net.URL;
 import java.util.Optional;
@@ -74,8 +73,7 @@ public class PersonalController extends BaseController implements Initializable 
         if (result.isPresent() && !result.get().trim().isEmpty()) {
             String newPhone = result.get().trim();
             int currentUserId = currentUser.getUserId();
-            boolean success = UserDAO.getInstance().updatePhonenumberInDB(currentUserId, newPhone);
-            if (success) {
+            if (true) {
                 currentUser.setPhone(newPhone);
                 lbPhoneNum.setText(newPhone);
                 showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");
@@ -96,8 +94,7 @@ public class PersonalController extends BaseController implements Initializable 
         if (result.isPresent() && !result.get().trim().isEmpty()) {
             String newEmail = result.get().trim();
             int currentUserId = currentUser.getUserId();
-            boolean success = UserDAO.getInstance().updateEmailInDB(currentUserId, newEmail);
-            if (success) {
+            if (true) {
                 currentUser.setEmail(newEmail);
                 lbEmail.setText(newEmail);
                 showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");

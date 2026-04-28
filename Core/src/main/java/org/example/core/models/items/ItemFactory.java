@@ -1,13 +1,4 @@
-package org.example.server.daos;
-
-import org.example.core.models.items.Item;
-import org.example.core.models.items.ArtItem;
-import org.example.core.models.items.ElectronicsItem;
-import org.example.core.models.items.AntiqueItem;
-import org.example.core.models.items.JewelryItem;
-import org.example.core.models.items.RealEstateItem;
-import org.example.core.models.items.VehicleItem;
-import org.example.core.models.items.OtherItem;
+package org.example.core.models.items;
 
 import java.sql.ResultSet;
 
