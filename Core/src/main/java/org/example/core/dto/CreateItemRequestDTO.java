@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 public abstract class CreateItemRequestDTO {
     private String itemName;
     private String type;
-    private BigDecimal startingPrice;
-
+ //   private BigDecimal startingPrice;
+    private String description;
     public CreateItemRequestDTO(){}
 
     public String getItemName() {
@@ -16,7 +16,9 @@ public abstract class CreateItemRequestDTO {
     public void setItemName(String itemName) {
         this.itemName = itemName;
     }
-
+public void setDescription(String description){
+        this.description= description;
+}
     public String getType() {
         return type;
     }
@@ -25,11 +27,11 @@ public abstract class CreateItemRequestDTO {
         this.type = type;
     }
 
-    public BigDecimal getStartingPrice() {
-        return startingPrice;
-    }
+   // public BigDecimal getStartingPrice() {
+   ///     return startingPrice;
+ //   }
 
-    public void setStartingPrice(BigDecimal startingPrice) {
-        this.startingPrice = startingPrice;
-    }
+  //  public void setStartingPrice(BigDecimal startingPrice) {
+  //      this.startingPrice = startingPrice;
+  //  }
 }
