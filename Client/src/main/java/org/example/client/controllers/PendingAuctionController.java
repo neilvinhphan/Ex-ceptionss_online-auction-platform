@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
 public class PendingAuctionController extends BaseController {
+
     @FXML
     public void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
@@ -32,5 +33,8 @@ public class PendingAuctionController extends BaseController {
 
     public void handleDeleteProduct(ActionEvent event) {
 
+    }
+
+    public void handleCreateAuction(ActionEvent event) {switchScene(event, "/views/CreateAuctionView.fxml", "Tạo sản phẩm đấu giá");
     }
 }

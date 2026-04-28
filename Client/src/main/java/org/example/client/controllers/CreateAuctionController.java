@@ -183,6 +183,7 @@ class CreateAuctionPayload { // gom dữ liệu => SERVER
     private final Duration duration;
     private final LocalDate startDate;
     private final File imageFile;
+
     public CreateAuctionPayload(String itemName,
                                 String category,
                                 double startingPrice,

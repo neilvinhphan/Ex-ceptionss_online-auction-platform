@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
   private String itemName;
-  private BigDecimal startingPrice;
   protected String description;
   private int sellerID;
   protected ItemStatus status;
@@ -22,7 +21,6 @@ public abstract class Item extends Entity {
   protected Item(Builder<?> builder) {
     super(builder.createdAt);
     this.itemName = builder.itemName;
-    this.startingPrice = builder.startingPrice;
     this.description = builder.description;
     this.sellerID = builder.sellerID;
     this.status = ItemStatus.DRAFT;
@@ -76,14 +74,6 @@ public abstract class Item extends Entity {
 
   public void setItemName(String itemName) {
     this.itemName = itemName;
-  }
-
-  public BigDecimal getStartingPrice() {
-    return startingPrice;
-  }
-
-  public void setStartingPrice(BigDecimal startingPrice) {
-    this.startingPrice = startingPrice;
   }
 
   public String getDescription() {
