@@ -15,7 +15,6 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <ScrollPane fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateItemController">
     <content>
@@ -72,87 +71,66 @@
                     </left>
 
                     <center>
-                        <VBox spacing="25.0" BorderPane.alignment="CENTER">
-                            <children>
-
-                                <VBox spacing="25.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
-                                    <children>
-                                        <Label text="Tạo Sản Phẩm Đấu Giá Mới">
-                                            <font>
-                                                <Font name="System Bold" size="26.0" />
-                                            </font>
-                                            <VBox.margin>
-                                                <Insets bottom="10.0" />
-                                            </VBox.margin>
-                                        </Label>
-
-                                        <HBox spacing="30.0">
-                                            <children>
-                                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-                                                    <children>
-                                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Tên sản phẩm" />
-                                                        <TextField fx:id="tfItemName" promptText="Nhập tên tài sản (VD: Tranh sơn dầu thế kỷ 19...)" style="-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14;" />
-                                                    </children>
-                                                </VBox>
-                                                <VBox prefWidth="300.0" spacing="8.0">
-                                                    <children>
-                                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Danh mục *" />
-                                                        <ComboBox fx:id="cbCategory" maxWidth="1.7976931348623157E308" promptText="Chọn danh mục" style="-fx-background-color: #FAFAFA; -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6; -fx-font-size: 14;">
-                                                            <items>
-                                                                <FXCollections fx:factory="observableArrayList">
-                                                                    <String fx:value="Bất động sản" />
-                                                                    <String fx:value="Đồ cổ" />
-                                                                    <String fx:value="Phương tiện" />
-                                                                    <String fx:value="Trang sức" />
-                                                                    <String fx:value="Tác phẩm nghệ thuật" />
-                                                                    <String fx:value="Khác" />
-                                                                </FXCollections>
-                                                            </items>
-                                                        </ComboBox>
-                                                    </children>
-                                                </VBox>
-                                            </children>
-                                        </HBox>
-
-                                        <HBox spacing="30.0" />
-
-                                        <VBox spacing="8.0">
-                                            <children>
-                                                <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Hình ảnh tài sản" />
-                                                <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-border-style: dashed; -fx-padding: 20; -fx-background-color: #FAFAFA; -fx-background-radius: 8;">
-                                                    <children>
-                                                        <Button fx:id="btnChooseImage" mnemonicParsing="false" onAction="#handleChooseImage" style="-fx-background-color: #E9ECEF; -fx-text-fill: #495057; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="📁 Chọn ảnh từ máy tính" />
-                                                        <Label style="-fx-text-fill: #999;" text="Chưa có tệp nào được chọn. Hỗ trợ JPG, PNG (Tối đa 5MB)." />
-                                                        <ImageView fx:id="imagePreview" fitHeight="120" fitWidth="120" preserveRatio="true" />
-                                                    </children>
-                                                </HBox>
-                                            </children>
-                                        </VBox>
-                              <VBox prefHeight="200.0" prefWidth="100.0">
-                                 <children>
-                                    <Label text="Mô tả" />
-                                 </children>
-                              </VBox>
-
-                                        <Region style="-fx-border-color: #EEEEEE; -fx-border-width: 1 0 0 0;" />
-
-                                        <HBox alignment="CENTER_RIGHT" spacing="15.0">
-                                            <children>
-                                                <Button mnemonicParsing="false" style="-fx-background-color: #F1F3F5; -fx-text-fill: #333; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand; -fx-font-size: 15;" text="Hủy bỏ" />
-                                                <Button mnemonicParsing="false" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 30; -fx-cursor: hand; -fx-font-size: 15; -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);" text="LƯU &amp; TẠO ĐẤU GIÁ" />
-                                            </children>
-                                        </HBox>
-
-                                    </children>
-                                </VBox>
-                            </children>
+                        <VBox BorderPane.alignment="CENTER">
                             <BorderPane.margin>
                                 <Insets bottom="40.0" right="40.0" />
                             </BorderPane.margin>
+                            <children>
+                                <VBox spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
+                                    <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo sản phẩm đấu giá mới" />
+
+                                    <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" />
+
+                                    <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;">
+                                        <items>
+                                            <FXCollections fx:factory="observableArrayList">
+                                                <String fx:value="Tác phẩm nghệ thuật" />
+                                                <String fx:value="Đồ điện tử" />
+                                                <String fx:value="Phương tiện" />
+                                                <String fx:value="Khác" />
+                                            </FXCollections>
+                                        </items>
+                                    </ComboBox>
+
+                                    <TextField fx:id="tfDescription" promptText="Mô tả chi tiết" style="-fx-padding: 10;" />
+
+                                    <VBox fx:id="vbArtAttributes" managed="false" spacing="10" visible="false">
+                                        <TextField fx:id="tfArtist" promptText="Nghệ sĩ" />
+                                        <TextField fx:id="tfCreationYear" promptText="Năm sáng tác" />
+                                    </VBox>
+
+                                    <VBox fx:id="vbElectronicAttributes" managed="false" spacing="10" visible="false">
+                                        <TextField fx:id="tfBrand" promptText="Thương hiệu" />
+                                        <TextField fx:id="tfWarranty" promptText="Tháng bảo hành" />
+                                        <TextField fx:id="tfCondition" promptText="Tình trạng (Mới/Cũ)" />
+                                    </VBox>
+
+                                    <VBox fx:id="vbVehicleAttributes" managed="false" spacing="10" visible="false">
+                                        <TextField fx:id="tfVehicleBrand" promptText="Hãng xe" />
+                                        <TextField fx:id="tfModel" promptText="Dòng xe" />
+                                        <TextField fx:id="tfMfgYear" promptText="Năm sản xuất" />
+                                        <TextField fx:id="tfMileage" promptText="Số km đã đi" />
+                                    </VBox>
+
+                                    <VBox spacing="8.0">
+                                        <children>
+                                            <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Hình ảnh tài sản" />
+                                            <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-border-style: dashed; -fx-padding: 20; -fx-background-color: #FAFAFA; -fx-background-radius: 8;">
+                                                <children>
+                                                    <Button fx:id="btnChooseImage" mnemonicParsing="false" onAction="#handleChooseImage" style="-fx-background-color: #E9ECEF; -fx-text-fill: #495057; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="📁 Chọn ảnh từ máy tính" />
+                                                    <ImageView fx:id="imagePreview" fitHeight="120" fitWidth="120" preserveRatio="true" />
+                                                </children>
+                                            </HBox>
+                                        </children>
+                                    </VBox>
+
+                                    <Button onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30;" text="LƯU SẢN PHẨM" />
+                                </VBox>
+                            </children>
                         </VBox>
                     </center>
-                    <bottom>
 
+                    <bottom>
                         <HBox alignment="CENTER_LEFT" spacing="60.0" style="-fx-background-color: #0f2b25; -fx-padding: 40 60;" BorderPane.alignment="CENTER">
                             <children>
                                 <VBox spacing="10.0">
