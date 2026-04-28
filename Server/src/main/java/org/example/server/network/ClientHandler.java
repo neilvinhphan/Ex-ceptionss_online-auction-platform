@@ -30,6 +30,7 @@ public class ClientHandler implements Runnable {
             throw new RuntimeException("Error initializing client handler: " + e.getMessage(), e);
         }
     }
+
     @Override
     public void run() {
         try {
@@ -53,6 +54,7 @@ public class ClientHandler implements Runnable {
             throw new RuntimeException(e);
         }
     }
+
     private void handleRegister(Request request) {
         try {
             RegisterRequestDTO registerRequest;

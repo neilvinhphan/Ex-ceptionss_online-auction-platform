@@ -1,12 +1,8 @@
 package org.example.server.daos;
 
-import org.example.core.models.items.AntiqueItem;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
-import org.example.core.models.items.JewelryItem;
-import org.example.core.models.items.OtherItem;
-import org.example.core.models.items.RealEstateItem;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;
@@ -108,22 +104,6 @@ public class ItemDAO {
     if (itemId == -1) {
       return false;
     }
-    if (item.getType().equals("AntiqueItem")) {
-      AntiqueItem antiqueItem = (AntiqueItem) item;
-      String sql1 =
-          "INSERT INTO antique_items (items_id, era, material, item_condition, is_certified) VALUES (?,?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql1)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, antiqueItem.getEra());
-        ps.setString(3, antiqueItem.getMaterial());
-        ps.setString(4, antiqueItem.getCondition());
-        ps.setBoolean(5, antiqueItem.isCertified());
-        return ps.executeUpdate() > 0;
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
     if (item.getType().equals("ArtItem")) {
       ArtItem artItem = (ArtItem) item;
       String sql2 = "INSERT INTO art_items (items_id, artist, creation_year) VALUES (?,?,?)";
@@ -152,38 +132,6 @@ public class ItemDAO {
         throw new RuntimeException(e);
       }
     }
-    if (item.getType().equals("JewelryItem")) {
-      JewelryItem jewelryItem = (JewelryItem) item;
-      String sql4 =
-          "INSERT INTO jewelry_items (items_id, material, gemstone, weight, certification) VALUES (?,?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql4)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, jewelryItem.getMaterial());
-        ps.setString(3, jewelryItem.getGemstone());
-        ps.setDouble(4, jewelryItem.getWeight());
-        ps.setString(5, jewelryItem.getCertification());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("RealEstateItem")) {
-      RealEstateItem realEstateItem = (RealEstateItem) item;
-      String sql5 =
-          "INSERT INTO real_estate_items (items_id, location, area, property_type) VALUES (?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql5)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, realEstateItem.getLocation());
-        ps.setDouble(3, realEstateItem.getArea());
-        ps.setString(4, realEstateItem.getPropertyType());
-        ps.setString(5, realEstateItem.getLegalStatus());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
     if (item.getType().equals("VehicleItem")) {
       VehicleItem vehicleItem = (VehicleItem) item;
       String sql6 =
@@ -195,20 +143,6 @@ public class ItemDAO {
         ps.setString(3, vehicleItem.getModel());
         ps.setInt(4, vehicleItem.getManufacturingYear());
         ps.setDouble(5, vehicleItem.getMileage());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("OtherItem")) {
-      OtherItem otherItem = (OtherItem) item;
-      String sql7 = "INSERT INTO other_items (items_id, category, origin, weight) VALUES (?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql7)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, otherItem.getCategory());
-        ps.setString(3, otherItem.getOrigin());
-        ps.setDouble(4, otherItem.getWeight());
         return ps.executeUpdate() > 0;
       } catch (SQLException | IOException e) {
         throw new RuntimeException(e);
@@ -233,7 +167,7 @@ public class ItemDAO {
           return item;
         }
       } catch (Exception e) {
-          throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
