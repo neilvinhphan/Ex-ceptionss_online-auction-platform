@@ -1,10 +1,13 @@
 package org.example.core.dto;
 
+import java.math.BigDecimal;
+
 public class CreateArtItemDTO extends CreateItemRequestDTO {
     private String artist;
     private int creationYear;
 
-    public CreateArtItemDTO(){}
+    public CreateArtItemDTO(){
+    }
 
     public String getArtist() {
         return artist;

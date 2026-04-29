@@ -1,11 +1,15 @@
 package org.example.core.dto;
 
+import java.math.BigDecimal;
+
 public class CreateElectronicsItemDTO extends CreateItemRequestDTO{
     private String brand;
     private int warrantyMonths;
     private String condition;
 
-    public CreateElectronicsItemDTO(){};
+    public CreateElectronicsItemDTO(){
+    }
+
 
     public String getBrand() {
         return brand;

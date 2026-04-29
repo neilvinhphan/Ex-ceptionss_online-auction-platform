@@ -16,6 +16,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -26,6 +27,7 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML private TextField tfItemName;
     @FXML private ComboBox<String> cbCategory;
     @FXML private TextField tfDescription;
+    @FXML private TextField tfStartingPrice;
     // --- Các VBox chứa thuộc tính riêng biệt ---
     @FXML private VBox vbArtAttributes;
     @FXML private VBox vbElectronicAttributes;
@@ -92,10 +94,6 @@ public class CreateItemController extends BaseController implements Initializabl
         vbVehicleAttributes.setManaged(false);
     }
 
-    // =========================================================
-    // XỬ LÝ CÁC NÚT BẤM (ACTIONS)
-    // =========================================================
-
     @FXML
     void handleChooseImage(ActionEvent event) {
         // Lấy cửa sổ hiện tại
@@ -121,72 +119,77 @@ public class CreateItemController extends BaseController implements Initializabl
 
     @FXML
     void handleSubmit(ActionEvent event) {
-        // 1. Lấy dữ liệu cơ bản
+
+        // ===== 1. LẤY DATA =====
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
-        // chưa biết gửi ảnh kiểu gì, phải mã hóa
+        BigDecimal staringPrice = null;
+        try{
+            BigDecimal startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
+        }
+        catch (Exception e){
+            showAlert("Lỗi", "Gia khoi diem khong hop le");
+        }
         if (name.isEmpty() || category == null) {
-            showAlert("Lỗi", "Vui lòng nhập tên và chọn phân loại sản phẩm!");
+            showAlert("Lỗi", "Vui lòng nhập tên và chọn phân loại!");
             return;
         }
-        if(selectedImageFile != null) {
-            System.out.println("Đường dẫn ảnh: " + selectedImageFile.getAbsolutePath());
-        } else {
-            System.out.println("Chưa có ảnh nào được chọn!");
-        }
+
         CreateItemRequestDTO itemDTO = null;
-        if (itemDTO != null) {
+
+        try {
+            // ===== 2. TẠO DTO THEO CATEGORY =====
+            switch (category) {
+
+                case "Tác phẩm nghệ thuật":
+                    CreateArtItemDTO artDTO = new CreateArtItemDTO();
+                    artDTO.setArtist(tfArtist.getText());
+                    artDTO.setCreationYear(Integer.parseInt(tfCreationYear.getText().trim()));
+                    itemDTO = artDTO;
+                    break;
+
+                case "Đồ điện tử":
+                    CreateElectronicsItemDTO elecDTO = new CreateElectronicsItemDTO();
+                    elecDTO.setBrand(tfBrand.getText());
+                    elecDTO.setWarrantyMonths(Integer.parseInt(tfWarranty.getText().trim()));
+                    elecDTO.setCondition(tfCondition.getText());
+                    itemDTO = elecDTO;
+                    break;
+
+                case "Phương tiện":
+                    CreateVehicleItemDTO vehDTO = new CreateVehicleItemDTO();
+                    vehDTO.setBrand(tfVehicleBrand.getText());
+                    vehDTO.setModel(tfModel.getText());
+                    vehDTO.setManufacturingYear(Integer.parseInt(tfMfgYear.getText().trim()));
+                    vehDTO.setMileage(Double.parseDouble(tfMileage.getText()));
+                    itemDTO = vehDTO;
+                    break;
+            }
+
+            // ===== 3. SET FIELD CHUNG =====
             itemDTO.setItemName(name);
             itemDTO.setType(category);
             itemDTO.setDescription(description);
-        }
-        System.out.println(itemDTO);
-        // 2. Lấy dữ liệu nâng cao dựa theo danh mục
-        try{
-        if ("Tác phẩm nghệ thuật".equals(category)) {
-            String artist = tfArtist.getText();
-            int createrYear = Integer.parseInt(tfCreationYear.getText().trim());
-            CreateArtItemDTO artDTO = new CreateArtItemDTO();
-            artDTO.setArtist(artist);
-            artDTO.setCreationYear(createrYear);
-            itemDTO = artDTO;
-        }
-        else if ("Đồ điện tử".equals(category)) {
-            String brand = tfBrand.getText();
-            int warranty = Integer.parseInt(tfWarranty.getText().trim());
-            String condition = tfCondition.getText();
-            CreateElectronicsItemDTO elecDTO = new CreateElectronicsItemDTO();
-            elecDTO.setBrand(brand);
-            elecDTO.setWarrantyMonths(warranty);
-            elecDTO.setCondition(condition);
-            itemDTO = elecDTO;
-        }
-        else if ("Phương tiện".equals(category)) {
-            String brand = tfBrand.getText();
-            String model = tfModel.getText();
-            int manufacturingYear = Integer.parseInt(tfMfgYear.getText().trim());
-            double mileage = Double.parseDouble(tfMileage.getText());
-            CreateVehicleItemDTO vehDTO = new CreateVehicleItemDTO();
-            vehDTO.setBrand(brand);
-            vehDTO.setModel(model);
-            vehDTO.setManufacturingYear(manufacturingYear);
-            vehDTO.setMileage(mileage);
-            itemDTO = vehDTO;
-        }
 
-        // TODO: Đóng gói dữ liệu thành DTO và gửi qua Socket (Server) ở đây!
+            // ===== 4. ẢNH =====
+         //   if (selectedImageFile != null) {
+           //     itemDTO.setImageFile(selectedImageFile); // nếu DTO có field này
+           // }
 
-        showAlert("Thành công","Đã tạo sản phẩm đấu giá!");
-        switchScene(event, "/views/PendingAuctionView.fxml", "sản phẩm chờ đấu giá ");
- }
+            // ===== 5. DEBUG =====
+            System.out.println("DTO: " + itemDTO);
 
-        catch (NumberFormatException e){
-            showAlert("Lỗi nhập liệu", "vui lòng nhập đúng định dạng");
+            // ===== 6. GỬI SERVER =====
+            // sendToServer(itemDTO);
+
+            showAlert("Thành công", "Đã tạo sản phẩm đấu giá!");
+
+        } catch (NumberFormatException e) {
+            showAlert("Lỗi nhập liệu", "Vui lòng nhập số hợp lệ!");
+        } catch (Exception e) {
+            showAlert("Lỗi hệ thống", e.getMessage());
         }
-        catch (Exception e) {
-        showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
-    }
     }
     @FXML
     void handleMain(ActionEvent event) {

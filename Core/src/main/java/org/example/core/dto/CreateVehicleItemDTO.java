@@ -1,12 +1,16 @@
 package org.example.core.dto;
 
+import java.math.BigDecimal;
+
 public class CreateVehicleItemDTO extends CreateItemRequestDTO {
     private String brand;
     private String model;
     private int manufacturingYear;
     private double mileage;
 
-    public CreateVehicleItemDTO(){};
+    public CreateVehicleItemDTO(){
+    }
+
 
     public String getModel() {
         return model;

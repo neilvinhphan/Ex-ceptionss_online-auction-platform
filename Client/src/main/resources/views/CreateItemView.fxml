@@ -80,6 +80,7 @@
                                     <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo sản phẩm đấu giá mới" />
 
                                     <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" />
+                           <TextField fx:id="tfStartingPrice" layoutX="50.0" layoutY="108.0" promptText="Giá khởi điểm " style="-fx-padding: 10;" />
 
                                     <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;">
                                         <items>
