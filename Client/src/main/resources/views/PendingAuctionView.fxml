@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.client.controllers.PendingAuctionController"
-            style="-fx-background-color: #F3F5F8;">
+<BorderPane style="-fx-background-color: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.PendingAuctionController">
 
     <top>
         <HBox alignment="CENTER" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
@@ -69,15 +73,13 @@
                             <children>
                                 <Label text="Sản phẩm chờ đấu giá">
                                     <font>
-                                        <Font name="System Bold" size="24.0"/>
+                                        <Font name="System Bold" size="24.0" />
                                     </font>
                                 </Label>
 
-                                <Region HBox.hgrow="ALWAYS"/>
+                                <Region HBox.hgrow="ALWAYS" />
 
-                                <Button text="➕ Thêm"
-                                        onAction="#handleAddProduct"
-                                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                <Button onAction="#handleAddProduct" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;" text="➕ Thêm" />
                             </children>
                         </HBox>
 
@@ -86,35 +88,36 @@
 
                             <columns>
 
-                                <TableColumn text="Tên" prefWidth="150">
+                                <TableColumn prefWidth="150" text="Tên">
                                     <cellValueFactory>
-                                        <PropertyValueFactory property="name"/>
+                                        <PropertyValueFactory property="name" />
                                     </cellValueFactory>
                                 </TableColumn>
 
-                                <TableColumn text="Mô tả" prefWidth="200">
+                                <TableColumn prefWidth="200" text="Mô tả">
                                     <cellValueFactory>
-                                        <PropertyValueFactory property="description"/>
+                                        <PropertyValueFactory property="description" />
                                     </cellValueFactory>
                                 </TableColumn>
 
-                                <TableColumn text="Giá khởi điểm" prefWidth="120">
+                                <TableColumn prefWidth="120" text="Giá khởi điểm">
                                     <cellValueFactory>
-                                        <PropertyValueFactory property="startingPrice"/>
+                                        <PropertyValueFactory property="startingPrice" />
                                     </cellValueFactory>
                                 </TableColumn>
 
-                                <TableColumn text="Giá hiện tại" prefWidth="120">
+                                <TableColumn prefWidth="120" text="Giá hiện tại">
                                     <cellValueFactory>
-                                        <PropertyValueFactory property="currentPrice"/>
+                                        <PropertyValueFactory property="currentPrice" />
                                     </cellValueFactory>
                                 </TableColumn>
 
-                                <TableColumn text="Thời gian" prefWidth="200">
+                                <TableColumn prefWidth="200" text="Thời gian">
                                     <cellValueFactory>
-                                        <PropertyValueFactory property="timeRange"/>
+                                        <PropertyValueFactory property="timeRange" />
                                     </cellValueFactory>
                                 </TableColumn>
+                        <TableColumn prefWidth="75.0" text="Trạng thái" />
 
                             </columns>
 
@@ -123,20 +126,16 @@
                         <!-- Actions -->
                         <HBox alignment="CENTER_RIGHT" spacing="10">
                             <children>
-                                <Button text="✏ Sửa"
-                                        onAction="#handleEditProduct"
-                                        style="-fx-background-color: #ffc107;"/>
+                                <Button onAction="#handleEditProduct" style="-fx-background-color: #ffc107;" text="✏ Sửa" />
 
-                                <Button text="🗑 Xóa"
-                                        onAction="#handleDeleteProduct"
-                                        style="-fx-background-color: #dc3545; -fx-text-fill: white;"/>
+                                <Button onAction="#handleDeleteProduct" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="🗑 Xóa" />
                             </children>
                         </HBox>
 
                     </children>
 
                     <padding>
-                        <Insets right="40" bottom="40"/>
+                        <Insets bottom="40" right="40" />
                     </padding>
 
                 </VBox>

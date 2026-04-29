@@ -177,9 +177,12 @@ public class CreateItemController extends BaseController implements Initializabl
 
         // TODO: Đóng gói dữ liệu thành DTO và gửi qua Socket (Server) ở đây!
 
-        showAlert("Thành công","Đã tạo sản phẩm đấu giá!");}
+        showAlert("Thành công","Đã tạo sản phẩm đấu giá!");
+        switchScene(event, "/views/PendingAuctionView.fxml", "sản phẩm chờ đấu giá ");
+ }
+
         catch (NumberFormatException e){
-            showAlert("Lỗi nhập liệu", "vui ");
+            showAlert("Lỗi nhập liệu", "vui lòng nhập đúng định dạng");
         }
         catch (Exception e) {
         showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
