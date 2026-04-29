@@ -62,6 +62,7 @@ public class ItemDAO {
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
           items.add(item);
         }
         return items;
@@ -81,6 +82,7 @@ public class ItemDAO {
       ps.setInt(1, item.getSellerID());
       ps.setString(2, item.getItemName());
       ps.setString(3, item.getDescription());
+      ps.setBigDecimal(4, item.getStartingPrice());
       ps.setString(5, item.getType());
       int affectedRows = ps.executeUpdate();
       if (affectedRows != 0) {
@@ -162,6 +164,7 @@ public class ItemDAO {
           //          item.setId(rs.getInt("item_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("starting_price"));
           return item;
         }
       } catch (Exception e) {
