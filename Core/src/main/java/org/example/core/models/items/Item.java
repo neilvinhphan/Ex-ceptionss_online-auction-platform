@@ -13,7 +13,7 @@ public abstract class Item extends Entity {
   private int sellerID;
   protected ItemStatus status;
   private int itemId;
-
+  private BigDecimal startingPrice;
   protected Item() {
     super();
   }
@@ -24,6 +24,7 @@ public abstract class Item extends Entity {
     this.description = builder.description;
     this.sellerID = builder.sellerID;
     this.status = ItemStatus.DRAFT;
+    this.startingPrice = builder.startingPrice;
   }
 
   public abstract String getType();
@@ -32,6 +33,7 @@ public abstract class Item extends Entity {
     // required
     protected final int sellerID;
     protected final String itemName;
+    public BigDecimal startingPrice;
 
     // optional
     protected int itemId;
@@ -43,6 +45,7 @@ public abstract class Item extends Entity {
       this.sellerID = sellerID;
       this.itemName = itemName;
       this.status = ItemStatus.DRAFT;
+      this.startingPrice = startingPrice;
     }
 
     protected abstract T self();
@@ -59,6 +62,11 @@ public abstract class Item extends Entity {
 
     public T description(String description) {
       this.description = description;
+      return self();
+    }
+
+    public T startingPrice(BigDecimal startingPrice) {
+      this.startingPrice = startingPrice;
       return self();
     }
 
@@ -102,7 +110,9 @@ public abstract class Item extends Entity {
     this.itemId = itemId;
   }
 
-  public int getItemId() {
-    return itemId;
-  }
+  public int getItemId() {return itemId;}
+
+  public BigDecimal getStartingPrice() {return startingPrice;}
+
+  public void setStartingPrice(BigDecimal startingPrice) {this.startingPrice = startingPrice;}
 }

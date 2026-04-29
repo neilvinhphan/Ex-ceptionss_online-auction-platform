@@ -18,24 +18,24 @@ import javafx.scene.control.TextField;
 
 public class LoginController extends BaseController {
 
-  @FXML private TextField tfuserName;
-  @FXML private PasswordField pass_an;
-  @FXML private TextField pass_hien;
+  @FXML private TextField tfUserName;
+  @FXML private PasswordField pfPassHidden;
+  @FXML private TextField tfPassShow;
 
-  private final Gson gson = new Gson();
+  private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
-    String userName = tfuserName.getText();
-    String password = pass_an.getText();
-    String passwordHidden = pass_hien.getText();
+    String userName = tfUserName.getText();
+    String password = pfPassHidden.getText();
+    String passwordHidden = tfPassShow.getText();
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
       return;
     }
-
+    System.out.println("Tạo thread");
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
       Request request = new Request("LOGIN", loginRequestDTO);
@@ -43,10 +43,13 @@ public class LoginController extends BaseController {
       new Thread(
               () -> {
                 try {
+                  System.out.println("Gửi socket");
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
                   Response response = gson.fromJson(jsonResponse, Response.class);
+                  System.out.println("Nhận phản hồi");
                   Platform.runLater(
                       () -> {
+                        System.out.println(response.getStatus());
                         if (response.getStatus().equals("SUCCESS")) {
                           String dataUserJson = gson.toJson(response.getData());
                           User loggedInUser = gson.fromJson(dataUserJson, User.class);
@@ -55,6 +58,9 @@ public class LoginController extends BaseController {
                           showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
                           switchScene(event, "/views/MainView.fxml", "Trang chủ");
                         } else {
+                          System.out.println("Đăng nhập thất bại: " + response.getMessage());
+                          System.out.println("Message: " + response.getMessage());
+                          System.out.println("Data: " + response.getData());
                           showAlert("Đăng nhập thất bại!", response.getMessage());
                         }
                       });
@@ -73,7 +79,7 @@ public class LoginController extends BaseController {
 
   @FXML
   void DisplayPassword(ActionEvent event) {
-    PasswordDisplayLogic(pass_an, pass_hien);
+    PasswordDisplayLogic(pfPassHidden, tfPassShow);
   }
 
   @FXML

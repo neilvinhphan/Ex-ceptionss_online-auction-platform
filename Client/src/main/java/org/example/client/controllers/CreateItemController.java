@@ -9,7 +9,7 @@ public class CreateItemController {
     public void handleMenuItem(ActionEvent event) {
     }
 
-    public void handleUserui(ActionEvent event) {
+    public void handleUserUi(ActionEvent event) {
     }
 
     public void handleLogout(ActionEvent event) {
