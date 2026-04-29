@@ -5,6 +5,7 @@ import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
+import org.example.core.models.users.User;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -125,20 +126,23 @@ public class CreateItemController extends BaseController implements Initializabl
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
-
-        int sellerId = UserSession.getInstance().getSellerID();
-        if (sellerId == null) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
             showAlert("Lỗi", "Vui lòng đăng nhập lại!");
             return;
         }
-        itemDTO.setSellerId(sellerId);
-
-        BigDecimal staringPrice = null;
-        try{
-            BigDecimal startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
+        Integer sellerId = currentUser.getUserId();
+        if (sellerId == null|| sellerId == 0) {
+            showAlert("Lỗi", "Vui lòng đăng nhập lại!");
+            return;
         }
-        catch (Exception e){
-            showAlert("Lỗi", "Gia khoi diem khong hop le");
+
+        BigDecimal startingPrice = null; // Sửa chính tả thành startingPrice
+        try {
+            startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
+        } catch (Exception e) {
+            showAlert("Lỗi", "Giá khởi điểm không hợp lệ");
+            return; // BẮT BUỘC PHẢI RETURN Ở ĐÂY
         }
         if (name.isEmpty() || category == null) {
             showAlert("Lỗi", "Vui lòng nhập tên và chọn phân loại!");
@@ -180,6 +184,8 @@ public class CreateItemController extends BaseController implements Initializabl
             itemDTO.setItemName(name);
             itemDTO.setType(category);
             itemDTO.setDescription(description);
+            itemDTO.setStartingPrice(startingPrice);
+            itemDTO.setSellerID(sellerId);
 
             // ===== 4. ẢNH =====
          //   if (selectedImageFile != null) {
