@@ -3,6 +3,7 @@ package org.example.server.daos;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
+import org.example.core.models.items.ItemFactory;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;

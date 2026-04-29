@@ -38,7 +38,7 @@ public class CreateAuctionController extends BaseController implements Initializ
         initSpinners();
         setupItemDisplayFormat(); // Định dạng cách hiển thị tên Item trong ComboBox
         loadPendingItems(); // 1. Lấy dữ liệu giả lập (hoặc từ Server)
-        setupListeners();   // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
+      //  setupListeners();   // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
     }
     private void initUser() {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -57,11 +57,10 @@ public class CreateAuctionController extends BaseController implements Initializ
     // =========================================================
     private void loadPendingItems() {
         // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
-        // Tạm thời mình tạo data giả lập để bạn test UI nhé:
         allPendingItems = new ArrayList<>();
-
         cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
     }
+
     // Hàm này giúp ComboBox thay vì hiển thị địa chỉ bộ nhớ (org.example.Item@123)
     // thì sẽ in ra cái Tên của sản phẩm.
     private void setupItemDisplayFormat() {
@@ -78,7 +77,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             }
         });
     }
-
+/*
     private void setupListeners() {
         // 🎧 LISTENER 1: KHI NGƯỜI DÙNG BẤM CHỌN DANH MỤC (LỌC TÀI SẢN)
         cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -115,6 +114,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             isAutoSelecting = false;
         });
     }
+    */
 
     // =========================================================
     // 🔹 SUBMIT & ĐIỀU HƯỚNG
@@ -141,7 +141,6 @@ public class CreateAuctionController extends BaseController implements Initializ
 
             // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
             AuctionRequestDTO requestDTO = new AuctionRequestDTO(selectedItem, durationMinutes);
-
             // 5. Gửi lên Server
 
             System.out.println("Đã đóng gói DTO thành công! Tài sản: " + selectedItem.getItemName());

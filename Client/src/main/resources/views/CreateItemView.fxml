@@ -88,7 +88,6 @@
                                                 <String fx:value="Tác phẩm nghệ thuật" />
                                                 <String fx:value="Đồ điện tử" />
                                                 <String fx:value="Phương tiện" />
-                                                <String fx:value="Khác" />
                                             </FXCollections>
                                         </items>
                                     </ComboBox>

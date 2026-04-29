@@ -184,6 +184,8 @@ public class CreateItemController extends BaseController implements Initializabl
             // sendToServer(itemDTO);
 
             showAlert("Thành công", "Đã tạo sản phẩm đấu giá!");
+            switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
+
 
         } catch (NumberFormatException e) {
             showAlert("Lỗi nhập liệu", "Vui lòng nhập số hợp lệ!");
