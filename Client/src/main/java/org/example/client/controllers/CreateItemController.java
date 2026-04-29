@@ -1,5 +1,6 @@
 package org.example.client.controllers;
 
+import org.example.client.utils.UserSession;
 import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
@@ -124,6 +125,14 @@ public class CreateItemController extends BaseController implements Initializabl
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
+
+        int sellerId = UserSession.getInstance().getSellerID();
+        if (sellerId == null) {
+            showAlert("Lỗi", "Vui lòng đăng nhập lại!");
+            return;
+        }
+        itemDTO.setSellerId(sellerId);
+
         BigDecimal staringPrice = null;
         try{
             BigDecimal startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
