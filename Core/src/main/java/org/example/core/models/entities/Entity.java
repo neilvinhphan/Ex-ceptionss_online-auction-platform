@@ -3,18 +3,13 @@ package org.example.core.models.entities;
 import java.time.LocalDateTime;
 
 public abstract class Entity {
-  protected LocalDateTime createdAt;
+  protected transient LocalDateTime createdAt;
 
   public Entity() {
     createdAt = LocalDateTime.now();
   }
 
   // Create User
-  public Entity(int id, LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  // Create Item
   public Entity(LocalDateTime createdAt) {
     this.createdAt = createdAt;
   }
@@ -24,7 +19,5 @@ public abstract class Entity {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
+  public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}
 }

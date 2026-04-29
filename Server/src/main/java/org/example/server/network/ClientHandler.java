@@ -2,11 +2,14 @@ package org.example.server.network;
 
 import com.google.gson.Gson;
 
+import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 
 import org.example.core.dto.Response;
+import org.example.core.models.items.Item;
+import org.example.core.models.items.ArtItem;
 import org.example.core.models.users.User;
 import org.example.server.services.AuthService;
 
@@ -15,12 +18,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import com.google.gson.GsonBuilder;
+import org.example.core.network.LocalDateTimeAdapter;
+import org.example.server.services.ItemService;
 
 public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -98,16 +107,34 @@ public class ClientHandler implements Runnable {
 
             Response response;
             if(newUser != null) {
-                response = new Response("SUCCESS", newUser);
+                response = new Response("SUCCESS", "Login success!", newUser);
             } else {
                 response = new Response("ERROR", "Login failed");
             }
-            // Dòng này lúc nãy bị thiếu khiến Client đợi mòn mỏi nè!
             sendMessage(gson.toJson(response));
         } catch (Exception e) {
             e.printStackTrace();
             Response errorRespone = new Response("ERROR", e.getMessage());
             sendMessage(gson.toJson(errorRespone));
+        }
+    }
+
+    private void handleCreateArtItem(Request request) {
+        try{
+            CreateArtItemDTO createArtItemDTO;
+
+            if(request.getData() instanceof CreateArtItemDTO) {
+                createArtItemDTO = (CreateArtItemDTO) request.getData();
+            } else {
+                String dataJson = gson.toJson(request.getData());
+                createArtItemDTO = gson.fromJson(dataJson, CreateArtItemDTO.class);
+            }
+
+            Item newItem = ItemService.createItem(createArtItemDTO);
+
+            Response response;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

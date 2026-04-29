@@ -18,46 +18,49 @@ import javafx.scene.control.TextField;
 
 public class LoginController extends BaseController {
 
-  @FXML private TextField tfuserName;
-  @FXML private PasswordField pass_an;
-  @FXML private TextField pass_hien;
+  @FXML private TextField tfUserName;
+  @FXML private PasswordField pfPassHidden;
+  @FXML private TextField tfPassShow;
 
-  private final Gson gson = new Gson();
+  private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
-
-    String userName = tfuserName.getText();
-// Lấy giá trị của ô đang được hiển thị
-    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
+    String userName = tfUserName.getText();
+    String password = pfPassHidden.getText();
+    String passwordHidden = tfPassShow.getText();
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
       return;
     }
+    System.out.println("Tạo thread");
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
       Request request = new Request("LOGIN", loginRequestDTO);
       String jsonRequest = gson.toJson(request);
-      System.out.println("[DEBUG] 1. Đã đóng gói dữ liệu gửi đi: " + jsonRequest);
       new Thread(
               () -> {
                 try {
-                  System.out.println("[DEBUG] 2. Đang gửi request tới Server...");
+                  System.out.println("Gửi socket");
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                  System.out.println("[DEBUG] 3. Nhận được phản hồi: " + jsonResponse);
                   Response response = gson.fromJson(jsonResponse, Response.class);
+                  System.out.println("Nhận phản hồi");
                   Platform.runLater(
                       () -> {
+                        System.out.println(response.getStatus());
                         if (response.getStatus().equals("SUCCESS")) {
-                          System.out.println("[DEBUG] 4. Bắt đầu xử lý giao diện UI");
                           String dataUserJson = gson.toJson(response.getData());
                           User loggedInUser = gson.fromJson(dataUserJson, User.class);
                           UserSession.getInstance().setCurrentUser(loggedInUser);
                           System.out.println("Đăng nhập thành công! Người dùng: ");
+                          showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
                           switchScene(event, "/views/MainView.fxml", "Trang chủ");
                         } else {
+                          System.out.println("Đăng nhập thất bại: " + response.getMessage());
+                          System.out.println("Message: " + response.getMessage());
+                          System.out.println("Data: " + response.getData());
                           showAlert("Đăng nhập thất bại!", response.getMessage());
                         }
                       });
@@ -76,7 +79,7 @@ public class LoginController extends BaseController {
 
   @FXML
   void DisplayPassword(ActionEvent event) {
-    PasswordDisplayLogic(pass_an, pass_hien);
+    PasswordDisplayLogic(pfPassHidden, tfPassShow);
   }
 
   @FXML
