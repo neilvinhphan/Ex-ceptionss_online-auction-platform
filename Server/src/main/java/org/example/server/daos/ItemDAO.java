@@ -1,6 +1,5 @@
 package org.example.server.daos;
 
-import org.example.core.models.items.ItemFactory;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
@@ -59,10 +58,11 @@ public class ItemDAO {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          item.setItemId(rs.getInt("item_id"));
+          //          item.setId(rs.getInt("item_id"));
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
           items.add(item);
         }
         return items;
@@ -76,13 +76,14 @@ public class ItemDAO {
 
   public int insertIntoItemTable(Item item) {
     String sql =
-        "INSERT INTO items (owner_id, items_name, description, type) VALUES (?,?,?,?)";
+        "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, item.getSellerID());
       ps.setString(2, item.getItemName());
       ps.setString(3, item.getDescription());
-      ps.setString(4, item.getType());
+      ps.setBigDecimal(4, item.getStartingPrice());
+      ps.setString(5, item.getType());
       int affectedRows = ps.executeUpdate();
       if (affectedRows != 0) {
         try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -160,9 +161,10 @@ public class ItemDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          item.setItemId(rs.getInt("item_id"));
+          //          item.setId(rs.getInt("item_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("starting_price"));
           return item;
         }
       } catch (Exception e) {
@@ -245,6 +247,18 @@ public class ItemDAO {
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateStartPriceByItemId(int itemId, BigDecimal startPrice) {
+    String sql = "UPDATE items SET start_price = ? WHERE item_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setBigDecimal(1, startPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
