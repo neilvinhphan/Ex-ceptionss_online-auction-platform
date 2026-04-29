@@ -27,4 +27,6 @@ public class UserSession {
     public void cleanUserSession() {
         this.currentUser = null;
     }
+
+
 }
