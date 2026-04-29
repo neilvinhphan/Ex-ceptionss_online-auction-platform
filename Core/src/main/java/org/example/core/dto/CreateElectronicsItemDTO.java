@@ -7,27 +7,15 @@ public class CreateElectronicsItemDTO extends CreateItemRequestDTO{
 
     public CreateElectronicsItemDTO(){};
 
-    public String getBrand() {
-        return brand;
-    }
+    public String getBrand() {return brand;}
 
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
+    public void setBrand(String brand) {this.brand = brand;}
 
-    public int getWarrantyMonths() {
-        return warrantyMonths;
-    }
+    public int getWarrantyMonths() {return warrantyMonths;}
 
-    public void setWarrantyMonths(int warrantyMonths) {
-        this.warrantyMonths = warrantyMonths;
-    }
+    public void setWarrantyMonths(int warrantyMonths) {this.warrantyMonths = warrantyMonths;}
 
-    public String getCondition() {
-        return condition;
-    }
+    public String getCondition() {return condition;}
 
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
+    public void setCondition(String condition) {this.condition = condition;}
 }

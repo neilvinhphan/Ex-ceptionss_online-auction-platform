@@ -17,15 +17,15 @@ import javafx.stage.Stage;
 
 public class BaseController {
 
-    protected void PasswordDisplayLogic(PasswordField pass_an, TextField pass_hien) {
-        if (pass_an.isVisible()) {
-            pass_hien.setText(pass_an.getText());
-            pass_hien.setVisible(true);
-            pass_an.setVisible(false);
+    protected void PasswordDisplayLogic(PasswordField passHidden, TextField passShow) {
+        if (passHidden.isVisible()) {
+            passShow.setText(passHidden.getText());
+            passShow.setVisible(true);
+            passHidden.setVisible(false);
         } else {
-            pass_an.setText(pass_hien.getText());
-            pass_an.setVisible(true);
-            pass_hien.setVisible(false);
+            passHidden.setText(passShow.getText());
+            passHidden.setVisible(true);
+            passShow.setVisible(false);
         }
     }
 
