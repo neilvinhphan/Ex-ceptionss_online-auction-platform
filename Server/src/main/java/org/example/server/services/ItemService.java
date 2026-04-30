@@ -1,6 +1,9 @@
 package org.example.server.services;
 
+import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.Item;
+import org.example.core.models.items.ItemFactory;
 import org.example.core.models.users.User;
 import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
@@ -8,38 +11,27 @@ import org.example.server.daos.UserDAO;
 import java.math.BigDecimal;
 
 public class ItemService {
-  private final ItemDAO itemDAO = ItemDAO.getInstance();
-  private final UserDAO userDAO = UserDAO.getInstance();
+  private static final ItemDAO itemDAO = ItemDAO.getInstance();
+  private static final UserDAO userDAO = UserDAO.getInstance();
 
-  public Item createItem(String sellerUsername, Item item) throws Exception {
-    if (sellerUsername == null || sellerUsername.trim().isEmpty()) {
-      throw new Exception("Seller username is required.");
-    }
-    validateItemData(item);
+  public static Item createItem(CreateItemRequestDTO requestPayload) throws Exception {
 
-    User seller = userDAO.getUserByUsername(sellerUsername);
-    if (seller == null || seller.getUserName() == null) {
-      throw new Exception("Seller not found.");
-    }
-    if (seller.getStatus().equals("BANNED")) {
-      throw new Exception("Seller account is banned.");
-    }
+    validateItemData(requestPayload);
 
-    Integer itemId = itemDAO.insertIntoItemTable(item);
+    Item newItem = ItemFactory.createItemDTO(requestPayload);
+
+    Integer itemId = itemDAO.insertIntoItemTable(newItem);
     if (itemId == null || itemId <= 0) {
       throw new Exception("Cannot create item.");
     }
-    itemDAO.insertIntoChildTable(item);
-    return item;
+    itemDAO.insertIntoChildTable(newItem);
+    return newItem;
   }
 
-  public Item updateItemDescription(int itemId, String sellerUsername, String newDescription)
+  public Item updateItemDescription(int itemId, String newDescription)
       throws Exception {
     if (itemId <= 0) {
       throw new Exception("Invalid item id.");
-    }
-    if (sellerUsername == null || sellerUsername.trim().isEmpty()) {
-      throw new Exception("Seller username is required.");
     }
     if (newDescription == null || newDescription.trim().isEmpty()) {
       throw new Exception("Description cannot be empty.");
@@ -50,13 +42,8 @@ public class ItemService {
       throw new Exception("Item not found.");
     }
 
-    User seller = userDAO.getUserByUsername(sellerUsername);
-    if (seller == null || seller.getUserName() == null) {
-      throw new Exception("Seller not found.");
-    }
-
     Integer ownerSellerId = itemDAO.getOwnerIdByItemId(itemId);
-    if (ownerSellerId == null || ownerSellerId != seller.getUserId()) {
+    if (ownerSellerId == null) {
       throw new Exception("You are not allowed to update this item.");
     }
 
@@ -69,9 +56,12 @@ public class ItemService {
     return item;
   }
 
-  private void validateItemData(Item item) throws Exception {
+  private static void validateItemData(CreateItemRequestDTO item) throws Exception {
     if (item == null) {
       throw new Exception("Item data is required.");
+    }
+    if(item.getSellerID() <= 0) {
+      throw new Exception("Invalid seller ID.");
     }
     if (item.getType() == null || item.getType().trim().isEmpty()) {
       throw new Exception("Item type is required.");
@@ -81,6 +71,9 @@ public class ItemService {
     }
     if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
       throw new Exception("Item description is required.");
+    }
+    if (item.getStartingPrice() == null || item.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exception("Starting price must be greater than zero.");
     }
   }
 }

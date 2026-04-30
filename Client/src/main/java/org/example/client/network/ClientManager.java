@@ -1,28 +1,28 @@
 package org.example.client.network;
 
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.example.core.network.LocalDateTimeAdapter;
+import java.time.LocalDateTime;
 
 public class ClientManager {
-    private static final Logger logger = Logger.getLogger(ClientManager.class.getName());
     private static volatile ClientManager instance;
-    private static final ReentrantLock lock = new ReentrantLock();
     private final AuctionClient client;
+    private final Gson gson;
 
     public ClientManager() {
         this.client = new AuctionClient();
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .create();
     }
 
     public static ClientManager getInstance() {
         if (instance == null) {
-            lock.lock();
-            try {
+            synchronized (ClientManager.class) {
                 if (instance == null) {
                     instance = new ClientManager();
                 }
-            } finally {
-                lock.unlock();
             }
         }
         return instance;
@@ -32,13 +32,15 @@ public class ClientManager {
         return client;
     }
 
+    public Gson getGson() {
+        return gson;
+    }
+
     public void connect(String serverAddress, int port) {
         try {
             getClient().connect(serverAddress, port);
-            logger.info("ClientManager: Connected to " + serverAddress + ":" + port);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "ClientManager: Connection failed", e);
-            throw e;
+            e.printStackTrace();
         }
     }
 }
