@@ -1,15 +1,18 @@
 package org.example.server.network;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import org.example.core.dto.CreateArtItemDTO;
+import org.example.core.dto.CreateElectronicsItemDTO;
+import org.example.core.dto.CreateVehicleItemDTO;
+import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 
 import org.example.core.dto.Response;
 import org.example.core.models.items.Item;
-import org.example.core.models.items.ArtItem;
 import org.example.core.models.users.User;
 import org.example.server.services.AuthService;
 
@@ -55,6 +58,9 @@ public class ClientHandler implements Runnable {
                         case "LOGIN":
                             handleLogin(request);
                             break;
+                        case "CREATE_ITEM":
+                            handleCreateItem(request);
+                            break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
                     }
@@ -62,7 +68,9 @@ public class ClientHandler implements Runnable {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        } finally{
+            closeConnection();
+}
     }
 
     private void handleRegister(Request request) {
@@ -119,22 +127,44 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void handleCreateArtItem(Request request) {
-        try{
-            CreateArtItemDTO createArtItemDTO;
+    private void handleCreateItem(Request request) {
+        try {
+            String rawDataJson = gson.toJson(request.getData());
+            JsonObject jsonObject = gson.fromJson(rawDataJson, JsonObject.class);
+            String type = jsonObject.get("type").getAsString();
 
-            if(request.getData() instanceof CreateArtItemDTO) {
-                createArtItemDTO = (CreateArtItemDTO) request.getData();
-            } else {
-                String dataJson = gson.toJson(request.getData());
-                createArtItemDTO = gson.fromJson(dataJson, CreateArtItemDTO.class);
+            CreateItemRequestDTO finalDTO;
+
+            switch (type.toUpperCase()) {
+                case "ART":
+                    finalDTO = gson.fromJson(rawDataJson, CreateArtItemDTO.class);
+                    break;
+                case "VEHICLE":
+                    finalDTO = gson.fromJson(rawDataJson, CreateVehicleItemDTO.class);
+                    break;
+                case "ELECTRONICS":
+                    finalDTO = gson.fromJson(rawDataJson, CreateElectronicsItemDTO.class);
+                    break;
+                default:
+                    finalDTO = gson.fromJson(rawDataJson, CreateItemRequestDTO.class);
             }
 
-            Item newItem = ItemService.createItem(createArtItemDTO);
+            Item newItem = ItemService.createItem(finalDTO);
 
-            Response response;
+            if (newItem != null) {
+
+                Response response = new Response("SUCCESS", "Item created successfully!", newItem);
+                sendMessage(gson.toJson(response));
+            } else {
+                Response errorResponse = new Response("ERROR", "Failed to create item.");
+                sendMessage(gson.toJson(errorResponse));
+            }
+
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace(); // Phải có cái này để soi lỗi ở Console Server!
+            // Ép kiểu String rõ ràng để vào đúng constructor message
+            Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+            sendMessage(gson.toJson(errorResponse));
         }
     }
 

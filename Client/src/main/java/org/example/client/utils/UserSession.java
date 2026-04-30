@@ -5,6 +5,7 @@ import org.example.core.models.users.User;
 public class UserSession {
     private static UserSession instance;
     private User currentUser;
+    private int sellerID;
 
     private UserSession() {}
 
@@ -27,4 +28,8 @@ public class UserSession {
     public void cleanUserSession() {
         this.currentUser = null;
     }
+
+    public int getSellerID() {return sellerID;}
+
+     public void setSellerID(int sellerID) {this.sellerID = sellerID;}
 }

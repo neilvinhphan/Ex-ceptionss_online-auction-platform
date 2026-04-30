@@ -85,9 +85,9 @@
                                     <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;">
                                         <items>
                                             <FXCollections fx:factory="observableArrayList">
-                                                <String fx:value="Tác phẩm nghệ thuật" />
-                                                <String fx:value="Đồ điện tử" />
-                                                <String fx:value="Phương tiện" />
+                                                <String fx:value="ART" />
+                                                <String fx:value="ELECTRONICS" />
+                                                <String fx:value="VEHICLE" />
                                             </FXCollections>
                                         </items>
                                     </ComboBox>

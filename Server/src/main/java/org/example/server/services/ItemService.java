@@ -24,12 +24,11 @@ public class ItemService {
     if (itemId == null || itemId <= 0) {
       throw new Exception("Cannot create item.");
     }
-    itemDAO.insertIntoChildTable(newItem);
+    itemDAO.insertIntoChildTable(newItem, itemId);
     return newItem;
   }
 
-  public Item updateItemDescription(int itemId, String newDescription)
-      throws Exception {
+  public Item updateItemDescription(int itemId, String newDescription) throws Exception {
     if (itemId <= 0) {
       throw new Exception("Invalid item id.");
     }

@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 public class ItemDAO {
@@ -79,7 +80,7 @@ public class ItemDAO {
     String sql =
         "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());
       ps.setString(2, item.getItemName());
       ps.setString(3, item.getDescription());
@@ -100,13 +101,9 @@ public class ItemDAO {
     return -1;
   }
 
-  public boolean insertIntoChildTable(Item item) {
-    int itemId = insertIntoItemTable(item);
-    if (itemId == -1) {
-      return false;
-    }
+  public boolean insertIntoChildTable(Item item, int itemId) {
 
-    if (item.getType().equals("ArtItem")) {
+    if (item.getType().equals("ART")) {
       ArtItem artItem = (ArtItem) item;
       String sql2 = "INSERT INTO art_items (items_id, artist, creation_year) VALUES (?,?,?)";
       try (Connection connection = DBConnection.getConnection();
@@ -119,7 +116,7 @@ public class ItemDAO {
         throw new RuntimeException(e);
       }
     }
-    if (item.getType().equals("ElectronicsItem")) {
+    if (item.getType().equals("ELECTRONICS")) {
       ElectronicsItem electronicsItem = (ElectronicsItem) item;
       String sql3 =
               "INSERT INTO electronics_items (items_id, brand, warranty_months, item_condition) VALUES (?,?,?,?)";
@@ -134,7 +131,7 @@ public class ItemDAO {
         throw new RuntimeException(e);
       }
     }
-    if (item.getType().equals("VehicleItem")) {
+    if (item.getType().equals("VEHICLE")) {
       VehicleItem vehicleItem = (VehicleItem) item;
       String sql6 =
               "INSERT INTO vehicle_items (items_id, brand, model, manufacturing_year, mileage) VALUES (?,?,?,?,?)";
@@ -155,14 +152,15 @@ public class ItemDAO {
 
   public Item getItemById(int itemId) {
     String sql =
-        "SELECT item_id, item_type, item_name, description, starting_price FROM items WHERE item_id = ?";
+        "SELECT item_id, owner_id, type, items_name, description, start_price FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setId(rs.getInt("item_id"));
+          item.setItemId(rs.getInt("item_id"));
+          item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("item_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("starting_price"));
@@ -178,7 +176,7 @@ public class ItemDAO {
   }
 
   public Integer getOwnerIdByItemId(int itemId) {
-    String sql = "SELECT user_id FROM items WHERE item_id = ?";
+    String sql = "SELECT owner_id FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);

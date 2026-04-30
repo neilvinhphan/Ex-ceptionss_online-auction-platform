@@ -1,11 +1,18 @@
 package org.example.client.controllers;
 
+import com.google.gson.Gson;
+
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -50,6 +57,9 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML private ImageView imagePreview;
     private File selectedImageFile; // Lưu trữ file ảnh người dùng đã chọn
 
+    private Gson gson = ClientManager.getInstance().getGson();
+    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         // Lắng nghe sự kiện khi người dùng chọn một mục trong ComboBox
@@ -66,15 +76,15 @@ public class CreateItemController extends BaseController implements Initializabl
         if (category == null) return;
         // Bật hiển thị VBox tương ứng
         switch (category) {
-            case "Tác phẩm nghệ thuật":
+            case "ART":
                 vbArtAttributes.setVisible(true);
                 vbArtAttributes.setManaged(true);
                 break;
-            case "Đồ điện tử":
+            case "ELECTRONICS":
                 vbElectronicAttributes.setVisible(true);
                 vbElectronicAttributes.setManaged(true);
                 break;
-            case "Phương tiện":
+            case "VEHICLE":
                 vbVehicleAttributes.setVisible(true);
                 vbVehicleAttributes.setManaged(true);
                 break;
@@ -121,44 +131,40 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML
     void handleSubmit(ActionEvent event) {
 
+        CreateItemRequestDTO itemDTO;
+
         // ===== 1. LẤY DATA =====
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
+        int sellerId = 2;
 
-        int sellerId = UserSession.getInstance().getSellerID();
-        if (sellerId == null) {
-            showAlert("Lỗi", "Vui lòng đăng nhập lại!");
-            return;
-        }
-        itemDTO.setSellerId(sellerId);
+//        int sellerId = UserSession.getInstance().getSellerID();
+//        if (sellerId == null) {
+//            showAlert("Lỗi", "Vui lòng đăng nhập lại!");
+//            return;
+//        }
+//        itemDTO.setSellerId(sellerId);
 
-        BigDecimal staringPrice = null;
-        try{
-            BigDecimal startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
-        }
-        catch (Exception e){
-            showAlert("Lỗi", "Gia khoi diem khong hop le");
-        }
+        BigDecimal staringPrice;
+
         if (name.isEmpty() || category == null) {
             showAlert("Lỗi", "Vui lòng nhập tên và chọn phân loại!");
             return;
         }
 
-        CreateItemRequestDTO itemDTO = null;
-
         try {
             // ===== 2. TẠO DTO THEO CATEGORY =====
             switch (category) {
 
-                case "Tác phẩm nghệ thuật":
+                case "ART":
                     CreateArtItemDTO artDTO = new CreateArtItemDTO();
                     artDTO.setArtist(tfArtist.getText());
                     artDTO.setCreationYear(Integer.parseInt(tfCreationYear.getText().trim()));
                     itemDTO = artDTO;
                     break;
 
-                case "Đồ điện tử":
+                case "ELECTRONICS":
                     CreateElectronicsItemDTO elecDTO = new CreateElectronicsItemDTO();
                     elecDTO.setBrand(tfBrand.getText());
                     elecDTO.setWarrantyMonths(Integer.parseInt(tfWarranty.getText().trim()));
@@ -166,7 +172,7 @@ public class CreateItemController extends BaseController implements Initializabl
                     itemDTO = elecDTO;
                     break;
 
-                case "Phương tiện":
+                case "VEHICLE":
                     CreateVehicleItemDTO vehDTO = new CreateVehicleItemDTO();
                     vehDTO.setBrand(tfVehicleBrand.getText());
                     vehDTO.setModel(tfModel.getText());
@@ -174,12 +180,50 @@ public class CreateItemController extends BaseController implements Initializabl
                     vehDTO.setMileage(Double.parseDouble(tfMileage.getText()));
                     itemDTO = vehDTO;
                     break;
+                default:
+                    showAlert("Lỗi", "Danh mục không hợp lệ!");
+                    return;
+            }
+            try{
+                BigDecimal startingPrice = new BigDecimal(tfStartingPrice.getText().trim());
+                itemDTO.setStartingPrice(startingPrice);
+            }
+            catch (Exception e){
+                showAlert("Lỗi", "Giá khởi điểm không hợp lệ");
             }
 
             // ===== 3. SET FIELD CHUNG =====
             itemDTO.setItemName(name);
             itemDTO.setType(category);
             itemDTO.setDescription(description);
+            itemDTO.setSellerID(sellerId);
+      System.out.println("Tao luong");
+            try {
+                Request request = new Request("CREATE_ITEM", itemDTO);
+                String jsonRequest = gson.toJson(request);
+                new Thread(() -> {
+                    try {
+                        System.out.println("Gui request");
+                        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                        Response response = gson.fromJson(jsonResponse, Response.class);
+                        System.out.println("Nhan response");
+                        Platform.runLater(() -> {
+                            if (response.getStatus().equals("SUCCESS")) {
+                                System.out.println(response.getStatus());
+                                showAlert("Thành công", "Tạo sản phẩm đấu giá thành công! Chuyển sang trang sản phẩm chờ đấu giá...");
+                                switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
+                            } else {
+                                showAlert("Tạo sản phẩm đấu giá thất bại!", response.getMessage());
+            }
+                        });
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
+                    }
+                }).start();
+            } catch (Exception e) {
+                showAlert("Tạo sản phẩm đấu giá thất bại!", e.getMessage());
+            }
 
             // ===== 4. ẢNH =====
          //   if (selectedImageFile != null) {
@@ -187,18 +231,19 @@ public class CreateItemController extends BaseController implements Initializabl
            // }
 
             // ===== 5. DEBUG =====
-            System.out.println("DTO: " + itemDTO);
+//            System.out.println("DTO: " + itemDTO);
 
             // ===== 6. GỬI SERVER =====
             // sendToServer(itemDTO);
 
-            showAlert("Thành công", "Đã tạo sản phẩm đấu giá!");
-            switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
+//            showAlert("Thành công", "Đã tạo sản phẩm đấu giá!");
+//            switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
 
 
         } catch (NumberFormatException e) {
             showAlert("Lỗi nhập liệu", "Vui lòng nhập số hợp lệ!");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             showAlert("Lỗi hệ thống", e.getMessage());
         }
     }
@@ -214,7 +259,7 @@ public class CreateItemController extends BaseController implements Initializabl
     }
 
     @FXML
-    void handleUserui(ActionEvent event) {
+    void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Ho so ca nhan");
     }
 
