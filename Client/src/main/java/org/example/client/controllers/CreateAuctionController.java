@@ -32,6 +32,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     private List<Item> allPendingItems = new ArrayList<>();
     // Cờ chống lặp vô hạn giữa 2 cái Listener
     private boolean isAutoSelecting = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initUser();
@@ -40,12 +41,14 @@ public class CreateAuctionController extends BaseController implements Initializ
         loadPendingItems(); // 1. Lấy dữ liệu giả lập (hoặc từ Server)
       //  setupListeners();   // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
     }
+
     private void initUser() {
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
             menuUser.setText(currentUser.getUserName());
         }
     }
+
     private void initSpinners() {
         durationHourSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 72, 1));
         durationMinuteSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, 0));
@@ -153,12 +156,16 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
 
     public void handleMain(ActionEvent event) { switchScene(event, "/views/MainView.fxml", "Trang chủ"); }
-    public void handleUserui(ActionEvent event) { switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân"); }
+
+    public void handleUserUi(ActionEvent event) { switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân"); }
+
     public void handleLogout(ActionEvent event) {
         UserSession.getInstance().cleanUserSession();
         switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     }
+
     public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá"); }
+
     public void handleMenuItem(ActionEvent event) {
         MenuItem item = (MenuItem) event.getSource();
         menuUser.setText(item.getText()); // Tạm thời theo code cũ của bạn

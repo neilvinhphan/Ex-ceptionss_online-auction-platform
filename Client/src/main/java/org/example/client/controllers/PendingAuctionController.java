@@ -14,7 +14,7 @@ public class PendingAuctionController extends BaseController {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sách phòng đấu giá");
     }
 
-    public void handleUserui(ActionEvent event) {
+    public void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
     }
 
