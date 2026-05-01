@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.PendingRequestDTO;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
@@ -9,6 +10,7 @@ import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ItemService {
   private static final ItemDAO itemDAO = ItemDAO.getInstance();
@@ -53,6 +55,15 @@ public class ItemService {
     }
     item.setDescription(normalizedDescription);
     return item;
+  }
+
+  public static List<Item> getAllItem(PendingRequestDTO requestPayload) throws Exception {
+    int sellerId = requestPayload.getSellerId();
+    if (sellerId <= 0) {
+      throw new Exception("Invalid seller ID.");
+    }
+    List<Item> items = itemDAO.getAllItemByUserId(sellerId);
+    return items;
   }
 
   private static void validateItemData(CreateItemRequestDTO item) throws Exception {

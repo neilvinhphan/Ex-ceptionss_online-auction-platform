@@ -39,6 +39,7 @@ public class PersonalController extends BaseController implements Initializable 
             lbEmail.setText(currentUser.getEmail());
         }
     }
+
     @FXML
     private Button createAuction;
 
@@ -82,6 +83,7 @@ public class PersonalController extends BaseController implements Initializable 
             }
         }
     }
+
     @FXML
     void handleEditEmail(ActionEvent event) {
         User currentUser = UserSession.getInstance().getCurrentUser();

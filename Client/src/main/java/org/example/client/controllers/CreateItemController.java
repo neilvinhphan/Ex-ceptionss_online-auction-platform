@@ -137,15 +137,7 @@ public class CreateItemController extends BaseController implements Initializabl
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
-        int sellerId = 2;
-
-//        int sellerId = UserSession.getInstance().getSellerID();
-//        if (sellerId == null) {
-//            showAlert("Lỗi", "Vui lòng đăng nhập lại!");
-//            return;
-//        }
-//        itemDTO.setSellerId(sellerId);
-
+        int sellerId = UserSession.getInstance().getSellerID();
         BigDecimal staringPrice;
 
         if (name.isEmpty() || category == null) {
@@ -247,6 +239,7 @@ public class CreateItemController extends BaseController implements Initializabl
             showAlert("Lỗi hệ thống", e.getMessage());
         }
     }
+
     @FXML
     void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");

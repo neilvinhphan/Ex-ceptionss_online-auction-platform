@@ -34,25 +34,18 @@ public class ItemDAO {
   }
 
   public List<Item> getAllItemByUserId(int userId) {
-    String sql =
-        "SELECT \n"
-            + "    i.*, \n"
-            + "    ant.era, ant.material AS antique_material, ant.item_condition AS antique_condition, ant.is_certified,\n"
-            + "    art.artist, art.creation_year,\n"
-            + "    ele.brand AS ele_brand, ele.warranty_months, ele.item_condition AS ele_condition,\n"
-            + "    jew.material AS jew_material, jew.gemstone, jew.weight AS jew_weight, jew.certification,\n"
-            + "    re.location, re.area, re.property_type, re.legal_status,\n"
-            + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage,\n"
-            + "    oth.category, oth.origin, oth.weight AS oth_weight\n"
-            + "FROM items i\n"
-            + "LEFT JOIN antique_items ant ON i.item_id = ant.item_id\n"
-            + "LEFT JOIN art_items art ON i.item_id = art.item_id\n"
-            + "LEFT JOIN electronics_items ele ON i.item_id = ele.item_id\n"
-            + "LEFT JOIN jewelry_items jew ON i.item_id = jew.item_id\n"
-            + "LEFT JOIN real_estate_items re ON i.item_id = re.item_id\n"
-            + "LEFT JOIN vehicle_items veh ON i.item_id = veh.item_id\n"
-            + "LEFT JOIN other_items oth ON i.item_id = oth.item_id\n"
-            + "WHERE i.owner_id = ?;";
+    String sql = """
+    SELECT 
+        i.*, 
+        art.artist, art.creation_year, 
+        ele.brand AS ele_brand, ele.warranty_months, ele.item_condition,
+        veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+    FROM items i
+    LEFT JOIN art_items art ON i.items_id = art.items_id
+    LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+    LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+    WHERE i.owner_id = ?
+    """;
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
@@ -60,7 +53,7 @@ public class ItemDAO {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setId(rs.getInt("item_id"));
+          item.setItemId(rs.getInt("items_id"));
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));

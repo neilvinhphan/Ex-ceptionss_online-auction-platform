@@ -1,19 +1,33 @@
 package org.example.client.controllers;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.dto.PendingRequestDTO;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
+import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item; // Đảm bảo bạn đã import đúng class Item của bạn
+import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,6 +46,8 @@ public class CreateAuctionController extends BaseController implements Initializ
     private List<Item> allPendingItems = new ArrayList<>();
     // Cờ chống lặp vô hạn giữa 2 cái Listener
     private boolean isAutoSelecting = false;
+    private Gson gson = ClientManager.getInstance().getGson();
+    private AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -60,8 +76,63 @@ public class CreateAuctionController extends BaseController implements Initializ
     // =========================================================
     private void loadPendingItems() {
         // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
-        allPendingItems = new ArrayList<>();
+//        int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
+        int sellerId = 2;
+        ArrayList<Item> allItem = new ArrayList<>();
         cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
+
+        PendingRequestDTO requestPayload = new PendingRequestDTO(sellerId);
+
+        requestPayload.setSellerId(sellerId);
+    System.out.println("Tao luong");
+        try {
+            Request request = new Request("GET_PENDING_ITEMS", requestPayload);
+            String jsonRequest = gson.toJson(request);
+            new Thread(() -> {
+                try {
+                    System.out.println("Gui request");
+                    String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                    Response response = gson.fromJson(jsonResponse, Response.class);
+                    System.out.println("Nhan response");
+                    Platform.runLater(() -> {
+                        if (response.getStatus().equals("SUCCESS")) {
+                            String jsonData = gson.toJson(response.getData());
+                            JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+                            allPendingItems.clear();
+                            for(JsonElement element : jsonArray) {
+                                JsonObject itemObj = element.getAsJsonObject();
+                                String type = itemObj.get("type").getAsString();
+                                switch (type.toUpperCase()) {
+                                    case "ART" -> {
+                                        Item artItem = gson.fromJson(itemObj, ArtItem.class);
+                                        allPendingItems.add(artItem);
+                                    }
+                                    case "ELECTRONICS" -> {
+                                        Item electronicsItem = gson.fromJson(itemObj, ElectronicsItem.class);
+                                        allPendingItems.add(electronicsItem);
+                                    }
+                                    case "VEHICLE" -> {
+                                        Item vehicleItem = gson.fromJson(itemObj, VehicleItem.class);
+                                        allPendingItems.add(vehicleItem);
+                                    }
+                                    default -> System.out.println("Unknown item type: " + type);
+                                }
+                            }
+                            cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
+                        } else {
+                            showAlert("Lỗi", response.getMessage());
+                        }
+                    });
+
+                    } catch (Exception e) {
+                    Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
+                    e.printStackTrace();
+                    }
+                    }).start();
+        } catch (Exception e) {
+            showAlert("Lỗi", "Có lỗi xảy ra khi gửi yêu cầu: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // Hàm này giúp ComboBox thay vì hiển thị địa chỉ bộ nhớ (org.example.Item@123)
@@ -80,9 +151,9 @@ public class CreateAuctionController extends BaseController implements Initializ
             }
         });
     }
-/*
+
     private void setupListeners() {
-        // 🎧 LISTENER 1: KHI NGƯỜI DÙNG BẤM CHỌN DANH MỤC (LỌC TÀI SẢN)
+       /* // 🎧 LISTENER 1: KHI NGƯỜI DÙNG BẤM CHỌN DANH MỤC (LỌC TÀI SẢN)
         cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Nếu đang trong quá trình Auto-fill thì bỏ qua để tránh lỗi vòng lặp
             if (isAutoSelecting || newValue == null) return;
@@ -102,7 +173,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             cbPendingItems.getSelectionModel().clearSelection();
             tfStartingPrice.clear();
         });
-
+*/
         // 🎧 LISTENER 2: KHI NGƯỜI DÙNG CHỌN 1 TÀI SẢN (AUTO-FILL DANH MỤC VÀ GIÁ)
         cbPendingItems.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
             if (selectedItem == null) {
@@ -112,12 +183,11 @@ public class CreateAuctionController extends BaseController implements Initializ
             // Bật cờ để thằng Listener 1 không bị giật mình chạy lại
             isAutoSelecting = true;
             cbCategory.setValue(selectedItem.getType());
-          //  tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
+            tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
             // Tắt cờ
             isAutoSelecting = false;
         });
     }
-    */
 
     // =========================================================
     // 🔹 SUBMIT & ĐIỀU HƯỚNG

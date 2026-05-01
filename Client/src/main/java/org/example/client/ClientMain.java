@@ -19,7 +19,7 @@ public class ClientMain extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/CreateItemView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/CreateAuctionView.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         primaryStage.setTitle("Đăng nhập hệ thống");

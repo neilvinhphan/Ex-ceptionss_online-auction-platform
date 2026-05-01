@@ -14,6 +14,7 @@ public abstract class Item extends Entity {
   protected ItemStatus status;
   private int itemId;
   private BigDecimal startingPrice;
+  private String type;
   protected Item() {
     super();
   }
@@ -26,8 +27,6 @@ public abstract class Item extends Entity {
     this.status = ItemStatus.DRAFT;
     this.startingPrice = builder.startingPrice;
   }
-
-  public abstract String getType();
 
   public abstract static class Builder<T extends Builder<T>> {
     // required
@@ -115,4 +114,8 @@ public abstract class Item extends Entity {
   public BigDecimal getStartingPrice() {return startingPrice;}
 
   public void setStartingPrice(BigDecimal startingPrice) {this.startingPrice = startingPrice;}
+
+  public String getType() {return type;}
+
+  public void setType(String type) {this.type = type;}
 }
