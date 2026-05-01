@@ -15,6 +15,7 @@ import javafx.scene.control.MenuItem;
 public class AuctionCatalogController extends BaseController implements Initializable {
     @FXML
     private MenuButton menuUser;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -22,6 +23,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
             menuUser.setText(currentUser.getUserName());
         }
     }
+
     @FXML
     public void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
@@ -36,7 +38,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
     }
 
     @FXML
-    public void handleUserui(ActionEvent event) {
+    public void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
 
     }
@@ -48,6 +50,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
         switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
     }
 
+    @FXML
     public void handleJoinAuction(ActionEvent event) {
         switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá trực tiếp");
     }

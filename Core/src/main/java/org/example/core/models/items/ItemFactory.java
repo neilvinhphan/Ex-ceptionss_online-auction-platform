@@ -12,23 +12,26 @@ public class ItemFactory {
     String type = rs.getString("type");
     Item item;
     switch (type) {
-      case "Art" -> {
+      case "ART" -> {
         ArtItem artItem = new ArtItem();
+        artItem.setType("ART");
         artItem.setArtist(rs.getString("artist"));
         artItem.setCreationYear(rs.getInt("creation_year"));
         item = artItem;
       }
-      case "Electronics" -> {
+      case "ELECTRONICS" -> {
         ElectronicsItem electronicsItem = new ElectronicsItem();
-        electronicsItem.setBrand(rs.getString("brand"));
+        electronicsItem.setType("ELECTRONICS");
+        electronicsItem.setBrand(rs.getString("ele_brand"));
         electronicsItem.setWarrantyMonths(rs.getInt("warranty_months"));
-        electronicsItem.setCondition(rs.getString("condition"));
+        electronicsItem.setCondition(rs.getString("item_condition"));
         item = electronicsItem;
       }
 
-      case "Vehicle" -> {
+      case "VEHICLE" -> {
         VehicleItem vehicleItem = new VehicleItem();
-        vehicleItem.setBrand(rs.getString("brand"));
+        vehicleItem.setType("VEHICLE");
+        vehicleItem.setBrand(rs.getString("veh_brand"));
         vehicleItem.setModel(rs.getString("model"));
         vehicleItem.setManufacturingYear(rs.getInt("manufacturing_year"));
         vehicleItem.setMileage(rs.getInt("mileage"));

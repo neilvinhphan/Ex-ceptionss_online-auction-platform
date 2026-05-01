@@ -8,6 +8,7 @@ import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.LoginRequestDTO;
+import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 
@@ -22,6 +23,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.List;
+
 import com.google.gson.GsonBuilder;
 import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.ItemService;
@@ -30,8 +33,22 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
+    /*private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();*/
+    // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Item.class, (com.google.gson.JsonDeserializer<Item>) (json, typeOfT, context) -> {
+                JsonObject jsonObject = json.getAsJsonObject();
+                String type = jsonObject.get("type").getAsString(); // Đọc xem loại gì
+                switch (type.toUpperCase()) {
+                    case "ART": return context.deserialize(jsonObject, org.example.core.models.items.ArtItem.class);
+                    case "ELECTRONICS": return context.deserialize(jsonObject, org.example.core.models.items.ElectronicsItem.class);
+                    case "VEHICLE": return context.deserialize(jsonObject, org.example.core.models.items.VehicleItem.class);
+                    default: throw new com.google.gson.JsonParseException("Không nhận diện được loại tài sản: " + type);
+                }
+            })
             .create();
 
     public ClientHandler(Socket clientSocket) {
@@ -60,6 +77,12 @@ public class ClientHandler implements Runnable {
                             break;
                         case "CREATE_ITEM":
                             handleCreateItem(request);
+                            break;
+                        case "GET_PENDING_ITEMS":
+                            handleGetPendingItems(request);
+                            break;
+                        case "CREATE_AUCTION":
+                            handleCreateAuction(request);
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
@@ -168,6 +191,52 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void handleGetPendingItems(Request request) {
+        PendingRequestDTO pendingRequest;
+
+        if (request.getData() instanceof PendingRequestDTO) {
+            pendingRequest = (PendingRequestDTO) request.getData();
+        } else {
+            String dataJson = gson.toJson(request.getData());
+            pendingRequest = gson.fromJson(dataJson, PendingRequestDTO.class);
+        }
+        try {
+            List<Item> items = ItemService.getAllItem(pendingRequest);
+            Response response = new Response("SUCCESS", "Fetched pending items successfully!", items);
+            sendMessage(gson.toJson(response));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Response errorResponse = new Response("ERROR", "Failed to fetch pending items: " + e.getMessage());
+            sendMessage(gson.toJson(errorResponse));
+        }
+    }
+    private void handleCreateAuction(Request request) {
+        try {
+            String dataJson = gson.toJson(request.getData());
+
+            // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
+            org.example.core.dto.AuctionRequestDTO auctionReq = gson.fromJson(dataJson, org.example.core.dto.AuctionRequestDTO.class);
+
+            // Gọi Service lưu vào DB
+            org.example.core.models.entities.Auction newAuction = org.example.server.services.AuctionService.createAuction(auctionReq);
+
+            // Cập nhật trạng thái thành Đang lên sàn
+            org.example.server.daos.ItemDAO.getInstance().updateItemStatus(
+                    auctionReq.getItem().getItemId(),
+                    org.example.core.shared.enums.ItemStatus.LISTED
+            );
+
+            // Báo thành công về Client
+            Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!");
+            sendMessage(gson.toJson(response));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Response errorResponse = new Response("ERROR", "Lỗi tạo đấu giá: " + e.getMessage());
+            sendMessage(gson.toJson(errorResponse));
+        }
+    }
     public synchronized void sendMessage(String message) {
         out.println(message);
     }
