@@ -9,6 +9,7 @@ public abstract class CreateItemRequestDTO {
     private String description;
     private int sellerID;
 
+
     public CreateItemRequestDTO(){}
 
     public String getItemName() {

@@ -80,8 +80,8 @@ public class RegisterController extends BaseController {
 
   @FXML
   void handleLogin(ActionEvent event) {
-    System.out.println("Sang trang login");
     switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    System.out.println("Sang trang login");
   }
 //
 //  @FXML

@@ -60,6 +60,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     // =========================================================
     private void loadPendingItems() {
         // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
+        int sellerId = UserSession.getInstance().getSellerID();
         allPendingItems = new ArrayList<>();
         cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
     }
@@ -73,17 +74,16 @@ public class CreateAuctionController extends BaseController implements Initializ
                 if (item == null) return "";
                 return item.getItemName();
             }
-
             @Override
             public Item fromString(String string) {
                 return null; // Không cần implement vì combobox không cho phép gõ tay tạo mới
             }
         });
     }
-/*
+
     private void setupListeners() {
         // 🎧 LISTENER 1: KHI NGƯỜI DÙNG BẤM CHỌN DANH MỤC (LỌC TÀI SẢN)
-        cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      /*  cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             // Nếu đang trong quá trình Auto-fill thì bỏ qua để tránh lỗi vòng lặp
             if (isAutoSelecting || newValue == null) return;
 
@@ -102,7 +102,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             cbPendingItems.getSelectionModel().clearSelection();
             tfStartingPrice.clear();
         });
-
+*/
         // 🎧 LISTENER 2: KHI NGƯỜI DÙNG CHỌN 1 TÀI SẢN (AUTO-FILL DANH MỤC VÀ GIÁ)
         cbPendingItems.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedItem) -> {
             if (selectedItem == null) {
@@ -117,7 +117,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             isAutoSelecting = false;
         });
     }
-    */
+
 
     // =========================================================
     // 🔹 SUBMIT & ĐIỀU HƯỚNG
@@ -144,6 +144,7 @@ public class CreateAuctionController extends BaseController implements Initializ
 
             // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
             AuctionRequestDTO requestDTO = new AuctionRequestDTO(selectedItem, durationMinutes);
+
             // 5. Gửi lên Server
 
             System.out.println("Đã đóng gói DTO thành công! Tài sản: " + selectedItem.getItemName());
