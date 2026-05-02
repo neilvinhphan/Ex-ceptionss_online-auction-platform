@@ -307,8 +307,8 @@ public class ItemDAO {
     }
   }
 
-  public boolean deleteItem(int itemId) {
-    String sql = "DELETE FROM items WHERE item_id = ?";
+  public boolean deleteItemByItemId(int itemId) {
+    String sql = "DELETE FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);

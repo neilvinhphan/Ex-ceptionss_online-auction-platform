@@ -10,6 +10,7 @@ import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
@@ -93,6 +94,9 @@ public class ClientHandler implements Runnable {
                             break;
                         case "CREATE_AUCTION":
                             handleCreateAuction(request);
+                            break;
+                        case "DELETE_ITEM":
+                            handleDeleteProduct(request);
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
@@ -248,6 +252,31 @@ public class ClientHandler implements Runnable {
             sendMessage(gson.toJson(errorResponse));
         }
     }
+
+    private void handleDeleteProduct(Request request) {
+        DeleteRequestDTO deleteRequest;
+            try {
+                if(request.getData() instanceof DeleteRequestDTO) {
+                    deleteRequest = (DeleteRequestDTO) request.getData();
+                } else {
+                    String dataJson = gson.toJson(request.getData());
+                    deleteRequest = gson.fromJson(dataJson, DeleteRequestDTO.class);
+                }
+                boolean success = ItemService.deleteItem(deleteRequest);
+                Response response;
+                if (success) {
+                    response = new Response("SUCCESS", "Item deleted successfully.");
+                } else {
+                    response = new Response("ERROR", "Failed to delete item.");
+                }
+                sendMessage(gson.toJson(response));
+            } catch (Exception e) {
+                e.printStackTrace();
+                Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+                sendMessage(gson.toJson(errorResponse));
+            }
+    }
+
     public synchronized void sendMessage(String message) {
         out.println(message);
     }
