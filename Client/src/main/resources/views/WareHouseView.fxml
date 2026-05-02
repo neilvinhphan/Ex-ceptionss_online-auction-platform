@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.client.controllers.PendingAuctionController"
-            style="-fx-background-color: #F3F5F8;">
+<BorderPane style="-fx-background-color: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.WareHouseController">
 
     <top>
         <HBox alignment="CENTER" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
             <children>
                 <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá">
+                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh sách phòng">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
+                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ điện" />
                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="💎 Trang sức" />
-                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                     </items>
                 </MenuButton>
-                <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
                 <Region HBox.hgrow="ALWAYS" />
                 <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                     <items>
-                        <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                         <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
                     </items>
                 </MenuButton>
@@ -45,10 +45,11 @@
     <left>
         <VBox maxHeight="-Infinity" prefWidth="280.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="TOP_LEFT">
             <children>
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleUserui" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="👤 Hồ sơ của tôi" />
+                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleUserUi" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="👤 Hồ sơ của tôi" />
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="🛒 Giỏ hàng" />
-                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="⏳ Tài sản chờ đấu giá" />
+                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: #d4edda; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="⏳ Kho hàng" />
                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="📜 Lịch sử đấu giá" />
+            <Button alignment="BASELINE_LEFT" layoutX="25.0" layoutY="213.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateItem" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="➕ Tạo sản phẩm đấu giá" textAlignment="CENTER" />
                 <Button fx:id="createAuction" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateAuction" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 15 20; -fx-font-size: 15; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);" text="➕ Tạo cuộc đấu giá" />
             </children>
             <padding>
@@ -69,15 +70,13 @@
                             <children>
                                 <Label text="Sản phẩm chờ đấu giá">
                                     <font>
-                                        <Font name="System Bold" size="24.0"/>
+                                        <Font name="System Bold" size="24.0" />
                                     </font>
                                 </Label>
 
-                                <Region HBox.hgrow="ALWAYS"/>
+                                <Region HBox.hgrow="ALWAYS" />
 
-                                <Button text="➕ Thêm"
-                                        onAction="#handleAddProduct"
-                                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                <Button onAction="#handleAddProduct" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;" text="➕ Thêm" />
                             </children>
                         </HBox>
 
@@ -85,36 +84,11 @@
                         <TableView fx:id="productTable" VBox.vgrow="ALWAYS">
 
                             <columns>
+                                        <TableColumn fx:id="colName" prefWidth="150" text="Tên" />
+                                        <TableColumn fx:id="colDescription" prefWidth="250" text="Mô tả" />
+                                        <TableColumn fx:id="colStartingPrice" prefWidth="120" text="Giá khởi điểm" />
+                                        <TableColumn fx:id="colStatus" prefWidth="100" text="Trạng thái" />
 
-                                <TableColumn text="Tên" prefWidth="150">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="name"/>
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn text="Mô tả" prefWidth="200">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="description"/>
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn text="Giá khởi điểm" prefWidth="120">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="startingPrice"/>
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn text="Giá hiện tại" prefWidth="120">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="currentPrice"/>
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn text="Thời gian" prefWidth="200">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="timeRange"/>
-                                    </cellValueFactory>
-                                </TableColumn>
 
                             </columns>
 
@@ -123,20 +97,16 @@
                         <!-- Actions -->
                         <HBox alignment="CENTER_RIGHT" spacing="10">
                             <children>
-                                <Button text="✏ Sửa"
-                                        onAction="#handleEditProduct"
-                                        style="-fx-background-color: #ffc107;"/>
+                                <Button onAction="#handleEditProduct" style="-fx-background-color: #ffc107;" text="✏ Sửa" />
 
-                                <Button text="🗑 Xóa"
-                                        onAction="#handleDeleteProduct"
-                                        style="-fx-background-color: #dc3545; -fx-text-fill: white;"/>
+                                <Button onAction="#handleDeleteProduct" style="-fx-background-color: #dc3545; -fx-text-fill: white;" text="🗑 Xóa" />
                             </children>
                         </HBox>
 
                     </children>
 
                     <padding>
-                        <Insets right="40" bottom="40"/>
+                        <Insets bottom="40" right="40" />
                     </padding>
 
                 </VBox>

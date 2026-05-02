@@ -29,6 +29,8 @@ public class PersonalController extends BaseController implements Initializable 
     private Label lbPhoneNum;
     @FXML
     private Label lbEmail;
+    @FXML
+    private Label lbPassWord;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -37,8 +39,10 @@ public class PersonalController extends BaseController implements Initializable 
             lbUserName.setText(currentUser.getUserName());
             lbPhoneNum.setText(currentUser.getPhone());
             lbEmail.setText(currentUser.getEmail());
+            lbPassWord.setText(currentUser.getPassword());
         }
     }
+
     @FXML
     private Button createAuction;
 
@@ -48,13 +52,6 @@ public class PersonalController extends BaseController implements Initializable 
         MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
         parentMenu.setText(item.getText());
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
-    }
-
-    @FXML
-    private void handleRoomAuction(ActionEvent event) {
-        MenuItem item = (MenuItem) event.getSource();
-        MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-        parentMenu.setText(item.getText());
     }
 
     @FXML
@@ -82,6 +79,7 @@ public class PersonalController extends BaseController implements Initializable 
             }
         }
     }
+
     @FXML
     void handleEditEmail(ActionEvent event) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -103,6 +101,27 @@ public class PersonalController extends BaseController implements Initializable 
             }
         }
     }
+    @FXML
+    void handleEditPassWord(ActionEvent event) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        TextInputDialog dialog = new TextInputDialog(currentUser.getPassword());
+        dialog.setTitle("Cập nhật thông tin");
+        dialog.setHeaderText("Chỉnh sửa mật khẩu");
+        dialog.setContentText("Nhập mật khẩu mới của bạn:");
+        // Lấy kết quả người dùng nhập
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent() && !result.get().trim().isEmpty()) {
+            String newPassWord = result.get().trim();
+            int currentUserId = currentUser.getUserId();
+            if (true) {
+                currentUser.setEmail(newPassWord);
+                lbPassWord.setText(newPassWord);
+                showAlert("Thành công", "Đã cập nhật mật khẩu mới vào Database!");
+            } else {
+                showAlert("Lỗi", "Không thể cập nhật mật khẩu vào Database!");
+            }
+        }
+    }
 
     @FXML
     void handleMain(ActionEvent event) {
@@ -118,6 +137,15 @@ public class PersonalController extends BaseController implements Initializable 
     @FXML
     void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+    }
+
+    @FXML
+    void handleCreateItem(ActionEvent event) {
+        switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
+    }
+    @FXML
+    void handleWareHouse(ActionEvent event) {
+        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
     }
 
 }

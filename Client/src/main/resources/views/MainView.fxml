@@ -31,21 +31,17 @@
                         <HBox alignment="CENTER" layoutY="35.0" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: rgba(0, 0, 0, 0.4); -fx-padding: 10 30;" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="75.0" AnchorPane.topAnchor="35.0">
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" prefHeight="32.0" prefWidth="191.0" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: rgba(0, 0, 0, 0.000); -fx-font-size: 16; -fx-text-fill: white;" text="Trang chủ" />
-                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" prefHeight="31.0" prefWidth="161.0" style="-fx-background-radius: 30;" text="Danh mục đấu giá">
+                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" prefHeight="31.0" prefWidth="161.0" style="-fx-background-radius: 30;" text="Danh sách phòng">
                                     <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🔋 Đồ điện" />
                                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
                                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="💎 Trang sức" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="Khác" />
                                     </items>
                                 </MenuButton>
-                                <Button mnemonicParsing="false" prefHeight="33.0" prefWidth="113.0" style="-fx-background-radius: 30;" text="Điều khoản" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
                                   <MenuButton fx:id="menuUser" accessibleText="người dùng" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
                                       <items>
-                                          <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                                          <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                                           <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
                                       </items>
                                   </MenuButton>
@@ -91,14 +87,8 @@
                                 <Cursor fx:constant="HAND" />
                             </cursor>
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏠" textAlignment="CENTER" />
-                                <Label style="-fx-font-weight: bold;" text="Bất động sản" />
-                            </children>
-                        </VBox>
-                        <VBox alignment="CENTER" spacing="8.0">
-                            <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🏺" />
-                                <Label style="-fx-font-weight: bold;" text="Đồ cổ" />
+                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🔋" textAlignment="CENTER" />
+                                <Label style="-fx-font-weight: bold;" text="Đồ điện" />
                             </children>
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
@@ -109,20 +99,8 @@
                         </VBox>
                         <VBox alignment="CENTER" spacing="8.0">
                             <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="💎" />
-                                <Label alignment="CENTER" style="-fx-font-weight: bold;" text="Trang sức" textAlignment="CENTER" />
-                            </children>
-                        </VBox>
-                        <VBox alignment="CENTER" spacing="8.0">
-                            <children>
                                 <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37;" styleClass="hinh-tron-icon" text="🎨" />
                                 <Label alignment="CENTER" prefHeight="35.0" prefWidth="83.0" style="-fx-font-weight: bold;" text="Tác phẩm nghệ thuật" textAlignment="CENTER" wrapText="true" />
-                            </children>
-                        </VBox>
-                        <VBox alignment="CENTER" spacing="8.0">
-                            <children>
-                                <Button alignment="CENTER" mnemonicParsing="false" onAction="#handleButtonItem" style="-fx-font-size: 37; -fx-font-weight: bold;" styleClass="hinh-tron-icon" text="…" />
-                                <Label style="-fx-font-weight: bold;" text="Khác" />
                             </children>
                         </VBox>
                     </children>

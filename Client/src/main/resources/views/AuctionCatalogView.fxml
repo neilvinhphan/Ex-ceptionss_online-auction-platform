@@ -169,11 +169,10 @@
                                         <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
                                     </items>
                                 </MenuButton>
-                                <Button mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Điều khoản" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                                     <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleUserui" text="👤 Hồ sơ cá nhân" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                                         <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
                                     </items>
                                 </MenuButton>

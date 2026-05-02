@@ -7,8 +7,6 @@ import org.example.client.network.ClientManager;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
-import org.example.core.models.users.User;
-
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -18,30 +16,31 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 public class RegisterController extends BaseController {
-  @FXML private TextField tfuserName;
-  @FXML private TextField tfphone;
-  @FXML private TextField tfemail;
-  @FXML private TextField pass_hien;
-  @FXML private TextField repass_hien;
-  @FXML private PasswordField pass_an;
-  @FXML private PasswordField repass_an;
+  @FXML private TextField tfUserName;
+  @FXML private TextField tfPhone;
+  @FXML private TextField tfEmail;
+  @FXML private TextField passShow;
+  @FXML private TextField repassShow;
+  @FXML private PasswordField passHidden;
+  @FXML private PasswordField repassHidden;
   @FXML private CheckBox cbCommit;
 
-  private final Gson gson = new Gson();
+  private Gson gson = ClientManager.getInstance().getGson();
   private AuctionClient clientSocket = ClientManager.getInstance().getClient();
   @FXML
   void handleRegister(ActionEvent event) {
-    String userName = tfuserName.getText();
-    String phone = tfphone.getText();
-    String email = tfemail.getText();
-    String password = pass_an.isVisible() ? pass_an.getText() : pass_hien.getText();
-    String repassword = repass_an.isVisible() ? repass_an.getText() : repass_hien.getText();
+    String userName = tfUserName.getText();
+    String phone = tfPhone.getText();
+    String email = tfEmail.getText();
+    String password = passHidden.isVisible() ? passHidden.getText() : passShow.getText();
+    String repassword = repassHidden.isVisible() ? repassHidden.getText() : repassShow.getText();
    // boolean checkCommit = cbCommit.isSelected();
     if (!password.equals(repassword)) {
       showAlert("Error", "Passwords do not matched ");
-    } else if (!cbCommit.isSelected()) {
-      showAlert("Thông báo", "Please accept the terms and conditions to proceed!");
     }
+//      else if (!cbCommit.isSelected()) {
+//      showAlert("Thông báo", "Please accept the terms and conditions to proceed!");
+//    }
     try {
       RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO(userName, phone, email, password);
       Request request = new Request("REGISTER", registerRequestDTO);
@@ -52,6 +51,7 @@ public class RegisterController extends BaseController {
           Response response = gson.fromJson(jsonResponse, Response.class);
           Platform.runLater(() -> {
             if (response.getStatus().equals("SUCCESS")) {
+              System.out.println(response.getStatus());
               showAlert("Thành công", "Đăng ký thành công! Chuyển sang trang đăng nhập...");
               switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
             } else {
@@ -70,22 +70,22 @@ public class RegisterController extends BaseController {
 
   @FXML
   void DisplayPassword(ActionEvent event) {
-    PasswordDisplayLogic(pass_an, pass_hien);
+    PasswordDisplayLogic(passHidden, passShow);
   }
 
   @FXML
   void ReDisplayPassword(ActionEvent event) {
-    PasswordDisplayLogic(repass_an, repass_hien);
+    PasswordDisplayLogic(repassHidden, repassShow);
   }
 
   @FXML
   void handleLogin(ActionEvent event) {
-    System.out.println("Sang trang login");
     switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+    System.out.println("Sang trang login");
   }
-
-  @FXML
-  void handleDieuKhoan(ActionEvent event) {
-    System.out.println("Sang trang Dieu Khoan");
-  }
+//
+//  @FXML
+//  void handleDieuKhoan(ActionEvent event) {
+//    System.out.println("Sang trang Dieu Khoan");
+//  }
 }

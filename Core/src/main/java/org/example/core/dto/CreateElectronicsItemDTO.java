@@ -1,33 +1,25 @@
 package org.example.core.dto;
 
+import java.math.BigDecimal;
+
 public class CreateElectronicsItemDTO extends CreateItemRequestDTO{
     private String brand;
     private int warrantyMonths;
     private String condition;
 
-    public CreateElectronicsItemDTO(){};
-
-    public String getBrand() {
-        return brand;
+    public CreateElectronicsItemDTO(){
     }
 
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
 
-    public int getWarrantyMonths() {
-        return warrantyMonths;
-    }
+    public String getBrand() {return brand;}
 
-    public void setWarrantyMonths(int warrantyMonths) {
-        this.warrantyMonths = warrantyMonths;
-    }
+    public void setBrand(String brand) {this.brand = brand;}
 
-    public String getCondition() {
-        return condition;
-    }
+    public int getWarrantyMonths() {return warrantyMonths;}
 
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
+    public void setWarrantyMonths(int warrantyMonths) {this.warrantyMonths = warrantyMonths;}
+
+    public String getCondition() {return condition;}
+
+    public void setCondition(String condition) {this.condition = condition;}
 }

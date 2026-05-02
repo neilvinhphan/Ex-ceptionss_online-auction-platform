@@ -6,6 +6,9 @@ public abstract class CreateItemRequestDTO {
     private String itemName;
     private String type;
     private BigDecimal startingPrice;
+    private String description;
+    private int sellerID;
+
 
     public CreateItemRequestDTO(){}
 
@@ -24,6 +27,14 @@ public abstract class CreateItemRequestDTO {
     public void setType(String type) {
         this.type = type;
     }
+
+    public String getDescription() {return description;}
+
+    public void setDescription(String description) {this.description = description;}
+
+    public int getSellerID() {return sellerID;}
+
+    public void setSellerID(int sellerID) {this.sellerID = sellerID;}
 
     public BigDecimal getStartingPrice() {
         return startingPrice;

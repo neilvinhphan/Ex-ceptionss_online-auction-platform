@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Auction extends Entity {
+  private int id;
   private int itemId;
   private int auctionId;
   private Item item;
@@ -17,14 +18,16 @@ public class Auction extends Entity {
   private LocalDateTime endTime;
   private List<BidTransaction> bidHistory;
   private BigDecimal highestBid;
+  private BigDecimal bidIncrement;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes) {
-    super(0, LocalDateTime.now());
+  public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
+    super(LocalDateTime.now());
     this.item = item;
     this.status = AuctionStatus.WAREHOUSE;
     this.startTime = LocalDateTime.now();
     this.durationMinutes = durationMinutes;
+    this.bidIncrement = bidIncrement;
   }
 
   // Constructor from DB
@@ -37,7 +40,8 @@ public class Auction extends Entity {
       long durationMinutes,
       List<BidTransaction> bidHistory,
       BigDecimal highestBid) {
-    super(id, createdAt);
+    super(createdAt);
+    this.id = id;
     this.item = item;
     this.status = status;
     this.startTime = startTime;
@@ -46,7 +50,9 @@ public class Auction extends Entity {
     this.highestBid = highestBid;
   }
 
-  public Auction() {}
+  public Auction() {
+
+  }
 
   // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
   public void start(LocalDateTime now) {
@@ -103,21 +109,13 @@ public class Auction extends Entity {
     return rangeCheck;
   }
 
-  public int getItemId() {
-    return itemId;
-  }
+  public int getItemId() {return itemId;}
 
-  public void setItemId(int itemId) {
-    this.itemId = itemId;
-  }
+  public void setItemId(int itemId) {this.itemId = itemId;}
 
-  public int getAuctionId() {
-    return auctionId;
-  }
+  public int getAuctionId() {return auctionId;}
 
-  public void setAuctionId(int auctionId) {
-    this.auctionId = auctionId;
-  }
+  public void setAuctionId(int auctionId) {this.auctionId = auctionId;}
 
   public Item getItem() {
     return item;

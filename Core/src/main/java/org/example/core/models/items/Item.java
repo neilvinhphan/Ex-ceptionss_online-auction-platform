@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 
 public abstract class Item extends Entity {
   private String itemName;
-  private BigDecimal startingPrice;
   protected String description;
   private int sellerID;
   protected ItemStatus status;
   private int itemId;
-
+  private BigDecimal startingPrice;
+  private String type;
   protected Item() {
     super();
   }
@@ -22,19 +22,18 @@ public abstract class Item extends Entity {
   protected Item(Builder<?> builder) {
     super(builder.createdAt);
     this.itemName = builder.itemName;
-    this.startingPrice = builder.startingPrice;
     this.description = builder.description;
     this.sellerID = builder.sellerID;
     this.status = ItemStatus.DRAFT;
+    this.startingPrice = builder.startingPrice;
   }
-
-  public abstract String getType();
 
   public abstract static class Builder<T extends Builder<T>> {
     // required
     protected final int sellerID;
     protected final String itemName;
-    protected final BigDecimal startingPrice;
+    public BigDecimal startingPrice;
+
     // optional
     protected int itemId;
     protected LocalDateTime createdAt = LocalDateTime.now();
@@ -44,8 +43,8 @@ public abstract class Item extends Entity {
     protected Builder(int sellerID, String itemName, BigDecimal startingPrice) {
       this.sellerID = sellerID;
       this.itemName = itemName;
-      this.startingPrice = startingPrice;
       this.status = ItemStatus.DRAFT;
+      this.startingPrice = startingPrice;
     }
 
     protected abstract T self();
@@ -65,6 +64,11 @@ public abstract class Item extends Entity {
       return self();
     }
 
+    public T startingPrice(BigDecimal startingPrice) {
+      this.startingPrice = startingPrice;
+      return self();
+    }
+
     public abstract Item build();
   }
 
@@ -75,14 +79,6 @@ public abstract class Item extends Entity {
 
   public void setItemName(String itemName) {
     this.itemName = itemName;
-  }
-
-  public BigDecimal getStartingPrice() {
-    return startingPrice;
-  }
-
-  public void setStartingPrice(BigDecimal startingPrice) {
-    this.startingPrice = startingPrice;
   }
 
   public String getDescription() {
@@ -113,7 +109,13 @@ public abstract class Item extends Entity {
     this.itemId = itemId;
   }
 
-  public int getItemId() {
-    return itemId;
-  }
+  public int getItemId() {return itemId;}
+
+  public BigDecimal getStartingPrice() {return startingPrice;}
+
+  public void setStartingPrice(BigDecimal startingPrice) {this.startingPrice = startingPrice;}
+
+  public String getType() {return type;}
+
+  public void setType(String type) {this.type = type;}
 }
