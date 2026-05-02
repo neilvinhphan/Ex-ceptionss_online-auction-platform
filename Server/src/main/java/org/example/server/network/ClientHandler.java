@@ -2,6 +2,9 @@ package org.example.server.network;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonParseException;
 
 import org.example.core.dto.CreateArtItemDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
@@ -11,10 +14,20 @@ import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
 import org.example.core.dto.Request;
+import org.example.core.dto.AuctionRequestDTO;
+
+import org.example.core.models.entities.Auction;
+import org.example.core.shared.enums.ItemStatus;
+
+import org.example.server.daos.ItemDAO;
 
 import org.example.core.dto.Response;
 import org.example.core.models.items.Item;
+import org.example.core.models.items.ArtItem;
+import org.example.core.models.items.ElectronicsItem;
+import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.server.services.AuctionService;
 import org.example.server.services.AuthService;
 
 import java.io.BufferedReader;
@@ -25,7 +38,6 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.google.gson.GsonBuilder;
 import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.ItemService;
 
@@ -33,20 +45,18 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
-    /*private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();*/
+
     // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
     private final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .registerTypeAdapter(Item.class, (com.google.gson.JsonDeserializer<Item>) (json, typeOfT, context) -> {
+            .registerTypeAdapter(Item.class, (JsonDeserializer<Item>) (json, typeOfT, context) -> {
                 JsonObject jsonObject = json.getAsJsonObject();
                 String type = jsonObject.get("type").getAsString(); // Đọc xem loại gì
                 switch (type.toUpperCase()) {
-                    case "ART": return context.deserialize(jsonObject, org.example.core.models.items.ArtItem.class);
-                    case "ELECTRONICS": return context.deserialize(jsonObject, org.example.core.models.items.ElectronicsItem.class);
-                    case "VEHICLE": return context.deserialize(jsonObject, org.example.core.models.items.VehicleItem.class);
-                    default: throw new com.google.gson.JsonParseException("Không nhận diện được loại tài sản: " + type);
+                    case "ART": return context.deserialize(jsonObject, ArtItem.class);
+                    case "ELECTRONICS": return context.deserialize(jsonObject, ElectronicsItem.class);
+                    case "VEHICLE": return context.deserialize(jsonObject, VehicleItem.class);
+                    default: throw new JsonParseException("Không nhận diện được loại tài sản: " + type);
                 }
             })
             .create();
@@ -211,20 +221,21 @@ public class ClientHandler implements Runnable {
             sendMessage(gson.toJson(errorResponse));
         }
     }
+
     private void handleCreateAuction(Request request) {
         try {
             String dataJson = gson.toJson(request.getData());
 
             // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
-            org.example.core.dto.AuctionRequestDTO auctionReq = gson.fromJson(dataJson, org.example.core.dto.AuctionRequestDTO.class);
+            AuctionRequestDTO auctionReq = gson.fromJson(dataJson, AuctionRequestDTO.class);
 
             // Gọi Service lưu vào DB
-            org.example.core.models.entities.Auction newAuction = org.example.server.services.AuctionService.createAuction(auctionReq);
+            Auction newAuction = AuctionService.createAuction(auctionReq);
 
             // Cập nhật trạng thái thành Đang lên sàn
-            org.example.server.daos.ItemDAO.getInstance().updateItemStatus(
+            ItemDAO.getInstance().updateItemStatus(
                     auctionReq.getItem().getItemId(),
-                    org.example.core.shared.enums.ItemStatus.LISTED
+                    ItemStatus.LISTED
             );
 
             // Báo thành công về Client

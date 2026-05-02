@@ -18,14 +18,16 @@ public class Auction extends Entity {
   private LocalDateTime endTime;
   private List<BidTransaction> bidHistory;
   private BigDecimal highestBid;
+  private BigDecimal bidIncrement;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes) {
+  public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
     this.item = item;
     this.status = AuctionStatus.WAREHOUSE;
     this.startTime = LocalDateTime.now();
     this.durationMinutes = durationMinutes;
+    this.bidIncrement = bidIncrement;
   }
 
   // Constructor from DB

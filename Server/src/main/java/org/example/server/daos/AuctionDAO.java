@@ -37,21 +37,13 @@ public class AuctionDAO {
     String sql =
         "SELECT \n"
             + "    i.*, \n"
-            + "    ant.era, ant.material AS antique_material, ant.item_condition AS antique_condition, ant.is_certified,\n"
             + "    art.artist, art.creation_year,\n"
             + "    ele.brand AS ele_brand, ele.warranty_months, ele.item_condition AS ele_condition,\n"
-            + "    jew.material AS jew_material, jew.gemstone, jew.weight AS jew_weight, jew.certification,\n"
-            + "    re.location, re.area, re.property_type, re.legal_status,\n"
-            + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage,\n"
-            + "    oth.category, oth.origin, oth.weight AS oth_weight\n"
+            + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage\n"
             + "FROM items i\n"
-            + "LEFT JOIN antique_items ant ON i.item_id = ant.item_id\n"
-            + "LEFT JOIN art_items art ON i.item_id = art.item_id\n"
-            + "LEFT JOIN electronics_items ele ON i.item_id = ele.item_id\n"
-            + "LEFT JOIN jewelry_items jew ON i.item_id = jew.item_id\n"
-            + "LEFT JOIN real_estate_items re ON i.item_id = re.item_id\n"
-            + "LEFT JOIN vehicle_items veh ON i.item_id = veh.item_id\n"
-            + "LEFT JOIN other_items oth ON i.item_id = oth.item_id\n"
+            + "LEFT JOIN art_items art ON i.items_id = art.items_id\n"
+            + "LEFT JOIN electronics_items ele ON i.items_id = ele.items_id\n"
+            + "LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id\n"
             + "WHERE i.status = ?\n";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -73,10 +65,10 @@ public class AuctionDAO {
     List<Auction> auctions = new ArrayList<>();
     String sql =
         "SELECT a.*, "
-            + "COALESCE(MAX(b.bid_amount), i.starting_price) AS highest_price "
+            + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
-            + "JOIN items i ON a.item_id = i.item_id "
-            + "LEFT JOIN bids b ON a.auction_id = b.auction_id "
+            + "JOIN items i ON a.items_id = i.items_id "
+            + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
             + "WHERE a.status = ? "
             + "GROUP BY a.auction_id";
     try (Connection connection = DBConnection.getConnection();
@@ -86,7 +78,7 @@ public class AuctionDAO {
       while (rs.next()) {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
-        auction.setItemId(rs.getInt("item_id"));
+        auction.setItemId(rs.getInt("items_id"));
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
@@ -99,7 +91,7 @@ public class AuctionDAO {
   }
 
   public int getAuctionIdByItemId(int itemId) {
-    String sql = "SELECT auction_id FROM auction_items WHERE items_id = ?";
+    String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
@@ -114,12 +106,12 @@ public class AuctionDAO {
     return -1;
   }
 
-  public boolean updateNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
+  public boolean createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
     String sql =
-        "INSERT INTO auction_items (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
+        "INSERT INTO auction (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      //      ps.setInt(1, item.getId());
+      ps.setInt(1, item.getItemId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
       LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);
