@@ -76,8 +76,8 @@ public class CreateAuctionController extends BaseController implements Initializ
     // =========================================================
     private void loadPendingItems() {
         // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
-//        int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
-        int sellerId = 2;
+        int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
+  //      int sellerId = 2;
         ArrayList<Item> allItem = new ArrayList<>();
         cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
 

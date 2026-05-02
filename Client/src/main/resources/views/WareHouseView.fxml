@@ -84,37 +84,11 @@
                         <TableView fx:id="productTable" VBox.vgrow="ALWAYS">
 
                             <columns>
+                                        <TableColumn fx:id="colName" prefWidth="150" text="Tên" />
+                                        <TableColumn fx:id="colDescription" prefWidth="250" text="Mô tả" />
+                                        <TableColumn fx:id="colStartingPrice" prefWidth="120" text="Giá khởi điểm" />
+                                        <TableColumn fx:id="colStatus" prefWidth="100" text="Trạng thái" />
 
-                                <TableColumn prefWidth="150" text="Tên">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="name" />
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn prefWidth="200" text="Mô tả">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="description" />
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn prefWidth="120" text="Giá khởi điểm">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="startingPrice" />
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn prefWidth="120" text="Giá hiện tại">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="currentPrice" />
-                                    </cellValueFactory>
-                                </TableColumn>
-
-                                <TableColumn prefWidth="200" text="Thời gian">
-                                    <cellValueFactory>
-                                        <PropertyValueFactory property="timeRange" />
-                                    </cellValueFactory>
-                                </TableColumn>
-                        <TableColumn prefWidth="75.0" text="Trạng thái" />
 
                             </columns>
 

@@ -11,6 +11,7 @@ import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.models.users.User;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -52,6 +53,7 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML private TextField tfModel;
     @FXML private TextField tfMfgYear;
     @FXML private TextField tfMileage;
+    @FXML private Button btnSubmit;
     // --- Thành phần tải ảnh ---
     @FXML private Button btnChooseImage;
     @FXML private ImageView imagePreview;
@@ -66,6 +68,10 @@ public class CreateItemController extends BaseController implements Initializabl
         cbCategory.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             updateDynamicFields(newValue);
         });
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            menuUser.setText(currentUser.getUserName());
+        }
     }
     /**
      * Hàm này có nhiệm vụ ẨN/HIỆN các VBox tương ứng với danh mục được chọn
@@ -137,7 +143,8 @@ public class CreateItemController extends BaseController implements Initializabl
         String name = tfItemName.getText();
         String category = cbCategory.getValue();
         String description = tfDescription.getText();
-        int sellerId = UserSession.getInstance().getSellerID();
+        int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
+        System.out.println("====== KIỂM TRA SELLER ID: " + sellerId + " ======");
         BigDecimal staringPrice;
 
         if (name.isEmpty() || category == null) {
@@ -202,11 +209,13 @@ public class CreateItemController extends BaseController implements Initializabl
                         Platform.runLater(() -> {
                             if (response.getStatus().equals("SUCCESS")) {
                                 System.out.println(response.getStatus());
-                                showAlert("Thành công", "Tạo sản phẩm đấu giá thành công! Chuyển sang trang sản phẩm chờ đấu giá...");
-                                switchScene(event, "/views/WareHouseView.fxml", "Sản phẩm chờ đấu giá");
+                                System.out.println("DATA =" + response.getData());
+                                showAlert("Thành công", "Tạo sản phẩm đấu giá thành công! Chuyển sang trang kho hàng...");
+
                             } else {
                                 showAlert("Tạo sản phẩm đấu giá thất bại!", response.getMessage());
             }
+                            System.out.println("DATA =" + response.getData());
                         });
                     } catch (Exception ex) {
                         ex.printStackTrace();

@@ -121,7 +121,7 @@
                                         </children>
                                     </VBox>
 
-                                    <Button onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30;" text="LƯU SẢN PHẨM" />
+                                    <Button fx:id="btnSubmit" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30;" text="LƯU SẢN PHẨM" />
                                 </VBox>
                             </children>
                         </VBox>
