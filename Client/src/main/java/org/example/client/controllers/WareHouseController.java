@@ -13,16 +13,23 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
+
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
+import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
@@ -152,6 +159,7 @@ public class WareHouseController extends BaseController implements Initializable
             }
         }).start();
     }
+
     @FXML
     public void handleMain(ActionEvent event) { switchScene(event, "/views/MainView.fxml", "Trang chủ"); }
 
@@ -169,10 +177,10 @@ public class WareHouseController extends BaseController implements Initializable
 
     @FXML
     public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá"); }
+
     @FXML
     public void handleMenuItem(ActionEvent event) {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia"); }
-
 
     @FXML
     public void handleDeleteProduct(ActionEvent event) {
@@ -198,8 +206,7 @@ public class WareHouseController extends BaseController implements Initializable
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 // Đóng gói ID gửi lên Server
-                java.util.Map<String, Integer> payload = new java.util.HashMap<>();
-                payload.put("itemId", selectedItem.getItemId());
+                DeleteRequestDTO payload = new DeleteRequestDTO(selectedItem.getItemId());
 
                 Request request = new Request("DELETE_ITEM", payload);
                 String jsonRequest = gson.toJson(request);
@@ -228,56 +235,85 @@ public class WareHouseController extends BaseController implements Initializable
 
     @FXML
     public void handleEditProduct(ActionEvent event) {
-        // 1. Lấy món hàng đang được chọn
         Item selectedItem = productTable.getSelectionModel().getSelectedItem();
 
         if (selectedItem == null) {
-            showAlert("Thông báo", "Vui lòng chọn một sản phẩm trên bảng để sửa!");
+            showAlert("Thông báo", "Vui lòng chọn một sản phẩm để sửa!");
             return;
         }
 
-        // 2. Mở hộp thoại cho nhập Mô tả mới (gắn sẵn mô tả cũ vào cho dễ sửa)
-        TextInputDialog dialog = new TextInputDialog(selectedItem.getDescription());
-        dialog.setTitle("Sửa thông tin");
-        dialog.setHeaderText("Cập nhật mô tả cho: " + selectedItem.getItemName());
-        dialog.setContentText("Mô tả mới:");
+        // 1. Tạo một Dialog tùy chỉnh
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Chỉnh sửa sản phẩm");
+        dialog.setHeaderText("Cập nhật thông tin cho: " + selectedItem.getItemName());
 
-        // 3. Chờ người dùng bấm OK
-        dialog.showAndWait().ifPresent(newDescription -> {
-            if (newDescription.trim().isEmpty()) {
-                showAlert("Lỗi", "Mô tả không được để trống!");
-                return;
-            }
+        // 2. Thiết lập các nút bấm (Lưu và Hủy)
+        ButtonType saveButtonType = new ButtonType("Lưu thay đổi", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
-            // 4. Đóng gói gửi Server
-            java.util.Map<String, Object> payload = new java.util.HashMap<>();
-            payload.put("itemId", selectedItem.getItemId());
-            payload.put("newDescription", newDescription.trim());
+        // 3. Tạo các ô nhập liệu (TextField)
+        TextField tfName = new TextField(selectedItem.getItemName());
+        TextField tfDesc = new TextField(selectedItem.getDescription());
+        TextField tfPrice = new TextField(selectedItem.getStartingPrice().toString());
 
-            Request request = new Request("UPDATE_ITEM_DESCRIPTION", payload);
-            String jsonRequest = gson.toJson(request);
+        // 4. Sắp xếp các ô vào một cái lưới (GridPane) cho đẹp
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("Tên sản phẩm:"), 0, 0);
+        grid.add(tfName, 1, 0);
+        grid.add(new Label("Mô tả:"), 0, 1);
+        grid.add(tfDesc, 1, 1);
+        grid.add(new Label("Giá khởi điểm:"), 0, 2);
+        grid.add(tfPrice, 1, 2);
 
-            new Thread(() -> {
+        dialog.getDialogPane().setContent(grid);
+
+        // 5. Chờ người dùng bấm nút
+        dialog.showAndWait().ifPresent(result -> {
+            if (result == saveButtonType) {
                 try {
-                    String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                    Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+                    String newName = tfName.getText().trim();
+                    String newDesc = tfDesc.getText().trim();
+                    BigDecimal newPrice = new BigDecimal(tfPrice.getText().trim());
 
-                    Platform.runLater(() -> {
-                        if ("SUCCESS".equals(serverResponse.getStatus())) {
-                            // Cập nhật Database thành công -> Sửa luôn chữ trên bảng
-                            selectedItem.setDescription(newDescription.trim());
-                            productTable.refresh(); // Bắt cái bảng vẽ lại để hiện chữ mới
-                            showAlert("Thành công", "Đã cập nhật mô tả thành công!");
-                        } else {
-                            showAlert("Lỗi cập nhật", serverResponse.getMessage());
+                    // 6. Đóng gói "full combo" gửi lên Server
+                    java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                    payload.put("itemId", selectedItem.getItemId());
+                    payload.put("newName", newName);
+                    payload.put("newDescription", newDesc);
+                    payload.put("newPrice", newPrice);
+
+                    Request request = new Request("UPDATE_ITEM_FULL", payload); // Đổi Action cho kêu
+                    String jsonRequest = gson.toJson(request);
+
+                    new Thread(() -> {
+                        try {
+                            String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                            Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+
+                            Platform.runLater(() -> {
+                                if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                    // Cập nhật ngay trên bảng để người dùng thấy luôn
+                                    selectedItem.setItemName(newName);
+                                    selectedItem.setDescription(newDesc);
+                                    selectedItem.setStartingPrice(newPrice);
+                                    productTable.refresh();
+                                    showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
+                                } else {
+                                    showAlert("Lỗi", serverResponse.getMessage());
+                                }
+                            });
+                        } catch (Exception e) {
+                            Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
                         }
-                    });
-                } catch (Exception e) {
-                    Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+                    }).start();
+
+                } catch (NumberFormatException e) {
+                    showAlert("Lỗi", "Giá khởi điểm phải là một con số hợp lệ!");
                 }
-            }).start();
+            }
         });
     }
-
 
 }

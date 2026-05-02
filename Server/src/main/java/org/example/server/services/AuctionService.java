@@ -9,6 +9,7 @@ import org.example.core.shared.enums.ItemStatus;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -28,6 +29,7 @@ public class AuctionService {
 
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
+    BigDecimal bidIncrement = requestPayLoad.getBidIncrement();
 
     // Check sự tồn tại của vật phẩm
     if (checkItem == null) {
@@ -41,11 +43,12 @@ public class AuctionService {
     }
 
     // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor)
-    Auction newAuction = new Auction(checkItem, durationMinutes);
+    Auction newAuction = new Auction(checkItem, durationMinutes, bidIncrement);
 
     // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
     // THÊM DÒNG NÀY VÀO ĐỂ LƯU XUỐNG DB THẬT SỰ NÀY:
+    AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
 
     return newAuction;
   }
