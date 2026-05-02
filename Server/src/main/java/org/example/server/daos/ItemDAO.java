@@ -58,13 +58,7 @@ public class ItemDAO {
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
-          // Lấy trạng thái từ DB ép vào Object Item
-          String dbStatus = rs.getString("status");
-          if (dbStatus != null && !dbStatus.trim().isEmpty()) {
-            item.setStatus(ItemStatus.valueOf(dbStatus));
-          } else {
-            item.setStatus(ItemStatus.DRAFT);
-          }
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
           items.add(item);
         }
         return items;
@@ -230,7 +224,7 @@ public class ItemDAO {
       ps.setString(1, itemName);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getInt("item_id");
+          return rs.getInt("items_id");
         }
       } catch (SQLException e) {
         throw new RuntimeException(e);
@@ -313,8 +307,8 @@ public class ItemDAO {
     }
   }
 
-  public boolean deleteItem(int itemId) {
-    String sql = "DELETE FROM items WHERE item_id = ?";
+  public boolean deleteItemByItemId(int itemId) {
+    String sql = "DELETE FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);

@@ -23,6 +23,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
+import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
@@ -152,6 +153,7 @@ public class WareHouseController extends BaseController implements Initializable
             }
         }).start();
     }
+
     @FXML
     public void handleMain(ActionEvent event) { switchScene(event, "/views/MainView.fxml", "Trang chủ"); }
 
@@ -169,10 +171,10 @@ public class WareHouseController extends BaseController implements Initializable
 
     @FXML
     public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá"); }
+
     @FXML
     public void handleMenuItem(ActionEvent event) {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia"); }
-
 
     @FXML
     public void handleDeleteProduct(ActionEvent event) {
@@ -198,8 +200,7 @@ public class WareHouseController extends BaseController implements Initializable
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 // Đóng gói ID gửi lên Server
-                java.util.Map<String, Integer> payload = new java.util.HashMap<>();
-                payload.put("itemId", selectedItem.getItemId());
+                DeleteRequestDTO payload = new DeleteRequestDTO(selectedItem.getItemId());
 
                 Request request = new Request("DELETE_ITEM", payload);
                 String jsonRequest = gson.toJson(request);
