@@ -302,7 +302,7 @@ public class ItemDAO {
   }
 
   public boolean updateItemStatus(int itemId, ItemStatus status) {
-    String sql = "UPDATE items SET status = ? WHERE item_id = ?";
+    String sql = "UPDATE items SET status = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());

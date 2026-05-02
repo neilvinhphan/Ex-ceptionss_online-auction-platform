@@ -45,6 +45,8 @@ public class AuctionService {
 
     // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
+    // THÊM DÒNG NÀY VÀO ĐỂ LƯU XUỐNG DB THẬT SỰ NÀY:
+
     return newAuction;
   }
 

@@ -19,7 +19,7 @@ import javafx.scene.control.TextField;
 public class LoginController extends BaseController {
 
   @FXML private TextField tfUserName;
-  @FXML private PasswordField pfPassHidden;
+  @FXML private PasswordField pfPass;
   @FXML private TextField tfPassShow;
 
   private Gson gson = ClientManager.getInstance().getGson();
@@ -28,8 +28,8 @@ public class LoginController extends BaseController {
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
     String userName = tfUserName.getText();
-    String password = pfPassHidden.getText();
-    String passwordHidden = tfPassShow.getText();
+    String password = pfPass.isVisible() ? pfPass.getText() : tfPassShow.getText();
+
 
     if (userName.isEmpty() || password.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
@@ -79,7 +79,7 @@ public class LoginController extends BaseController {
 
   @FXML
   void DisplayPassword(ActionEvent event) {
-    PasswordDisplayLogic(pfPassHidden, tfPassShow);
+    PasswordDisplayLogic(pfPass, tfPassShow);
   }
 
   @FXML

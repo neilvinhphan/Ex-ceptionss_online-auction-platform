@@ -34,7 +34,7 @@
                 <Label style="-fx-font-size: 14;" text="Mật khẩu:" />
                 <StackPane>
                     <children>
-                        <PasswordField fx:id="pfPassHidden" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" />
+                        <PasswordField fx:id="pfPass" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" />
                         <TextField fx:id="tfPassShow" prefHeight="35.0" style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #ddd;" visible="false" />
                         <Button alignment="CENTER" mnemonicParsing="false" onAction="#DisplayPassword" style="-fx-background-color: transparent; -fx-cursor: hand;" text="👀" StackPane.alignment="CENTER_RIGHT">
                             <StackPane.margin>

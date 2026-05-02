@@ -12,9 +12,13 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
@@ -26,6 +30,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.models.users.User;
 import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
@@ -42,7 +47,8 @@ public class WareHouseController extends BaseController implements Initializable
     @FXML private TableColumn<Item, String> colDescription;
     @FXML private TableColumn<Item, BigDecimal> colStartingPrice;
     @FXML private TableColumn<Item, String> colStatus;
-
+    @FXML
+    private MenuButton menuUser;
     // Công cụ gọi Server
     private Gson gson = ClientManager.getInstance().getGson();
     private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
@@ -52,6 +58,10 @@ public class WareHouseController extends BaseController implements Initializable
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            menuUser.setText(currentUser.getUserName());
+        }
         // 1. Việc đầu tiên khi mở màn hình là thiết lập các cột cho cái bảng
         setupTableColumns();
         // 2. Việc thứ hai là gọi điện lên Server xin hàng
@@ -89,7 +99,12 @@ public class WareHouseController extends BaseController implements Initializable
      */
     private void loadWareHouseItems() {
         // 1. Lấy ID thằng đang đăng nhập
-        int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showAlert("Lỗi", "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn!");
+            return;
+        }
+        int sellerId = currentUser.getUserId();
         // 2. Đóng gói vào cái hộp (DTO)
         PendingRequestDTO requestPayload = new PendingRequestDTO(sellerId);
         Request request = new Request("GET_PENDING_ITEMS", requestPayload);
@@ -103,8 +118,6 @@ public class WareHouseController extends BaseController implements Initializable
                     if ("SUCCESS".equals(response.getStatus())) {
 
                         String jsonData = gson.toJson(response.getData());
-// THÊM DÒNG NÀY VÀO ĐỂ BẮT QUẢ TANG:
-                        System.out.println("GÓI HÀNG SERVER GỬI VỀ: " + jsonData);
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                         List<Item> fetchedItems = new ArrayList<>();
                         // Bóc tách từng món hàng ra khỏi hộp JSON
@@ -156,20 +169,115 @@ public class WareHouseController extends BaseController implements Initializable
 
     @FXML
     public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá"); }
-
     @FXML
-    public void handleEditProduct(ActionEvent event) {
-        // Tạm thời chưa code xóa/sửa
-        System.out.println("Tính năng sửa đang xây dựng...");
-    }
+    public void handleMenuItem(ActionEvent event) {
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia"); }
+
 
     @FXML
     public void handleDeleteProduct(ActionEvent event) {
-        // Tạm thời chưa code xóa/sửa
-        System.out.println("Tính năng xóa đang xây dựng...");
+        // 1. Lấy món hàng đang được click chọn trên bảng
+        Item selectedItem = productTable.getSelectionModel().getSelectedItem();
+
+        if (selectedItem == null) {
+            showAlert("Thông báo", "Vui lòng click chọn một sản phẩm trên bảng để xóa!");
+            return;
+        }
+
+        // 2. Kiểm tra an toàn: Chỉ cho xóa DRAFT
+        if (selectedItem.getStatus() != null && selectedItem.getStatus() != ItemStatus.DRAFT) {
+            showAlert("Cảnh báo", "Bạn chỉ có thể xóa tài sản đang ở trạng thái DRAFT (Chưa đấu giá)!");
+            return;
+        }
+
+        // 3. Hiện hộp thoại hỏi lại cho chắc cốp
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Xác nhận xóa");
+        confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa: " + selectedItem.getItemName() + "?");
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                // Đóng gói ID gửi lên Server
+                java.util.Map<String, Integer> payload = new java.util.HashMap<>();
+                payload.put("itemId", selectedItem.getItemId());
+
+                Request request = new Request("DELETE_ITEM", payload);
+                String jsonRequest = gson.toJson(request);
+
+                new Thread(() -> {
+                    try {
+                        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                        Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+
+                        Platform.runLater(() -> {
+                            if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                // Server xóa DB thành công -> Xóa luôn trên giao diện cho đỡ phải tải lại
+                                observableItemList.remove(selectedItem);
+                                showAlert("Thành công", "Đã xóa sản phẩm khỏi cơ sở dữ liệu!");
+                            } else {
+                                showAlert("Lỗi khi xóa", serverResponse.getMessage());
+                            }
+                        });
+                    } catch (Exception e) {
+                        Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+                    }
+                }).start();
+            }
+        });
     }
 
-    public void handleMenuItem(ActionEvent event) {
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sách phòng đấu giá");
+    @FXML
+    public void handleEditProduct(ActionEvent event) {
+        // 1. Lấy món hàng đang được chọn
+        Item selectedItem = productTable.getSelectionModel().getSelectedItem();
+
+        if (selectedItem == null) {
+            showAlert("Thông báo", "Vui lòng chọn một sản phẩm trên bảng để sửa!");
+            return;
+        }
+
+        // 2. Mở hộp thoại cho nhập Mô tả mới (gắn sẵn mô tả cũ vào cho dễ sửa)
+        TextInputDialog dialog = new TextInputDialog(selectedItem.getDescription());
+        dialog.setTitle("Sửa thông tin");
+        dialog.setHeaderText("Cập nhật mô tả cho: " + selectedItem.getItemName());
+        dialog.setContentText("Mô tả mới:");
+
+        // 3. Chờ người dùng bấm OK
+        dialog.showAndWait().ifPresent(newDescription -> {
+            if (newDescription.trim().isEmpty()) {
+                showAlert("Lỗi", "Mô tả không được để trống!");
+                return;
+            }
+
+            // 4. Đóng gói gửi Server
+            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("itemId", selectedItem.getItemId());
+            payload.put("newDescription", newDescription.trim());
+
+            Request request = new Request("UPDATE_ITEM_DESCRIPTION", payload);
+            String jsonRequest = gson.toJson(request);
+
+            new Thread(() -> {
+                try {
+                    String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                    Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+
+                    Platform.runLater(() -> {
+                        if ("SUCCESS".equals(serverResponse.getStatus())) {
+                            // Cập nhật Database thành công -> Sửa luôn chữ trên bảng
+                            selectedItem.setDescription(newDescription.trim());
+                            productTable.refresh(); // Bắt cái bảng vẽ lại để hiện chữ mới
+                            showAlert("Thành công", "Đã cập nhật mô tả thành công!");
+                        } else {
+                            showAlert("Lỗi cập nhật", serverResponse.getMessage());
+                        }
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+                }
+            }).start();
+        });
     }
+
+
 }
