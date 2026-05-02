@@ -9,6 +9,7 @@ import org.example.core.shared.enums.ItemStatus;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -28,6 +29,7 @@ public class AuctionService {
 
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
+    BigDecimal bidIncrement = requestPayLoad.getBidIncrement();
 
     // Check sự tồn tại của vật phẩm
     if (checkItem == null) {
@@ -41,11 +43,12 @@ public class AuctionService {
     }
 
     // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor)
-    Auction newAuction = new Auction(checkItem, durationMinutes);
+    Auction newAuction = new Auction(checkItem, durationMinutes, bidIncrement);
 
     // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
     // THÊM DÒNG NÀY VÀO ĐỂ LƯU XUỐNG DB THẬT SỰ NÀY:
+    AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
 
     return newAuction;
   }
@@ -61,18 +64,6 @@ public class AuctionService {
   // 2. NHÓM VẬN HÀNH (ĐIỀU KHIỂN LUỒNG)
   // ==========================================
 
-  public static void openAuction(int auctionId) throws Exception {
-    // Lấy phiên đấu giá từ DB lên
-    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-    if (auction == null) throw new Exception("Không tìm thấy phiên đấu giá!");
-
-    // Bắt đầu phiên đấu giá (Auction.java)
-    auction.start(LocalDateTime.now());
-
-    // Lưu trạng thái mới (RUNNING) và startTime, endTime xuống Database
-    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.RUNNING);
-  }
-
   public static void forceCancelAuction(int auctionId, String reason) throws Exception {
     // Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
     // (Dành cho Admin hoặc người bán hủy ngang khi có biến)
@@ -81,8 +72,6 @@ public class AuctionService {
     if (status == AuctionStatus.CANCELED) throw new Exception("Phiên ấu giá đã bị hủy!");
 
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
-
-    // Còn reason chưa biết lưu đâu
   }
 
   // ==========================================
