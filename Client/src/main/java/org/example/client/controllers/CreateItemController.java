@@ -211,7 +211,7 @@ public class CreateItemController extends BaseController implements Initializabl
                                 System.out.println(response.getStatus());
                                 System.out.println("DATA =" + response.getData());
                                 showAlert("Thành công", "Tạo sản phẩm đấu giá thành công! Chuyển sang trang kho hàng...");
-
+                                switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
                             } else {
                                 showAlert("Tạo sản phẩm đấu giá thất bại!", response.getMessage());
             }

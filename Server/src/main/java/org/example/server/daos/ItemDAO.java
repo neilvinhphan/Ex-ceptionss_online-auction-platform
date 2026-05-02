@@ -47,7 +47,7 @@ public class ItemDAO {
     WHERE i.owner_id = ?
     """;
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         List<Item> items = new java.util.ArrayList<>();
@@ -58,6 +58,13 @@ public class ItemDAO {
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
+          // Lấy trạng thái từ DB ép vào Object Item
+          String dbStatus = rs.getString("status");
+          if (dbStatus != null && !dbStatus.trim().isEmpty()) {
+            item.setStatus(ItemStatus.valueOf(dbStatus));
+          } else {
+            item.setStatus(ItemStatus.DRAFT);
+          }
           items.add(item);
         }
         return items;
@@ -71,9 +78,9 @@ public class ItemDAO {
 
   public int insertIntoItemTable(Item item) {
     String sql =
-        "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
+            "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());
       ps.setString(2, item.getItemName());
       ps.setString(3, item.getDescription());
@@ -145,9 +152,9 @@ public class ItemDAO {
 
   public Item getItemById(int itemId) {
     String sql =
-        "SELECT item_id, owner_id, type, items_name, description, start_price FROM items WHERE item_id = ?";
+            "SELECT item_id, owner_id, type, items_name, description, start_price FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -160,7 +167,7 @@ public class ItemDAO {
           return item;
         }
       } catch (Exception e) {
-          throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
@@ -171,7 +178,7 @@ public class ItemDAO {
   public Integer getOwnerIdByItemId(int itemId) {
     String sql = "SELECT owner_id FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -187,7 +194,7 @@ public class ItemDAO {
   public String getItemTypeByItemId(int itemId) {
     String sql = "SELECT type FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -203,7 +210,7 @@ public class ItemDAO {
   public ItemStatus getItemStatusById(int itemId) {
     String sql = "SELECT status FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -219,7 +226,7 @@ public class ItemDAO {
   public int getItemIdByItemName(String itemName) {
     String sql = "SELECT item_id FROM items WHERE items_name = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, itemName);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -237,7 +244,7 @@ public class ItemDAO {
   public boolean updateOwnerIdByItemId(int itemId, int userId) {
     String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
@@ -249,7 +256,7 @@ public class ItemDAO {
   public boolean updateStartPriceByItemId(int itemId, BigDecimal startPrice) {
     String sql = "UPDATE items SET start_price = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, startPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
@@ -261,7 +268,7 @@ public class ItemDAO {
   public boolean updateOwnerIdInDB(int itemId, int ownerId) {
     String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, ownerId);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
@@ -273,7 +280,7 @@ public class ItemDAO {
   public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
     String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, finalPrice);
       ps.setInt(2, id);
       return ps.executeUpdate() > 0;
@@ -285,7 +292,7 @@ public class ItemDAO {
   public boolean updateItemDescriptionByItemId(int itemId, String description) {
     String sql = "UPDATE items SET description = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, description);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
@@ -297,7 +304,7 @@ public class ItemDAO {
   public boolean updateItemStatus(int itemId, ItemStatus status) {
     String sql = "UPDATE items SET status = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
@@ -309,7 +316,7 @@ public class ItemDAO {
   public boolean deleteItem(int itemId) {
     String sql = "DELETE FROM items WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {

@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -25,6 +26,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -67,7 +69,15 @@ public class WareHouseController extends BaseController implements Initializable
         // Cột Giá: Lấy từ biến "startingPrice"
         colStartingPrice.setCellValueFactory(new PropertyValueFactory<>("startingPrice"));
         // Cột Trạng thái: Lấy từ biến "status"
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colStatus.setCellValueFactory(cellData -> {
+            ItemStatus statusEnum = cellData.getValue().getStatus();
+            // Nếu status bị null thì in ra "Trống", nếu có thì lấy tên Enum (ví dụ: DRAFT)
+            if (statusEnum != null) {
+                return new SimpleStringProperty(statusEnum.name());
+            } else {
+                return new SimpleStringProperty("Chưa có");
+            }
+        });
 
         // Vì chưa có dữ liệu ngay nên khởi tạo "xe đẩy" rỗng và nhét vào bảng
         observableItemList = FXCollections.observableArrayList();
@@ -91,11 +101,12 @@ public class WareHouseController extends BaseController implements Initializable
                 Response response = gson.fromJson(jsonResponse, Response.class);
                 Platform.runLater(() -> {
                     if ("SUCCESS".equals(response.getStatus())) {
+
                         String jsonData = gson.toJson(response.getData());
+// THÊM DÒNG NÀY VÀO ĐỂ BẮT QUẢ TANG:
+                        System.out.println("GÓI HÀNG SERVER GỬI VỀ: " + jsonData);
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-
                         List<Item> fetchedItems = new ArrayList<>();
-
                         // Bóc tách từng món hàng ra khỏi hộp JSON
                         for (JsonElement element : jsonArray) {
                             JsonObject itemObj = element.getAsJsonObject();
