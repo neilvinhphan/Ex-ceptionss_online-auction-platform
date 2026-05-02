@@ -203,7 +203,7 @@ public class CreateItemController extends BaseController implements Initializabl
                             if (response.getStatus().equals("SUCCESS")) {
                                 System.out.println(response.getStatus());
                                 showAlert("Thành công", "Tạo sản phẩm đấu giá thành công! Chuyển sang trang sản phẩm chờ đấu giá...");
-                                switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
+                                switchScene(event, "/views/WareHouseView.fxml", "Sản phẩm chờ đấu giá");
                             } else {
                                 showAlert("Tạo sản phẩm đấu giá thất bại!", response.getMessage());
             }
@@ -229,7 +229,7 @@ public class CreateItemController extends BaseController implements Initializabl
             // sendToServer(itemDTO);
 
 //            showAlert("Thành công", "Đã tạo sản phẩm đấu giá!");
-//            switchScene(event, "/views/PendingAuctionView.fxml", "Sản phẩm chờ đấu giá");
+//            switchScene(event, "/views/WareHouseView.fxml", "Sản phẩm chờ đấu giá");
 
 
         } catch (NumberFormatException e) {
@@ -264,5 +264,9 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML
     void handleCreateAuction(ActionEvent event) {
         switchScene(event, "/views/CreateAuctionView.fxml", "Tao cuoc dau gia");
+    }
+    @FXML
+    void handleWareHouse(ActionEvent event) {
+        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
     }
 }

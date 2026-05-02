@@ -184,7 +184,6 @@ public class CreateAuctionController extends BaseController implements Initializ
             isAutoSelecting = true;
             cbCategory.setValue(selectedItem.getType());
             tfStartingPrice.setText(String.format("%.0f", selectedItem.getStartingPrice()));
-            // Tắt cờ
             isAutoSelecting = false;
         });
     }
@@ -235,7 +234,14 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
 
     public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá"); }
-
+    @FXML
+    void handleWareHouse(ActionEvent event) {
+        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
+    }
+    @FXML
+    void handleCreateItem(ActionEvent event) {
+        switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
+    }
     public void handleMenuItem(ActionEvent event) {
         MenuItem item = (MenuItem) event.getSource();
         menuUser.setText(item.getText()); // Tạm thời theo code cũ của bạn

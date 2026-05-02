@@ -3,7 +3,7 @@ package org.example.client.controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 
-public class PendingAuctionController extends BaseController {
+public class WareHouseController extends BaseController {
 
     @FXML
     public void handleMain(ActionEvent event) {
@@ -16,6 +16,10 @@ public class PendingAuctionController extends BaseController {
 
     public void handleUserUi(ActionEvent event) {
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+    }
+    @FXML
+    void handleCreateItem(ActionEvent event) {
+        switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
     }
 
     public void handleLogout(ActionEvent event) {
@@ -37,4 +41,5 @@ public class PendingAuctionController extends BaseController {
 
     public void handleCreateAuction(ActionEvent event) {switchScene(event, "/views/CreateAuctionView.fxml", "Tạo sản phẩm đấu giá");
     }
+
 }
