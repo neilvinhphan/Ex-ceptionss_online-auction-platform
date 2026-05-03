@@ -177,4 +177,13 @@ public class Auction extends Entity {
   public void setBidIncrement(BigDecimal bidIncrement) {
     this.bidIncrement = bidIncrement;
   }
+
+  public BigDecimal getBidIncrement() {
+    return bidIncrement;
+  }
+
+  public void setBidIncrement(BigDecimal bidIncrement) {
+    this.bidIncrement = bidIncrement;
+  }
+
 }

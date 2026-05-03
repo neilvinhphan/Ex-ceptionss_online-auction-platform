@@ -254,6 +254,7 @@ public class CreateAuctionController extends BaseController implements Initializ
                                 // 1. Ép kiểu dữ liệu Server trả về thành đối tượng Auction
                                 // (Đảm bảo Server của đệ đã trả về newAuction trong response.getData() nhé)
                                 String auctionData = gson.toJson(response.getData());
+                                System.out.println("📦 RAW JSON TỪ SERVER: " + gson.toJson(response));
                                 Auction createdAuction =
                                         gson.fromJson(auctionData, Auction.class);
                                 System.out.println("Check Auction ID sau khi parse: " + createdAuction.getAuctionId());

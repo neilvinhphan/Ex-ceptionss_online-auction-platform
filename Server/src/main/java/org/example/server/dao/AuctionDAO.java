@@ -35,18 +35,18 @@ public class AuctionDAO {
   public List<Item> getAllItemByStatus(AuctionStatus status) {
     List<Item> items = new ArrayList<>();
     String sql =
-        "SELECT \n"
-            + "    i.*, \n"
-            + "    art.artist, art.creation_year,\n"
-            + "    ele.brand AS ele_brand, ele.warranty_months, ele.item_condition AS ele_condition,\n"
-            + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage\n"
-            + "FROM items i\n"
-            + "LEFT JOIN art_items art ON i.items_id = art.items_id\n"
-            + "LEFT JOIN electronics_items ele ON i.items_id = ele.items_id\n"
-            + "LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id\n"
-            + "WHERE i.status = ?\n";
+            "SELECT \n"
+                    + "    i.*, \n"
+                    + "    art.artist, art.creation_year,\n"
+                    + "    ele.brand AS ele_brand, ele.warranty_months, ele.item_condition AS ele_condition,\n"
+                    + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage\n"
+                    + "FROM items i\n"
+                    + "LEFT JOIN art_items art ON i.items_id = art.items_id\n"
+                    + "LEFT JOIN electronics_items ele ON i.items_id = ele.items_id\n"
+                    + "LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id\n"
+                    + "WHERE i.status = ?\n";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
@@ -64,15 +64,15 @@ public class AuctionDAO {
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
     String sql =
-        "SELECT a.*, "
-            + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
-            + "FROM auction a "
-            + "JOIN items i ON a.items_id = i.items_id "
-            + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
-            + "WHERE a.status = ? "
-            + "GROUP BY a.auction_id";
+            "SELECT a.*, "
+                    + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
+                    + "FROM auction a "
+                    + "JOIN items i ON a.items_id = i.items_id "
+                    + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
+                    + "WHERE a.status = ? "
+                    + "GROUP BY a.auction_id";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, String.valueOf(status));
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
@@ -93,7 +93,7 @@ public class AuctionDAO {
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -108,9 +108,9 @@ public class AuctionDAO {
 
   public boolean createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
     String sql =
-        "INSERT INTO auction (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
+            "INSERT INTO auction (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, item.getItemId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
@@ -125,7 +125,7 @@ public class AuctionDAO {
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
     String sql = "UPDATE auction_items SET status = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, auctionId);
       ps.executeUpdate();
@@ -172,7 +172,7 @@ public class AuctionDAO {
     }
     return null;
   }
-//1
+  //1
   public boolean updateAuctionEndTime(int auctionId, LocalDateTime endTime) {
     String sql = "UPDATE auction_items SET end_time = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -188,7 +188,7 @@ public class AuctionDAO {
   public String getAuctionStatus(int auctionId) {
     String sql = "SELECT status FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -204,7 +204,7 @@ public class AuctionDAO {
   public boolean updateHighestPriceByItemId(int itemId, BigDecimal newPrice) {
     String sql = "UPDATE auction SET highest_price = ? WHERE item_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
