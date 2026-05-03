@@ -10,6 +10,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession; // Đưa Trạm trung chuyển vào
+import org.example.client.utils.UserSession;
+import org.example.core.dto.BidRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.Item;
@@ -41,9 +43,14 @@ public class AuctionRoomController extends BaseController implements Initializab
     private BigDecimal currentMaxPrice;
     private int bidStepCount = 0;
     private Gson gson;
-
+    private int currentAuctionId ;
+    private int currentUserId;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (UserSession.getInstance().getCurrentUser() != null) {
+            this.currentUserId = UserSession.getInstance().getCurrentUser().getUserId();
+        }
+        this.currentAuctionId = currentAuction.getAuctionId();
         // 1. Khởi tạo biểu đồ
         priceSeries = new XYChart.Series<>();
         priceSeries.setName("Biến động giá");
@@ -83,7 +90,6 @@ public class AuctionRoomController extends BaseController implements Initializab
             int lastIndex = auction.getBidHistory().size() - 1;
 
             // Lấy tên của cái đứa nằm ở cuối danh sách
-            // (LƯU Ý: Đệ nhớ tự đổi getBidderName() thành đúng cái tên hàm trong class BidTransaction của đệ nhé)
             topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
         }
 
@@ -108,6 +114,8 @@ public class AuctionRoomController extends BaseController implements Initializab
             }
 
             // TODO: Tạo Payload để gửi qua Socket (Nhớ dùng PlaceBidRequestDTO)
+            BidRequestDTO request = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
+
 
             tfBidAmount.clear();
             lblBidError.setStyle("-fx-text-fill: green;");
@@ -153,8 +161,11 @@ public class AuctionRoomController extends BaseController implements Initializab
                 lblWinner.setText(winnerName);
                 btnPlaceBid.setDisable(true);
                 tfBidAmount.setDisable(true);
+                if(winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())){
+                    showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
 
-                showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+                }
+                else{showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);}
             });
         }
     }

@@ -105,7 +105,7 @@ public class ClientHandler implements Runnable {
             throw new RuntimeException(e);
         } finally{
             closeConnection();
-}
+        }
     }
 
     private void handleRegister(Request request) {
@@ -229,7 +229,7 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
 
             // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
-            AuctionRequestDTO auctionReq = gson.fromJson(dataJson, AuctionRequestDTO.class);
+            CreateAuctionDTO auctionReq = gson.fromJson(dataJson, CreateAuctionDTO.class);
 
             // Gọi Service lưu vào DB
             Auction newAuction = AuctionService.createAuction(auctionReq);
@@ -310,11 +310,11 @@ public class ClientHandler implements Runnable {
 
     private void closeConnection() {
         try{
-        if(in!=null) in.close();
-        if(out!=null) out.close();
-        if(clientSocket!=null) clientSocket.close();
-    } catch (IOException e) {
-        e.printStackTrace();
+            if(in!=null) in.close();
+            if(out!=null) out.close();
+            if(clientSocket!=null) clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
