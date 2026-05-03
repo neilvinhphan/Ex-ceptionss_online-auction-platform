@@ -253,7 +253,7 @@ public class ClientHandler implements Runnable {
       ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
 
       // Báo thành công về Client
-      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!");
+      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!",newAuction);
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
