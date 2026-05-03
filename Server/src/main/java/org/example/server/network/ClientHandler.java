@@ -6,22 +6,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonParseException;
 
-import org.example.core.dto.CreateArtItemDTO;
-import org.example.core.dto.CreateElectronicsItemDTO;
-import org.example.core.dto.CreateVehicleItemDTO;
-import org.example.core.dto.CreateItemRequestDTO;
-import org.example.core.dto.LoginRequestDTO;
-import org.example.core.dto.PendingRequestDTO;
-import org.example.core.dto.RegisterRequestDTO;
-import org.example.core.dto.Request;
-import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.dto.*;
 
 import org.example.core.models.entities.Auction;
 import org.example.core.shared.enums.ItemStatus;
 
 import org.example.server.daos.ItemDAO;
 
-import org.example.core.dto.Response;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
@@ -101,6 +92,9 @@ public class ClientHandler implements Runnable {
                             break;
                         case "PLACE_BID":
                             handlePlaceBid(request);
+                            break;
+                        case "GET_BID_HISTORY":
+                            handleGetBidHistory(request);
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
@@ -291,6 +285,25 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void handleGetBidHistory(Request request) {
+        try {
+            // Giả sử Client gửi data chính là cái auctionId (kiểu int)
+            String dataJson = gson.toJson(request.getData());
+            Integer auctionId = gson.fromJson(dataJson, Integer.class);
+
+            // Gọi Service lấy danh sách lịch sử
+            List<org.example.core.models.entities.BidTransaction> history = org.example.server.services.BiddingService.getInstance().getBidHistory(auctionId);
+
+            // Bọc lại thành Response gửi về cho Client
+            Response response = new Response("SUCCESS", "Lấy lịch sử thành công", history);
+            sendMessage(gson.toJson(response));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử: " + e.getMessage());
+            sendMessage(gson.toJson(errorResponse));
+        }
+    }
     public synchronized void sendMessage(String message) {
         out.println(message);
     }
