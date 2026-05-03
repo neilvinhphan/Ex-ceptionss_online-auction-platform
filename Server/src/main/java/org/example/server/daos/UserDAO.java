@@ -1,6 +1,7 @@
 package org.example.server.daos;
 
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.RoleType;
 import org.example.core.shared.enums.UserStatus;
 import org.example.server.config.DBConnection;
 
@@ -36,6 +37,7 @@ public class UserDAO {
     user.setPhone(rs.getString("phone_number"));
     user.setBalance(rs.getBigDecimal("balance"));
     user.setStatus(UserStatus.valueOf(rs.getString("status")));
+    user.setRole(RoleType.valueOf(rs.getString("role")));
     return user;
   }
 
@@ -113,7 +115,7 @@ public class UserDAO {
   }
 
   public boolean updateRoleInDB(int userId) {
-    String sql = "UPDATE user SET role = 'seller' WHERE user_id = ?";
+    String sql = "UPDATE user SET role = 'SELLER' WHERE user_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);

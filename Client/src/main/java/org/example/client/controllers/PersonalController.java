@@ -2,6 +2,7 @@ package org.example.client.controllers;
 
 import org.example.client.utils.UserSession;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.RoleType;
 
 import java.net.URL;
 import java.util.Optional;
@@ -141,7 +142,13 @@ public class PersonalController extends BaseController implements Initializable 
 
     @FXML
     void handleCreateItem(ActionEvent event) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        RoleType userRole = currentUser.getRole();
+        if(userRole.equals(RoleType.SELLER)) {
         switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
+        } else {
+            showAlert("Không có quyền", "Chỉ người mua mới có thể tạo sản phẩm đấu giá!");
+        }
     }
     @FXML
     void handleWareHouse(ActionEvent event) {

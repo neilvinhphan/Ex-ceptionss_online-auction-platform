@@ -32,14 +32,17 @@ public class AuctionRoomController extends BaseController implements Initializab
 
     // ===== CALLBACK (inject từ ngoài) =====
     private BidHandler bidHandler;
+
     @FXML
     public void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
+
     @FXML
     public void handleExit(ActionEvent event) {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sách phòng đấu giá");
     }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (lineChart == null) return; // tránh crash ui
