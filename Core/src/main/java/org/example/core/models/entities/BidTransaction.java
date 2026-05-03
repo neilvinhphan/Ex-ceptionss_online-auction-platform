@@ -8,17 +8,19 @@ public class BidTransaction {
   private BigDecimal amount;
   private LocalDateTime time;
   private int bidderID;
+  private String bidderName;
   private int bidId;
   private int auctionId;
 
   public BidTransaction() {}
 
-  public BidTransaction(int bidId, int bidderID, int auctionId, BigDecimal amount, LocalDateTime bidTime) {
+  public BidTransaction(int bidId, int bidderID, int auctionId, BigDecimal amount, LocalDateTime bidTime, String bidderName) {
     this.bidId = bidId;
     this.bidderID = bidderID;
     this.auctionId = auctionId;
     this.amount = amount;
     this.time =  bidTime;
+    this.bidderName = bidderName;
   }
 
   public BidTransaction(BigDecimal amount, LocalDateTime time, int bidderID) {
@@ -67,4 +69,11 @@ public class BidTransaction {
     return auctionId;
   }
   //  public int compareTo(BidTransaction other) {}
+  public String getBidderName() {
+    return bidderName;
+  }
+
+  public void setBidderName(String bidderName) {
+    this.bidderName = bidderName;
+  }
 }

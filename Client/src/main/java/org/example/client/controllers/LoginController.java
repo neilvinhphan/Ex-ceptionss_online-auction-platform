@@ -55,6 +55,7 @@ public class LoginController extends BaseController {
                           User loggedInUser = gson.fromJson(dataUserJson, User.class);
                           UserSession.getInstance().setCurrentUser(loggedInUser);
                           System.out.println("Đăng nhập thành công! Người dùng: ");
+                          System.out.println(loggedInUser.getRole());
                           showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
                           switchScene(event, "/views/MainView.fxml", "Trang chủ");
                         } else {

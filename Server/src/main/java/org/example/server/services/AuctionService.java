@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -25,7 +26,7 @@ public class AuctionService {
   //  1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
   // ==========================================
 
-  public static Auction createAuction(AuctionRequestDTO requestPayLoad) throws Exception {
+  public static Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
 
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();

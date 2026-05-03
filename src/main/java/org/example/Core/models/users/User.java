@@ -31,12 +31,13 @@ public class User extends Entity {
   }
 
   // Lấy dữ liệu từ Database
-  public User(String userName, String phone, String email, LocalDateTime createdAt, int userId) {
+  public User(String userName, String phone, String email, LocalDateTime createdAt, int userId, RoleType role) {
     this.createdAt = createdAt;
     this.userName = userName;
     this.phone = phone;
     this.email = email;
     this.userId = userId;
+    this.role = role;
   }
 
   // Constructor rỗng cho DB
