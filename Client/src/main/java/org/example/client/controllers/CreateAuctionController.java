@@ -244,7 +244,7 @@ public class CreateAuctionController extends BaseController implements Initializ
                     Platform.runLater(() -> {
                         if ("SUCCESS".equals(response.getStatus())) {
                             showAlert("Thành công", "Đã tạo cuộc đấu giá thành công!");
-                            switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá");
+                            switchScene(event, "/views/SellerAuctionRoomView.fxml", "Phòng đấu giá");
                             // Tạo xong thì clear form đi hoặc chuyển hướng về trang Danh sách
                             tfStartingPrice.clear();
                             cbPendingItems.getSelectionModel().clearSelection();
