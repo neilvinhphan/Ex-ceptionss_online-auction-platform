@@ -10,6 +10,7 @@ import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
@@ -228,8 +229,8 @@ public class CreateAuctionController extends BaseController implements Initializ
             long durationMinutes = getDuration().toMinutes();
             BigDecimal bidIncrement = new BigDecimal("10000"); // Tạm thời để cứng mức tăng giá, sau này có thể thêm trường nhập vào
 
-            // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
-            AuctionRequestDTO requestDTO = new AuctionRequestDTO(selectedItem, durationMinutes, bidIncrement);
+      // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
+            CreateAuctionDTO requestDTO = new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement);
             // 5. Gửi lên Server
             Request request = new Request("CREATE_AUCTION", requestDTO); // Đổi tên lệnh "CREATE_AUCTION" cho khớp với Server của đệ nhé
             String jsonRequest = gson.toJson(request);
