@@ -37,11 +37,14 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.ItemService;
 
 public class ClientHandler implements Runnable {
+    public static final List<ClientHandler> connectedClients = new CopyOnWriteArrayList<>();
+
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
@@ -66,6 +69,8 @@ public class ClientHandler implements Runnable {
         try {
             this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.out = new PrintWriter(clientSocket.getOutputStream(), true);
+            // Khách vào thì ghi tên vào sổ (Thêm Client này vào danh sách quản lý)
+            connectedClients.add(this);
         } catch (Exception e) {
             throw new RuntimeException("Error initializing client handler: " + e.getMessage(), e);
         }
@@ -93,6 +98,9 @@ public class ClientHandler implements Runnable {
                             break;
                         case "CREATE_AUCTION":
                             handleCreateAuction(request);
+                            break;
+                        case "PLACE_BID":
+                            handlePlaceBid(request);
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
@@ -248,6 +256,41 @@ public class ClientHandler implements Runnable {
             sendMessage(gson.toJson(errorResponse));
         }
     }
+    private void handlePlaceBid(Request request) {
+        try {
+            //Ép kiểu dữ liệu Client gửi lên thành BidRequestDTO
+            String dataJson = gson.toJson(request.getData());
+            org.example.core.dto.BidRequestDTO bidReq = gson.fromJson(dataJson, org.example.core.dto.BidRequestDTO.class);
+
+            //Ném xuống BiddingService để xử lý
+            boolean success = org.example.server.services.BiddingService.getInstance().placeBid(bidReq);
+
+            if (success) {
+                //Nếu đặt giá hợp lệ, tạo gói tin Broadcast
+                String username = "User_" + bidReq.getUserId();
+
+                org.example.core.dto.BidBroadcastDTO broadcastDTO = new org.example.core.dto.BidBroadcastDTO(
+                        bidReq.getAuctionId(),
+                        bidReq.getBidAmount().doubleValue(), // Nếu báo đỏ chỗ này thì đổi lại thành BigDecimal
+                        username
+                );
+
+                //Bọc lại thành Response chuẩn và HÉT LÊN CHO CẢ PHÒNG!
+                Response broadcastResponse = new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
+                broadcastMessage(gson.toJson(broadcastResponse));
+
+            } else {
+                Response errorResponse = new Response("ERROR_BID", "Đặt giá không thành công.");
+                sendMessage(gson.toJson(errorResponse));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Response errorResponse = new Response("ERROR_BID", e.getMessage());
+            sendMessage(gson.toJson(errorResponse));
+        }
+    }
+
     public synchronized void sendMessage(String message) {
         out.println(message);
     }
@@ -259,5 +302,13 @@ public class ClientHandler implements Runnable {
         if(clientSocket!=null) clientSocket.close();
     } catch (IOException e) {
         e.printStackTrace();
-    }}
+        }
+    }
+
+    // Gửi tin nhắn cho tất cả Client
+    public static void broadcastMessage(String message) {
+        for (ClientHandler client : connectedClients) {
+            client.sendMessage(message);
+        }
+    }
 }

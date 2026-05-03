@@ -1,5 +1,8 @@
 package org.example.server.services;
 
+import org.example.core.dto.BidRequestDTO;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.server.daos.AuctionDAO;
@@ -11,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.example.server.network.ClientHandler.broadcastMessage;
 
 public class BiddingService {
 
@@ -54,46 +59,46 @@ public class BiddingService {
      * 4) ghi DB bid + cập nhật current price
      * 5) anti sniping
      */
-    public boolean placeBid(int auctionId, int userId, BigDecimal amount) throws Exception {
-        ReentrantLock lock = getLock(auctionId);
+    public boolean placeBid(BidRequestDTO request) throws Exception {
+        ReentrantLock lock = getLock(request.getAuctionId());
         lock.lock();
         try {
             LocalDateTime now = LocalDateTime.now();
 
-            Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+            Auction auction = auctionDAO.getAuctionByAuctionId(request.getAuctionId());
             if (auction == null) {
                 throw new Exception("Không tìm thấy phiên đấu giá.");
             }
 
             // check trạng thái + thời gian (đang có sẵn trong domain Auction)
-            auction.validateBid(now, amount);
+            auction.validateBid(now, request.getBidAmount());
 
-            BigDecimal currentPrice = bidDAO.getCurrentPrice(auctionId);
+            BigDecimal currentPrice = bidDAO.getCurrentPrice(request.getAuctionId());
             if (currentPrice == null) {
                 currentPrice = BigDecimal.ZERO;
             }
 
-            BigDecimal bidIncrement = auctionDAO.getBidIncrementByAuctionId(auctionId);
+            BigDecimal bidIncrement = auctionDAO.getBidIncrementByAuctionId(request.getAuctionId());
             if (bidIncrement == null || bidIncrement.compareTo(BigDecimal.ZERO) <= 0) {
                 bidIncrement = BigDecimal.ONE;
             }
 
             BigDecimal minAcceptable = currentPrice.add(bidIncrement);
-            if (amount.compareTo(minAcceptable) < 0) {
+            if (request.getBidAmount().compareTo(minAcceptable) < 0) {
                 throw new Exception("Giá đặt phải >= " + minAcceptable);
             }
 
-            boolean inserted = bidDAO.updateNewBid(auctionId, userId, amount);
+            boolean inserted = bidDAO.updateNewBid(request.getAuctionId(), request.getAuctionId(), request.getBidAmount());
             if (!inserted) {
                 throw new Exception("Không thể ghi nhận lượt đặt giá.");
             }
 
-            boolean updatedPrice = bidDAO.updateCurrentPrice(auctionId, amount);
+            boolean updatedPrice = bidDAO.updateCurrentPrice(request.getAuctionId(), request.getBidAmount());
             if (!updatedPrice) {
                 throw new Exception("Không thể cập nhật giá hiện tại.");
             }
 
-            handleAntiSniping(auctionId, auction, now);
+            handleAntiSniping(request.getAuctionId(), auction, now);
 
             return true;
         } finally {
@@ -130,4 +135,5 @@ public class BiddingService {
     public List<BidTransaction> getBidHistory(int auctionId) {
         return bidDAO.getBidTransactionByAuctionId(auctionId);
     }
+
 }
