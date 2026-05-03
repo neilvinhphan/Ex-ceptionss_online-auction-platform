@@ -38,8 +38,8 @@ public class ItemDAO {
     SELECT 
         i.*, 
         art.artist, art.creation_year, 
-        ele.brand AS ele_brand, ele.warranty_months, ele.item_condition,
-        veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+        ele.ele_brand, ele.warranty_months, ele.item_condition,
+        veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
     FROM items i
     LEFT JOIN art_items art ON i.items_id = art.items_id
     LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
@@ -113,7 +113,7 @@ public class ItemDAO {
     if (item.getType().equals("ELECTRONICS")) {
       ElectronicsItem electronicsItem = (ElectronicsItem) item;
       String sql3 =
-              "INSERT INTO electronics_items (items_id, brand, warranty_months, item_condition) VALUES (?,?,?,?)";
+              "INSERT INTO electronics_items (items_id, ele_brand, warranty_months, item_condition) VALUES (?,?,?,?)";
       try (Connection connection = DBConnection.getConnection();
            PreparedStatement ps = connection.prepareStatement(sql3)) {
         ps.setInt(1, itemId);
@@ -128,7 +128,7 @@ public class ItemDAO {
     if (item.getType().equals("VEHICLE")) {
       VehicleItem vehicleItem = (VehicleItem) item;
       String sql6 =
-              "INSERT INTO vehicle_items (items_id, brand, model, manufacturing_year, mileage) VALUES (?,?,?,?,?)";
+              "INSERT INTO vehicle_items (items_id, veh_brand, model, manufacturing_year, mileage) VALUES (?,?,?,?,?)";
       try (Connection connection = DBConnection.getConnection();
            PreparedStatement ps = connection.prepareStatement(sql6)) {
         ps.setInt(1, itemId);
@@ -145,19 +145,29 @@ public class ItemDAO {
   }
 
   public Item getItemById(int itemId) {
-    String sql =
-            "SELECT item_id, owner_id, type, items_name, description, start_price FROM items WHERE item_id = ?";
+    String sql = """
+    SELECT 
+        i.*, 
+        a.artist, a.creation_year, 
+        e.ele_brand, e.warranty_months, e.item_condition, 
+        v.veh_brand, v.model, v.manufacturing_year, v.mileage 
+    FROM items i 
+    LEFT JOIN art_items a ON i.items_id = a.items_id 
+    LEFT JOIN electronics_items e ON i.items_id = e.items_id 
+    LEFT JOIN vehicle_items v ON i.items_id = v.items_id 
+    WHERE i.items_id = ?
+    """;
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          item.setItemId(rs.getInt("item_id"));
+          item.setItemId(rs.getInt("items_id"));
           item.setSellerID(rs.getInt("owner_id"));
-          item.setItemName(rs.getString("item_name"));
+          item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
-          item.setStartingPrice(rs.getBigDecimal("starting_price"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
           return item;
         }
       } catch (Exception e) {
@@ -248,7 +258,7 @@ public class ItemDAO {
   }
 
   public boolean updateStartPriceByItemId(int itemId, BigDecimal startPrice) {
-    String sql = "UPDATE items SET start_price = ? WHERE item_id = ?";
+    String sql = "UPDATE items SET start_price = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, startPrice);
@@ -260,7 +270,7 @@ public class ItemDAO {
   }
 
   public boolean updateOwnerIdInDB(int itemId, int ownerId) {
-    String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
+    String sql = "UPDATE items SET owner_id = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, ownerId);
@@ -272,7 +282,7 @@ public class ItemDAO {
   }
 
   public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
-    String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
+    String sql = "UPDATE items SET final_price = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, finalPrice);
@@ -284,7 +294,7 @@ public class ItemDAO {
   }
 
   public boolean updateItemDescriptionByItemId(int itemId, String description) {
-    String sql = "UPDATE items SET description = ? WHERE item_id = ?";
+    String sql = "UPDATE items SET description = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, description);
@@ -306,6 +316,17 @@ public class ItemDAO {
       throw new RuntimeException(e);
     }
   }
+
+  public boolean updateItemNameByItemId(int itemId, String name) {
+    String sql = "UPDATE items SET items_name = ? WHERE items_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, name);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+  }}
 
   public boolean deleteItemByItemId(int itemId) {
     String sql = "DELETE FROM items WHERE items_id = ?";

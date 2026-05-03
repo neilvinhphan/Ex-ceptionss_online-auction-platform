@@ -30,6 +30,7 @@ import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.DeleteRequestDTO;
+import org.example.core.dto.EditProductRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
@@ -236,6 +237,8 @@ public class WareHouseController extends BaseController implements Initializable
     @FXML
     public void handleEditProduct(ActionEvent event) {
         Item selectedItem = productTable.getSelectionModel().getSelectedItem();
+        int itemId = selectedItem.getItemId();
+        String itemType = selectedItem.getType();
 
         if (selectedItem == null) {
             showAlert("Thông báo", "Vui lòng chọn một sản phẩm để sửa!");
@@ -278,11 +281,7 @@ public class WareHouseController extends BaseController implements Initializable
                     BigDecimal newPrice = new BigDecimal(tfPrice.getText().trim());
 
                     // 6. Đóng gói "full combo" gửi lên Server
-                    java.util.Map<String, Object> payload = new java.util.HashMap<>();
-                    payload.put("itemId", selectedItem.getItemId());
-                    payload.put("newName", newName);
-                    payload.put("newDescription", newDesc);
-                    payload.put("newPrice", newPrice);
+                    EditProductRequestDTO payload = new EditProductRequestDTO(itemId, newName, newDesc, newPrice, itemType);
 
                     Request request = new Request("UPDATE_ITEM_FULL", payload); // Đổi Action cho kêu
                     String jsonRequest = gson.toJson(request);
@@ -294,6 +293,7 @@ public class WareHouseController extends BaseController implements Initializable
 
                             Platform.runLater(() -> {
                                 if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                    System.out.println(newName + newDesc + newPrice);
                                     // Cập nhật ngay trên bảng để người dùng thấy luôn
                                     selectedItem.setItemName(newName);
                                     selectedItem.setDescription(newDesc);

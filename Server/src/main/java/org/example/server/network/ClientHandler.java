@@ -11,6 +11,7 @@ import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.DeleteRequestDTO;
+import org.example.core.dto.EditProductRequestDTO;
 import org.example.core.dto.LoginRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.RegisterRequestDTO;
@@ -43,250 +44,285 @@ import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.ItemService;
 
 public class ClientHandler implements Runnable {
-    private final Socket clientSocket;
-    private BufferedReader in;
-    private PrintWriter out;
+  private final Socket clientSocket;
+  private BufferedReader in;
+  private PrintWriter out;
 
-    // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .registerTypeAdapter(Item.class, (JsonDeserializer<Item>) (json, typeOfT, context) -> {
-                JsonObject jsonObject = json.getAsJsonObject();
-                String type = jsonObject.get("type").getAsString(); // Đọc xem loại gì
-                switch (type.toUpperCase()) {
-                    case "ART": return context.deserialize(jsonObject, ArtItem.class);
-                    case "ELECTRONICS": return context.deserialize(jsonObject, ElectronicsItem.class);
-                    case "VEHICLE": return context.deserialize(jsonObject, VehicleItem.class);
-                    default: throw new JsonParseException("Không nhận diện được loại tài sản: " + type);
-                }
-            })
-            .create();
-
-    public ClientHandler(Socket clientSocket) {
-        this.clientSocket = clientSocket;
-        try {
-            this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            this.out = new PrintWriter(clientSocket.getOutputStream(), true);
-        } catch (Exception e) {
-            throw new RuntimeException("Error initializing client handler: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void run() {
-        try {
-            String requestJson;
-            while ((requestJson = in.readLine()) != null) {
-                Request request = gson.fromJson(requestJson, Request.class);
-                if (request != null && request.getAction()!= null) {
-                    switch (request.getAction()) {
-                        case "REGISTER":
-                            handleRegister(request);
-                            break;
-                        case "LOGIN":
-                            handleLogin(request);
-                            break;
-                        case "CREATE_ITEM":
-                            handleCreateItem(request);
-                            break;
-                        case "GET_PENDING_ITEMS":
-                            handleGetPendingItems(request);
-                            break;
-                        case "CREATE_AUCTION":
-                            handleCreateAuction(request);
-                            break;
-                        case "DELETE_ITEM":
-                            handleDeleteProduct(request);
-                            break;
-                        default:
-                            System.out.println("Unknown action: " + request.getAction());
+  // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
+  private final Gson gson =
+      new GsonBuilder()
+          .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+          .registerTypeAdapter(
+              Item.class,
+              (JsonDeserializer<Item>)
+                  (json, typeOfT, context) -> {
+                    JsonObject jsonObject = json.getAsJsonObject();
+                    String type = jsonObject.get("type").getAsString(); // Đọc xem loại gì
+                    switch (type.toUpperCase()) {
+                      case "ART":
+                        return context.deserialize(jsonObject, ArtItem.class);
+                      case "ELECTRONICS":
+                        return context.deserialize(jsonObject, ElectronicsItem.class);
+                      case "VEHICLE":
+                        return context.deserialize(jsonObject, VehicleItem.class);
+                      default:
+                        throw new JsonParseException("Không nhận diện được loại tài sản: " + type);
                     }
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally{
-            closeConnection();
-}
+                  })
+          .create();
+
+  public ClientHandler(Socket clientSocket) {
+    this.clientSocket = clientSocket;
+    try {
+      this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+      this.out = new PrintWriter(clientSocket.getOutputStream(), true);
+    } catch (Exception e) {
+      throw new RuntimeException("Error initializing client handler: " + e.getMessage(), e);
     }
+  }
 
-    private void handleRegister(Request request) {
-        try {
-            RegisterRequestDTO registerRequest;
-
-            if (request.getData() instanceof RegisterRequestDTO) {
-                registerRequest = (RegisterRequestDTO) request.getData();
-            } else {
-                String dataJson = gson.toJson(request.getData());
-                registerRequest = gson.fromJson(dataJson, RegisterRequestDTO.class);
-            }
-
-            System.out.println("Registering user: " + registerRequest.getUsername());
-            User newUser = AuthService.register(registerRequest);
-
-            Response response;
-            if(newUser != null) {
-                response = new Response("SUCCESS", "Registration successful");
-            } else {
-                response = new Response("ERROR", "Registration failed");
-            }
-            sendMessage(gson.toJson(response));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Response errorRespone = new Response("ERROR", e.getMessage());
-            sendMessage(gson.toJson(errorRespone));
+  @Override
+  public void run() {
+    try {
+      String requestJson;
+      while ((requestJson = in.readLine()) != null) {
+        Request request = gson.fromJson(requestJson, Request.class);
+        if (request != null && request.getAction() != null) {
+          switch (request.getAction()) {
+            case "REGISTER":
+              handleRegister(request);
+              break;
+            case "LOGIN":
+              handleLogin(request);
+              break;
+            case "CREATE_ITEM":
+              handleCreateItem(request);
+              break;
+            case "GET_PENDING_ITEMS":
+              handleGetPendingItems(request);
+              break;
+            case "CREATE_AUCTION":
+              handleCreateAuction(request);
+              break;
+            case "DELETE_ITEM":
+              handleDeleteProduct(request);
+              break;
+              case "UPDATE_ITEM_FULL":
+                  handleEditProduct(request);
+                  break;
+            default:
+              System.out.println("Unknown action: " + request.getAction());
+          }
         }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      closeConnection();
     }
+  }
 
-    private void handleLogin(Request request) {
-        try{
-            LoginRequestDTO loginRequest;
+  private void handleRegister(Request request) {
+    try {
+      RegisterRequestDTO registerRequest;
 
-            if (request.getData() instanceof LoginRequestDTO) {
-                loginRequest = (LoginRequestDTO) request.getData();
-            } else {
-                String dataJson = gson.toJson(request.getData());
-                loginRequest = gson.fromJson(dataJson, LoginRequestDTO.class);
-            }
-            User newUser = AuthService.login(loginRequest);
+      if (request.getData() instanceof RegisterRequestDTO) {
+        registerRequest = (RegisterRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        registerRequest = gson.fromJson(dataJson, RegisterRequestDTO.class);
+      }
 
-            Response response;
-            if(newUser != null) {
-                response = new Response("SUCCESS", "Login success!", newUser);
-            } else {
-                response = new Response("ERROR", "Login failed");
-            }
-            sendMessage(gson.toJson(response));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Response errorRespone = new Response("ERROR", e.getMessage());
-            sendMessage(gson.toJson(errorRespone));
-        }
+      System.out.println("Registering user: " + registerRequest.getUsername());
+      User newUser = AuthService.register(registerRequest);
+
+      Response response;
+      if (newUser != null) {
+        response = new Response("SUCCESS", "Registration successful");
+      } else {
+        response = new Response("ERROR", "Registration failed");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorRespone = new Response("ERROR", e.getMessage());
+      sendMessage(gson.toJson(errorRespone));
     }
+  }
 
-    private void handleCreateItem(Request request) {
-        try {
-            String rawDataJson = gson.toJson(request.getData());
-            JsonObject jsonObject = gson.fromJson(rawDataJson, JsonObject.class);
-            String type = jsonObject.get("type").getAsString();
+  private void handleLogin(Request request) {
+    try {
+      LoginRequestDTO loginRequest;
 
-            CreateItemRequestDTO finalDTO;
+      if (request.getData() instanceof LoginRequestDTO) {
+        loginRequest = (LoginRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        loginRequest = gson.fromJson(dataJson, LoginRequestDTO.class);
+      }
+      User newUser = AuthService.login(loginRequest);
 
-            switch (type.toUpperCase()) {
-                case "ART":
-                    finalDTO = gson.fromJson(rawDataJson, CreateArtItemDTO.class);
-                    break;
-                case "VEHICLE":
-                    finalDTO = gson.fromJson(rawDataJson, CreateVehicleItemDTO.class);
-                    break;
-                case "ELECTRONICS":
-                    finalDTO = gson.fromJson(rawDataJson, CreateElectronicsItemDTO.class);
-                    break;
-                default:
-                    finalDTO = gson.fromJson(rawDataJson, CreateItemRequestDTO.class);
-            }
-
-            Item newItem = ItemService.createItem(finalDTO);
-
-            if (newItem != null) {
-
-                Response response = new Response("SUCCESS", "Item created successfully!", newItem);
-                sendMessage(gson.toJson(response));
-            } else {
-                Response errorResponse = new Response("ERROR", "Failed to create item.");
-                sendMessage(gson.toJson(errorResponse));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace(); // Phải có cái này để soi lỗi ở Console Server!
-            // Ép kiểu String rõ ràng để vào đúng constructor message
-            Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
-            sendMessage(gson.toJson(errorResponse));
-        }
+      Response response;
+      if (newUser != null) {
+        response = new Response("SUCCESS", "Login success!", newUser);
+      } else {
+        response = new Response("ERROR", "Login failed");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorRespone = new Response("ERROR", e.getMessage());
+      sendMessage(gson.toJson(errorRespone));
     }
+  }
 
-    private void handleGetPendingItems(Request request) {
-        PendingRequestDTO pendingRequest;
+  private void handleCreateItem(Request request) {
+    try {
+      String rawDataJson = gson.toJson(request.getData());
+      JsonObject jsonObject = gson.fromJson(rawDataJson, JsonObject.class);
+      String type = jsonObject.get("type").getAsString();
 
-        if (request.getData() instanceof PendingRequestDTO) {
-            pendingRequest = (PendingRequestDTO) request.getData();
-        } else {
-            String dataJson = gson.toJson(request.getData());
-            pendingRequest = gson.fromJson(dataJson, PendingRequestDTO.class);
-        }
-        try {
-            List<Item> items = ItemService.getAllItem(pendingRequest);
-            Response response = new Response("SUCCESS", "Fetched pending items successfully!", items);
-            sendMessage(gson.toJson(response));
+      CreateItemRequestDTO finalDTO;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            Response errorResponse = new Response("ERROR", "Failed to fetch pending items: " + e.getMessage());
-            sendMessage(gson.toJson(errorResponse));
-        }
+      switch (type.toUpperCase()) {
+        case "ART":
+          finalDTO = gson.fromJson(rawDataJson, CreateArtItemDTO.class);
+          break;
+        case "VEHICLE":
+          finalDTO = gson.fromJson(rawDataJson, CreateVehicleItemDTO.class);
+          break;
+        case "ELECTRONICS":
+          finalDTO = gson.fromJson(rawDataJson, CreateElectronicsItemDTO.class);
+          break;
+        default:
+          finalDTO = gson.fromJson(rawDataJson, CreateItemRequestDTO.class);
+      }
+
+      Item newItem = ItemService.createItem(finalDTO);
+
+      if (newItem != null) {
+
+        Response response = new Response("SUCCESS", "Item created successfully!", newItem);
+        sendMessage(gson.toJson(response));
+      } else {
+        Response errorResponse = new Response("ERROR", "Failed to create item.");
+        sendMessage(gson.toJson(errorResponse));
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace(); // Phải có cái này để soi lỗi ở Console Server!
+      // Ép kiểu String rõ ràng để vào đúng constructor message
+      Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
     }
+  }
 
-    private void handleCreateAuction(Request request) {
-        try {
-            String dataJson = gson.toJson(request.getData());
+  private void handleGetPendingItems(Request request) {
+    PendingRequestDTO pendingRequest;
 
-            // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
-            AuctionRequestDTO auctionReq = gson.fromJson(dataJson, AuctionRequestDTO.class);
-
-            // Gọi Service lưu vào DB
-            Auction newAuction = AuctionService.createAuction(auctionReq);
-
-            // Cập nhật trạng thái thành Đang lên sàn
-            ItemDAO.getInstance().updateItemStatus(
-                    auctionReq.getItem().getItemId(),
-                    ItemStatus.LISTED
-            );
-
-            // Báo thành công về Client
-            Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!");
-            sendMessage(gson.toJson(response));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Response errorResponse = new Response("ERROR", "Lỗi tạo đấu giá: " + e.getMessage());
-            sendMessage(gson.toJson(errorResponse));
-        }
+    if (request.getData() instanceof PendingRequestDTO) {
+      pendingRequest = (PendingRequestDTO) request.getData();
+    } else {
+      String dataJson = gson.toJson(request.getData());
+      pendingRequest = gson.fromJson(dataJson, PendingRequestDTO.class);
     }
+    try {
+      List<Item> items = ItemService.getAllItem(pendingRequest);
+      Response response = new Response("SUCCESS", "Fetched pending items successfully!", items);
+      sendMessage(gson.toJson(response));
 
-    private void handleDeleteProduct(Request request) {
-        DeleteRequestDTO deleteRequest;
-            try {
-                if(request.getData() instanceof DeleteRequestDTO) {
-                    deleteRequest = (DeleteRequestDTO) request.getData();
-                } else {
-                    String dataJson = gson.toJson(request.getData());
-                    deleteRequest = gson.fromJson(dataJson, DeleteRequestDTO.class);
-                }
-                boolean success = ItemService.deleteItem(deleteRequest);
-                Response response;
-                if (success) {
-                    response = new Response("SUCCESS", "Item deleted successfully.");
-                } else {
-                    response = new Response("ERROR", "Failed to delete item.");
-                }
-                sendMessage(gson.toJson(response));
-            } catch (Exception e) {
-                e.printStackTrace();
-                Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
-                sendMessage(gson.toJson(errorResponse));
-            }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse =
+          new Response("ERROR", "Failed to fetch pending items: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
     }
+  }
 
-    public synchronized void sendMessage(String message) {
-        out.println(message);
+  private void handleCreateAuction(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+
+      // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
+      AuctionRequestDTO auctionReq = gson.fromJson(dataJson, AuctionRequestDTO.class);
+
+      // Gọi Service lưu vào DB
+      Auction newAuction = AuctionService.createAuction(auctionReq);
+
+      // Cập nhật trạng thái thành Đang lên sàn
+      ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
+
+      // Báo thành công về Client
+      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!");
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi tạo đấu giá: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
     }
+  }
 
-    private void closeConnection() {
-        try{
-        if(in!=null) in.close();
-        if(out!=null) out.close();
-        if(clientSocket!=null) clientSocket.close();
+  private void handleDeleteProduct(Request request) {
+    DeleteRequestDTO deleteRequest;
+    try {
+      if (request.getData() instanceof DeleteRequestDTO) {
+        deleteRequest = (DeleteRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        deleteRequest = gson.fromJson(dataJson, DeleteRequestDTO.class);
+      }
+      boolean success = ItemService.deleteItem(deleteRequest);
+      Response response;
+      if (success) {
+        response = new Response("SUCCESS", "Item deleted successfully.");
+      } else {
+        response = new Response("ERROR", "Failed to delete item.");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleEditProduct(Request request) {
+    EditProductRequestDTO editRequest;
+    try {
+      if (request.getData() instanceof EditProductRequestDTO) {
+        editRequest = (EditProductRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        editRequest = gson.fromJson(dataJson, EditProductRequestDTO.class);
+      }
+      boolean success = ItemService.updateItemFull(editRequest);
+      Response response;
+      if (success) {
+        Item item = ItemDAO.getInstance().getItemById(editRequest.getItemId());
+        response = new Response("SUCCESS", "Item updated successfully!", item);
+      } else {
+        response = new Response("ERROR", "Failed to update item.");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  public synchronized void sendMessage(String message) {
+    out.println(message);
+  }
+
+  private void closeConnection() {
+    try {
+      if (in != null) in.close();
+      if (out != null) out.close();
+      if (clientSocket != null) clientSocket.close();
     } catch (IOException e) {
-        e.printStackTrace();
-    }}
+      e.printStackTrace();
+    }
+  }
 }
