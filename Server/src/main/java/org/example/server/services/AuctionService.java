@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.AuctionRequestDTO;
+import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -25,7 +26,7 @@ public class AuctionService {
   //  1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
   // ==========================================
 
-  public static Auction createAuction(AuctionRequestDTO requestPayLoad) throws Exception {
+  public static Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
 
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
@@ -64,18 +65,6 @@ public class AuctionService {
   // 2. NHÓM VẬN HÀNH (ĐIỀU KHIỂN LUỒNG)
   // ==========================================
 
-  public static void openAuction(int auctionId) throws Exception {
-    // Lấy phiên đấu giá từ DB lên
-    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-    if (auction == null) throw new Exception("Không tìm thấy phiên đấu giá!");
-
-    // Bắt đầu phiên đấu giá (Auction.java)
-    auction.start(LocalDateTime.now());
-
-    // Lưu trạng thái mới (RUNNING) và startTime, endTime xuống Database
-    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.RUNNING);
-  }
-
   public static void forceCancelAuction(int auctionId, String reason) throws Exception {
     // Lấy Auction lên, set trạng thái thành CANCELED và update xuống DB.
     // (Dành cho Admin hoặc người bán hủy ngang khi có biến)
@@ -84,8 +73,6 @@ public class AuctionService {
     if (status == AuctionStatus.CANCELED) throw new Exception("Phiên ấu giá đã bị hủy!");
 
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
-
-    // Còn reason chưa biết lưu đâu
   }
 
   // ==========================================

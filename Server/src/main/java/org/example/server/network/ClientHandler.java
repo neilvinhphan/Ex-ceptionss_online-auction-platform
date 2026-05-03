@@ -7,6 +7,8 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonParseException;
 
 import org.example.core.dto.CreateArtItemDTO;
+import org.example.core.dto.CreateAuctionDTO;
+import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.dto.CreateElectronicsItemDTO;
 import org.example.core.dto.CreateVehicleItemDTO;
 import org.example.core.dto.CreateItemRequestDTO;
@@ -244,13 +246,13 @@ public class ClientHandler implements Runnable {
       String dataJson = gson.toJson(request.getData());
 
       // Bây giờ ép kiểu thoải mái, Gson đã tự biết bóc tách Item!
-      AuctionRequestDTO auctionReq = gson.fromJson(dataJson, AuctionRequestDTO.class);
+      CreateAuctionDTO createAuctionDTO = gson.fromJson(dataJson, CreateAuctionDTO.class);
 
       // Gọi Service lưu vào DB
-      Auction newAuction = AuctionService.createAuction(auctionReq);
+      Auction newAuction = AuctionService.createAuction(createAuctionDTO);
 
       // Cập nhật trạng thái thành Đang lên sàn
-      ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
+      ItemDAO.getInstance().updateItemStatus(createAuctionDTO.getItem().getItemId(), ItemStatus.LISTED);
 
       // Báo thành công về Client
       Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!",newAuction);
