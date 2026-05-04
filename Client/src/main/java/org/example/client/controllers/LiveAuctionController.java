@@ -1,16 +1,23 @@
 package org.example.client.controllers;
 
 import com.google.gson.Gson;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.util.Duration;
 import org.example.core.dto.BidBroadcastDTO;
 import org.example.core.dto.BidRequestDTO;
 
 import java.io.BufferedReader; // Thêm import này
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class LiveAuctionController {
     // =======================================================
@@ -20,16 +27,23 @@ public class LiveAuctionController {
     @FXML private Label lblCurrentPrice;
     @FXML private Label lblWarning;
     @FXML private Label lblLeader;
+    // Khai báo Label hiển thị thời gian (Nhớ map đúng fx:id bên Scene Builder)
+    @FXML private Label lblTimeRemaining;
 
-    // =======================================================
+    //khóa nút đặt giá khi hết giờ thì móc thêm nút này vào
+    @FXML private Button btnBid;
+
     // 2. KHAI BÁO CÁC BIẾN LƯU TRỮ VÀ ĐỒ NGHỀ SOCKET
-    // =======================================================
+
     private int currentAuctionId = 1; // Giả sử ID phòng là 1
     private int currentUserId = 100;  // Giả sử ID người đăng nhập là 100
 
     private Gson gson = new Gson();
-    private PrintWriter outToServer;  // Ống ghi dữ liệu gửi lên Server
-    private BufferedReader inFromServer; // Ống đọc dữ liệu Server gửi về (Thêm biến này là hết đỏ!)
+    private PrintWriter outToServer;  //  ghi dữ liệu gửi lên Server
+    private BufferedReader inFromServer; // đọc dữ liệu Server gửi về
+    // Biến lưu trữ thời gian kết thúc của phiên đấu giá
+    private LocalDateTime endTime;
+    private Timeline countdownTimeline;
 
     // Hàm này được gọi từ bên ngoài khi mở màn hình để nạp Socket vào
     public void setSocketStreams(BufferedReader in, PrintWriter out) {
@@ -112,5 +126,42 @@ public class LiveAuctionController {
                 System.out.println("Mất kết nối với Server: " + e.getMessage());
             }
         }).start();
+    }
+    private void startCountdownTimer() {
+        // Tạo một KeyFrame chạy lặp lại mỗi 1 giây
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            LocalDateTime now = LocalDateTime.now();
+
+            // Nếu thời gian kết thúc đã có và hiện tại vẫn chưa đến hạn
+            if (endTime != null && now.isBefore(endTime)) {
+
+                // Tính toán khoảng cách thời gian
+                long hours = ChronoUnit.HOURS.between(now, endTime);
+                long minutes = ChronoUnit.MINUTES.between(now, endTime) % 60;
+                long seconds = ChronoUnit.SECONDS.between(now, endTime) % 60;
+
+                // Format ra chuỗi HH:mm:ss cho đẹp mắt
+                String timeString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+                lblTimeRemaining.setText(timeString);
+
+            } else {
+                // HẾT GIỜ!
+                lblTimeRemaining.setText("00:00:00");
+                lblTimeRemaining.setStyle("-fx-text-fill: red; -fx-font-weight: bold;"); // Chữ đỏ lên cảnh báo
+
+                // Khóa mỏ neo, không cho đặt giá nữa
+                if (btnBid != null) btnBid.setDisable(true);
+                if (txtBidAmount != null) txtBidAmount.setDisable(true);
+
+                // Dừng bộ đếm
+                if (countdownTimeline != null) {
+                    countdownTimeline.stop();
+                }
+            }
+        }));
+
+        // Cho vòng lặp chạy vô hạn đến khi nào bị ép stop thì thôi
+        countdownTimeline.setCycleCount(Animation.INDEFINITE);
+        countdownTimeline.play();
     }
 }
