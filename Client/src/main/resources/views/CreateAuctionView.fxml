@@ -1,24 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
+<?import java.lang.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateAuctionController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateAuctionController">
     <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
@@ -123,12 +112,6 @@
 
                                         <HBox spacing="30.0">
                                             <children>
-                                                <VBox spacing="8.0" HBox.hgrow="ALWAYS">
-                                                    <children>
-                                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Ngày bắt đầu *" />
-                                                        <DatePicker fx:id="dpStartDate" maxWidth="1.7976931348623157E308" promptText="dd/mm/yyyy" style="-fx-font-size: 14;" />
-                                                    </children>
-                                                </VBox>
                                                 <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                                     <children>
                                                         <Label prefHeight="17.0" prefWidth="171.0" style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Khoảng thời gian đấu giá*" />

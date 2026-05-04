@@ -1,10 +1,14 @@
 package org.example.server.services;
 
 import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.DeleteRequestDTO;
+import org.example.core.dto.EditProductRequestDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.models.items.ArtItem;
+import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
+import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
 import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
@@ -28,6 +32,21 @@ public class ItemService {
     }
     itemDAO.insertIntoChildTable(newItem, itemId);
     return newItem;
+  }
+
+  public static boolean updateItemFull(EditProductRequestDTO requestPayload) {
+    int itemId = requestPayload.getItemId();
+    String newName = requestPayload.getItemEditName();
+    String newDescription = requestPayload.getDescription();
+    BigDecimal newPrice = requestPayload.getPrice();
+
+    if (itemDAO.updateItemDescriptionByItemId(itemId, newDescription) &&
+        itemDAO.updateItemNameByItemId(itemId, newName) &&
+        itemDAO.updateStartPriceByItemId(itemId, newPrice)) {
+        return true;
+    } else {
+      return false;
+    }
   }
 
   public Item updateItemDescription(int itemId, String newDescription) throws Exception {
@@ -64,6 +83,18 @@ public class ItemService {
     }
     List<Item> items = itemDAO.getAllItemByUserId(sellerId);
     return items;
+  }
+
+  public static boolean deleteItem(DeleteRequestDTO requestPayload) throws Exception {
+    int itemId = requestPayload.getItemId();
+    if (itemId <= 0) {
+      throw new Exception("Invalid item ID.");
+    }
+    boolean success = itemDAO.deleteItemByItemId(itemId);
+    if (!success) {
+      throw new Exception("Cannot delete item.");
+    }
+    return true;
   }
 
   private static void validateItemData(CreateItemRequestDTO item) throws Exception {
