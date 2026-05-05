@@ -9,7 +9,6 @@ import com.google.gson.JsonParser;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
@@ -216,10 +215,7 @@ public class CreateAuctionController extends BaseController implements Initializ
             showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
             return;
         }
-        if (getStartDate() == null) {
-            showAlert("Lỗi", "Vui lòng chọn Ngày bắt đầu đấu giá!");
-            return;
-        }
+
         if (getDuration().toMinutes() <= 0) {
             showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
             return;
@@ -307,9 +303,5 @@ public class CreateAuctionController extends BaseController implements Initializ
         int hours = (durationHourSpinner.getValue() != null) ? durationHourSpinner.getValue() : 0;
         int minutes = (durationMinuteSpinner.getValue() != null) ? durationMinuteSpinner.getValue() : 0;
         return Duration.ofHours(hours).plusMinutes(minutes);
-    }
-
-    private LocalDate getStartDate() {
-        return dpStartDate.getValue();
     }
 }
