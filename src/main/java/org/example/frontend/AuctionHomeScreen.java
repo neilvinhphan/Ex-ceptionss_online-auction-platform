@@ -87,9 +87,9 @@ public class AuctionHomeScreen extends Application {
         // Tải dữ liệu lần đầu
         loadAuctions();
 
-        // Tự động làm mới mỗi 10 giây
+        // Tự động làm mới mỗi 10 giây (chờ lần trước hoàn thành trước khi bắt đầu lần sau)
         scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(() -> Platform.runLater(this::loadAuctions), 10, 10, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(() -> Platform.runLater(this::loadAuctions), 10, 10, TimeUnit.SECONDS);
 
         // Dừng scheduler khi đóng cửa sổ
         primaryStage.setOnCloseRequest(e -> {
@@ -228,8 +228,8 @@ public class AuctionHomeScreen extends Application {
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(input -> {
             try {
-                // Loại bỏ dấu phẩy nếu người dùng nhập theo định dạng 1,000,000
-                BigDecimal amount = new BigDecimal(input.replace(",", "").replace(".", ""));
+                // Chỉ loại bỏ dấu phẩy (dấu phân cách hàng nghìn), giữ lại dấu chấm thập phân
+                BigDecimal amount = new BigDecimal(input.replace(",", ""));
                 String error = auctionDAO.placeBid(auction.getId(), currentUsername, amount);
                 if (error == null) {
                     // Thành công: làm mới thông tin card từ server

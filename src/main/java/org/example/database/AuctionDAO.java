@@ -41,9 +41,9 @@ public class AuctionDAO {
                 auctions.add(auction);
             }
         } catch (Exception e) {
+            System.err.println("Failed to retrieve active auctions: " + e.getMessage());
             e.printStackTrace();
         }
-        return auctions;
     }
 
     /**
@@ -74,6 +74,7 @@ public class AuctionDAO {
                 }
             }
         } catch (Exception e) {
+            System.err.println("Failed to refresh auction with ID: " + auctionId + " - " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -121,6 +122,7 @@ public class AuctionDAO {
             }
             return null; // thành công
         } catch (Exception e) {
+            System.err.println("Failed to place bid for auction " + auctionId + " by user " + bidderUsername + ": " + e.getMessage());
             e.printStackTrace();
             return "Lỗi kết nối: " + e.getMessage();
         }
@@ -131,7 +133,7 @@ public class AuctionDAO {
      */
     public List<BidTransaction> getBidHistory(int auctionId) {
         List<BidTransaction> history = new ArrayList<>();
-        String sql = "SELECT id, auction_id, bidder_username, bid_amount, bid_time FROM bid_transaction WHERE auction_id = ? ORDER BY bid_amount DESC";
+        String sql = "SELECT id, auction_id, bidder_username, bid_amount, bid_time FROM bid_transaction WHERE auction_id = ? ORDER BY bid_amount DESC, bid_time DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, auctionId);
@@ -148,6 +150,7 @@ public class AuctionDAO {
                 }
             }
         } catch (Exception e) {
+            System.err.println("Failed to retrieve bid history for auction with ID: " + auctionId + " - " + e.getMessage());
             e.printStackTrace();
         }
         return history;
