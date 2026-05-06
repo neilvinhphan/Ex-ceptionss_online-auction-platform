@@ -15,12 +15,10 @@ public class User extends Entity {
   protected String password;
   protected RoleType role;
   protected UserStatus status;
+  private BigDecimal balance;
 
   // Seller contributes
   private SellerProfile sellerProfile;
-
-  // Bidder contributes
-  private BigDecimal balance;
 
   // Đăng ký tài khoản
   public User(String userName, String password, String email, String phone) {
@@ -31,34 +29,25 @@ public class User extends Entity {
   }
 
   // Lấy dữ liệu từ Database
-  public User(String userName, String phone, String email, LocalDateTime createdAt, int userId, RoleType role) {
+  public User(
+      String userName,
+      String phone,
+      String email,
+      LocalDateTime createdAt,
+      int userId,
+      RoleType role,
+      BigDecimal balance) {
     this.createdAt = createdAt;
     this.userName = userName;
     this.phone = phone;
     this.email = email;
     this.userId = userId;
     this.role = role;
+    this.balance = balance;
   }
 
   // Constructor rỗng cho DB
   public User() {}
-
-  // SELLER METHODS
-  //  public Item createItem(String type, String name, String desc, BigDecimal startingPrice) {
-  //    Item newItem = null;
-  //    if (type.equalsIgnoreCase("Vehicle")) {
-  //      newItem = new VehicleItem(0, null, type, name, desc, startingPrice);
-  //    } else if (type.equalsIgnoreCase("Art")) {
-  //      newItem = new ArtItem(0, null, type, name, artist, creationYear, desc, startingPrice);
-  //    } else if (type.equalsIgnoreCase("Electronics")) {
-  //      newItem =
-  //          new ElectronicsItem(
-  //              0, null, type, name, brand, warrantyMonths, condition, desc, startingPrice);
-  //    }
-  //    return newItem;
-  //  }
-
-  public void removeItem() {}
 
   // GETTER & SETTER
   public String getUserName() {
@@ -69,9 +58,13 @@ public class User extends Entity {
     this.userName = userName;
   }
 
-  public int getUserId() {return userId;}
+  public int getUserId() {
+    return userId;
+  }
 
-  public void setUserId(int userId) {this.userId = userId;}
+  public void setUserId(int userId) {
+    this.userId = userId;
+  }
 
   public String getPhone() {
     return phone;

@@ -11,6 +11,7 @@ public class Auction extends Entity {
   private int id;
   private int itemId;
   private int auctionId;
+  private int bidderId;
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
@@ -24,7 +25,7 @@ public class Auction extends Entity {
   public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
     this.item = item;
-    this.status = AuctionStatus.WAREHOUSE;
+    this.status = AuctionStatus.RUNNING;
     this.startTime = LocalDateTime.now();
     this.durationMinutes = durationMinutes;
     this.bidIncrement = bidIncrement;
@@ -39,7 +40,8 @@ public class Auction extends Entity {
       LocalDateTime startTime,
       long durationMinutes,
       List<BidTransaction> bidHistory,
-      BigDecimal highestBid) {
+      BigDecimal highestBid,
+      int bidderId) {
     super(createdAt);
     this.id = id;
     this.item = item;
@@ -48,24 +50,10 @@ public class Auction extends Entity {
     this.durationMinutes = durationMinutes;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
+    this.bidderId = bidderId;
   }
 
-  public Auction() {
-
-  }
-
-  // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
-  public void start(LocalDateTime now) {
-    if (this.status == AuctionStatus.WAREHOUSE) {
-      this.status = AuctionStatus.RUNNING;
-      this.startTime = LocalDateTime.now();
-      this.endTime = this.startTime.plusMinutes(this.durationMinutes);
-    } else if (this.status == AuctionStatus.RUNNING) {
-      throw new RuntimeException("Phiên đấu giá đang diễn ra!");
-    } else {
-      throw new RuntimeException("Phiên đấu giá đã kết thúc!");
-    }
-  }
+  public Auction() {}
 
   // Hết time --> Đóng phiên
   public void close(LocalDateTime now) {
@@ -109,13 +97,37 @@ public class Auction extends Entity {
     return rangeCheck;
   }
 
-  public int getItemId() {return itemId;}
+  public int getId() {
+    return id;
+  }
 
-  public void setItemId(int itemId) {this.itemId = itemId;}
+  public void setId(int id) {
+    this.id = id;
+  }
 
-  public int getAuctionId() {return auctionId;}
+  public int getBidderId() {
+    return bidderId;
+  }
 
-  public void setAuctionId(int auctionId) {this.auctionId = auctionId;}
+  public void setBidderId(int bidderId) {
+    this.bidderId = bidderId;
+  }
+
+  public int getItemId() {
+    return itemId;
+  }
+
+  public void setItemId(int itemId) {
+    this.itemId = itemId;
+  }
+
+  public int getAuctionId() {
+    return auctionId;
+  }
+
+  public void setAuctionId(int auctionId) {
+    this.auctionId = auctionId;
+  }
 
   public Item getItem() {
     return item;
@@ -169,13 +181,8 @@ public class Auction extends Entity {
     return highestBid;
   }
 
-  public void setHighestBid(BigDecimal highestBid) {this.highestBid = highestBid;}
-  public BigDecimal getBidIncrement() {
-    return bidIncrement;
-  }
-
-  public void setBidIncrement(BigDecimal bidIncrement) {
-    this.bidIncrement = bidIncrement;
+  public void setHighestBid(BigDecimal highestBid) {
+    this.highestBid = highestBid;
   }
 
   public BigDecimal getBidIncrement() {
@@ -185,5 +192,4 @@ public class Auction extends Entity {
   public void setBidIncrement(BigDecimal bidIncrement) {
     this.bidIncrement = bidIncrement;
   }
-
 }
