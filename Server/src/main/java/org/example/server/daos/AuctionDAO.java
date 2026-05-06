@@ -122,9 +122,8 @@ public class AuctionDAO {
     }
   }
 
-  // 1
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
-    String sql = "UPDATE auction_items SET status = ? WHERE auction_id = ?";
+    String sql = "UPDATE auction SET status = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
@@ -135,9 +134,8 @@ public class AuctionDAO {
     }
   }
 
-  // 1
   public Auction getAuctionByAuctionId(int auctionId) {
-    String sql = "SELECT * FROM auction_items WHERE auction_id = ?";
+    String sql = "SELECT * FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
@@ -160,9 +158,8 @@ public class AuctionDAO {
     return null;
   }
 
-  // 1
   public BigDecimal getBidIncrementByAuctionId(int auctionId) {
-    String sql = "SELECT bid_increment FROM auction_items WHERE auction_id = ?";
+    String sql = "SELECT bid_increment FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
@@ -177,9 +174,8 @@ public class AuctionDAO {
     return null;
   }
 
-  // 1
   public boolean updateAuctionEndTime(int auctionId, LocalDateTime endTime) {
-    String sql = "UPDATE auction_items SET end_time = ? WHERE auction_id = ?";
+    String sql = "UPDATE auction SET end_time = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setTimestamp(1, Timestamp.valueOf(endTime));
@@ -190,7 +186,6 @@ public class AuctionDAO {
     }
   }
 
-  // 1
   public String getAuctionStatus(int auctionId) {
     String sql = "SELECT status FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -208,7 +203,7 @@ public class AuctionDAO {
   }
 
   public boolean updateHighestPriceByItemId(int itemId, BigDecimal newPrice) {
-    String sql = "UPDATE auction SET highest_price = ? WHERE item_id = ?";
+    String sql = "UPDATE auction SET highest_price = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
