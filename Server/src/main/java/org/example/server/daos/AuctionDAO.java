@@ -121,7 +121,8 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
   }
-  //1
+
+  // 1
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
     String sql = "UPDATE auction_items SET status = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -133,11 +134,12 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
   }
-  //1
+
+  // 1
   public Auction getAuctionByAuctionId(int auctionId) {
     String sql = "SELECT * FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -148,6 +150,7 @@ public class AuctionDAO {
           auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
           auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
           auction.setHighestBid(rs.getBigDecimal("current_price"));
+          auction.setId(Integer.parseInt("bidder"));
           return auction;
         }
       }
@@ -156,11 +159,12 @@ public class AuctionDAO {
     }
     return null;
   }
-  //1
+
+  // 1
   public BigDecimal getBidIncrementByAuctionId(int auctionId) {
     String sql = "SELECT bid_increment FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -172,11 +176,12 @@ public class AuctionDAO {
     }
     return null;
   }
-//1
+
+  // 1
   public boolean updateAuctionEndTime(int auctionId, LocalDateTime endTime) {
     String sql = "UPDATE auction_items SET end_time = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setTimestamp(1, Timestamp.valueOf(endTime));
       ps.setInt(2, auctionId);
       return ps.executeUpdate() > 0;
@@ -184,7 +189,8 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
   }
-  //1
+
+  // 1
   public String getAuctionStatus(int auctionId) {
     String sql = "SELECT status FROM auction_items WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
