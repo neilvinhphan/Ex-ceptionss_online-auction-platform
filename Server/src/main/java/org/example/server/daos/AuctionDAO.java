@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -106,20 +107,24 @@ public class AuctionDAO {
     return -1;
   }
 
-  public boolean createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
+  public int createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
     String sql =
         "INSERT INTO auction (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getItemId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
       LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);
       ps.setTimestamp(4, Timestamp.valueOf(endtime));
-      return ps.executeUpdate() > 0;
+      try (ResultSet rs = ps.executeUpdate() > 0 ? ps.getGeneratedKeys() : null) {
+        if (rs.next()) {
+          return rs.getInt(1);
+        }
+      }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
-    }
+    } return -1;
   }
 
   public void setAuctionStatus(int auctionId, AuctionStatus status) {
@@ -147,8 +152,9 @@ public class AuctionDAO {
           auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
           auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
           auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-          auction.setHighestBid(rs.getBigDecimal("current_price"));
-          auction.setId(Integer.parseInt("bidder"));
+          auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+          auction.setHighestBid(rs.getBigDecimal("highest_price"));
+          auction.setId(rs.getInt("bidder_id"));
           return auction;
         }
       }
