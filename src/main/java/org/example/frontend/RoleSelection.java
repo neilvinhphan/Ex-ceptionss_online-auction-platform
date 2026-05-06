@@ -23,6 +23,14 @@ import javafx.stage.Stage;
 
 public class RoleSelection extends Application {
 
+    private String loggedInUsername = "guest";
+
+    public RoleSelection() {}
+
+    public RoleSelection(String username) {
+        this.loggedInUsername = username;
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -65,6 +73,14 @@ public class RoleSelection extends Application {
         admin.setStyle("-fx-background-color: WHITE;" +
                 "-fx-text-fill: BLACK;");
         admin.setEffect(ds);
+
+        user.setOnAction(e -> {
+            Stage currentStage = (Stage) user.getScene().getWindow();
+            currentStage.close();
+            AuctionHomeScreen homeScreen = new AuctionHomeScreen(loggedInUsername);
+            Stage homeStage = new Stage();
+            homeScreen.start(homeStage);
+        });
 
         hbrole.getChildren().addAll(user, admin);
         grid.add(hbrole, 0, 1);

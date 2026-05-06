@@ -94,7 +94,7 @@ public class Signin extends Application {
             } else {
                 Stage currentStage = (Stage) signin.getScene().getWindow();
                 currentStage.close();
-                RoleSelection roleSelection = new RoleSelection();
+                RoleSelection roleSelection = new RoleSelection(tfusename.getText().trim());
                 Stage roleStage = new Stage();
                 roleSelection.start(roleStage);
             }
