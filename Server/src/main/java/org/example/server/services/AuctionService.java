@@ -107,30 +107,30 @@ public class AuctionService {
     scheduler = Executors.newScheduledThreadPool(1);
 
     Runnable autoCloseTask =
-        new Runnable() {
-          @Override
-          public void run() {
-            try {
-              System.out.println(
-                  "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
+            new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  System.out.println(
+                          "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
 
-              // Lấy list các phiên RUNNING đã qua giờ endTime
-              List<Auction> expiredAuctions =
-                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+                  // Lấy list các phiên RUNNING đã qua giờ endTime
+                  List<Auction> expiredAuctions =
+                          auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
 
-              // Lặp qua list và đổi trạng thái thành FINISHED
-              for (Auction a : expiredAuctions) {
-                if (LocalDateTime.now().isAfter(a.getEndTime())) {
-                  auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
-                  System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+                  // Lặp qua list và đổi trạng thái thành FINISHED
+                  for (Auction a : expiredAuctions) {
+                    if (LocalDateTime.now().isAfter(a.getEndTime())) {
+                      auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                      System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
+                    }
+                  }
+
+                } catch (Exception e) {
+                  System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
                 }
               }
-
-            } catch (Exception e) {
-              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
-            }
-          }
-        };
+            };
 
     // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
     scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);

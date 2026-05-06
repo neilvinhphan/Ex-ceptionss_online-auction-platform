@@ -165,4 +165,13 @@ public class Auction extends Entity {
   public void setHighestBid(BigDecimal highestBid) {
     this.highestBid = highestBid;
   }
+
+  public BigDecimal getBidIncrement() {
+    return bidIncrement;
+  }
+
+  public void setBidIncrement(BigDecimal bidIncrement) {
+    this.bidIncrement = bidIncrement;
+  }
+
 }
