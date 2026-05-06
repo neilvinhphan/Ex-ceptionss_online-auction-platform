@@ -4,10 +4,14 @@ import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
+import org.example.core.models.users.User;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
+import org.example.core.shared.enums.WalletTransactionType;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
+import org.example.server.daos.UserDAO;
+import org.example.server.daos.WalletDAO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +23,9 @@ import java.util.concurrent.TimeUnit;
 public class AuctionService {
 
   private static final AuctionDAO auctionDAO = AuctionDAO.getInstance();
+  private static final UserDAO userDAO = UserDAO.getInstance();
   private static final ItemDAO itemDAO = ItemDAO.getInstance();
+  private static final WalletDAO walletDAO = WalletDAO.getInstance();
 
   // ==========================================
   //  1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
@@ -107,30 +113,65 @@ public class AuctionService {
     scheduler = Executors.newScheduledThreadPool(1);
 
     Runnable autoCloseTask =
-            new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  System.out.println(
-                          "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              System.out.println(
+                  "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
 
-                  // Lấy list các phiên RUNNING đã qua giờ endTime
-                  List<Auction> expiredAuctions =
-                          auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+              // Lấy list các phiên RUNNING đã qua giờ endTime
+              List<Auction> expiredAuctions =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
 
-                  // Lặp qua list và đổi trạng thái thành FINISHED
-                  for (Auction a : expiredAuctions) {
-                    if (LocalDateTime.now().isAfter(a.getEndTime())) {
-                      auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
-                      System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
-                    }
+              // Lặp qua list và đổi trạng thái thành FINISHED
+              for (Auction a : expiredAuctions) {
+                if (LocalDateTime.now().isAfter(a.getEndTime())) {
+                  if (a.getId() > 0) {
+                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                    System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
                   }
-
-                } catch (Exception e) {
-                  System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
                 }
               }
-            };
+
+            } catch (Exception e) {
+              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
+            }
+          }
+        };
+
+    Runnable autoCancelTask =
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              System.out.println(
+                  "[Background Job] Quét trạng thái thanh toán: " + LocalDateTime.now());
+
+              // Lấy list các phiên FINISHED
+              List<Auction> finishedAuctions =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.FINISHED);
+
+              // Lặp qua list và đổi trạng thái thành CANCELED
+              for (Auction a : finishedAuctions) {
+                LocalDateTime deadlineToPay = a.getEndTime().plusHours(24);
+
+                if (LocalDateTime.now().isAfter(deadlineToPay)) {
+                  if (a.getId() > 0) {
+                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.CANCELED);
+                    System.out.println(
+                        "Phiên: "
+                            + a.getAuctionId()
+                            + " đã bị hủy do người thắng không thanh toán!");
+                  }
+                }
+              }
+
+            } catch (Exception e) {
+              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
+            }
+          }
+        };
 
     // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
     scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);
@@ -143,5 +184,50 @@ public class AuctionService {
       scheduler.shutdown();
       System.out.println("Đã tắt hệ thống Auto-Close ngầm!");
     }
+  }
+
+  // ==========================================
+  // 5. NHÓM XỬ LÝ THANH TOÁN
+  // ==========================================
+
+  public static void checkoutAuction(int auctionId, int winnerId) throws Exception {
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+
+    int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
+
+    User winner = userDAO.getUserByUserId(winnerId);
+    User seller = userDAO.getUserByUserId(sellerId);
+
+    if (!auctionDAO.getAuctionStatus(auctionId).equals(AuctionStatus.FINISHED)) {
+      throw new Exception("Phiên đấu giá đã được thanh toán!");
+    }
+    if (auction.getBidderId() != winnerId) {
+      throw new Exception("Xảy ra lỗi! Bạn không phải người thắng đấu giá!");
+    }
+
+    if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
+      throw new Exception("Số dư khả dụng không đủ!");
+    }
+    // Trừ tiền của người mua
+    BigDecimal payingAmount = winner.getBalance().subtract(auction.getHighestBid());
+    userDAO.updateBalanceInDB(winnerId, payingAmount);
+
+    // Cộng tiền cho người bán
+    BigDecimal revenue = seller.getBalance().add(auction.getHighestBid());
+    userDAO.updateBalanceInDB(sellerId, revenue);
+
+    // Cập nhật trạng thái phiên
+    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
+
+    // Cập nhật người sở hữu
+    itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
+
+    // Insert hóa đơn biến động số dư
+    // Winner
+    walletDAO.insertWalletTransaction(
+        winnerId, payingAmount, WalletTransactionType.PAY_AUCTION, auctionId);
+    // Seller
+    walletDAO.insertWalletTransaction(
+        sellerId, revenue, WalletTransactionType.SELL_REVENUE, auctionId);
   }
 }

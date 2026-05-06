@@ -11,6 +11,7 @@ public class Auction extends Entity {
   private int id;
   private int itemId;
   private int auctionId;
+  private int bidderId;
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
@@ -39,7 +40,8 @@ public class Auction extends Entity {
       LocalDateTime startTime,
       long durationMinutes,
       List<BidTransaction> bidHistory,
-      BigDecimal highestBid) {
+      BigDecimal highestBid,
+      int bidderId) {
     super(createdAt);
     this.id = id;
     this.item = item;
@@ -48,6 +50,7 @@ public class Auction extends Entity {
     this.durationMinutes = durationMinutes;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
+    this.bidderId = bidderId;
   }
 
   public Auction() {}
@@ -92,6 +95,22 @@ public class Auction extends Entity {
             && (now.isBefore(this.endTime) || now.isEqual(this.endTime));
 
     return rangeCheck;
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  public int getBidderId() {
+    return bidderId;
+  }
+
+  public void setBidderId(int bidderId) {
+    this.bidderId = bidderId;
   }
 
   public int getItemId() {
@@ -173,5 +192,4 @@ public class Auction extends Entity {
   public void setBidIncrement(BigDecimal bidIncrement) {
     this.bidIncrement = bidIncrement;
   }
-
 }
