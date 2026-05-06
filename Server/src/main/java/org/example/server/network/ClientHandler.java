@@ -11,6 +11,7 @@ import org.example.core.dto.*;
 import org.example.core.models.entities.Auction;
 import org.example.core.shared.enums.ItemStatus;
 
+import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
 
 import org.example.core.models.items.Item;
@@ -95,6 +96,18 @@ public class ClientHandler implements Runnable {
                             break;
                         case "GET_BID_HISTORY":
                             handleGetBidHistory(request);
+                            break;
+                        case "GET_ACTIVE_AUCTIONS":
+                            try {
+                                // Gọi DAO lấy danh sách các sản phẩm đang/sắp đấu giá
+                                List<Item> danhSach = AuctionDAO.getInstance().getAllActiveAuctions(); // (Tên hàm tùy đệ đặt)
+
+                                // Gửi về cho Client
+                                Response res = new Response("SUCCESS", "Lấy danh sách thành công", danhSach);
+                                out.println(gson.toJson(res));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                             break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());

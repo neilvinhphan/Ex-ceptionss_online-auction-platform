@@ -72,13 +72,13 @@ public class AuctionRoomController extends BaseController implements Initializab
         System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
         if (sessionAuction != null && sessionItem != null) {
             // Setup giao diện ngay lập tức
-            setupRoom(sessionAuction, sessionItem);
+            setRoomData(sessionAuction, sessionItem);
         } else {
             showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
         }
     }
 
-    private void setupRoom(Auction auction, Item item) {
+    private void setRoomData(Auction auction, Item item) {
         this.currentAuction = auction;
         this.currentMaxPrice = auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
 
