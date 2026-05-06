@@ -81,7 +81,7 @@
                                     <Label fx:id="lblRole" style="-fx-font-size: 15; -fx-text-fill: #333;" text="     Bidder" />
                                  </children>
                               </HBox>
-                              <Region HBox.hgrow="ALWAYS" />
+                              <Region maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                               <HBox>
                                  <children>
                                     <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số dư:" />
