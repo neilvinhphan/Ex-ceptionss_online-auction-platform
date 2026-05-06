@@ -48,13 +48,13 @@ public class AuctionService {
       throw new Exception("Vật phẩm đang được đấu giá!");
     }
 
-    // Khởi tạo Auction mới (Nó sẽ tự nhận trạng thái WAREHOUSE từ Constructor)
-    Auction newAuction = new Auction(checkItem, durationMinutes, bidIncrement);
 
     // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
     // THÊM DÒNG NÀY VÀO ĐỂ LƯU XUỐNG DB THẬT SỰ NÀY:
-    AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
+    int auction_id = AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
+
+    Auction newAuction = auctionDAO.getAuctionByAuctionId(auction_id);
 
     return newAuction;
   }

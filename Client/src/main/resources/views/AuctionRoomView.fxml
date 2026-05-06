@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionRoomController">
+<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionRoomController">
 
     <content>
         <BorderPane style="-fx-background-color:#f3f4f6;">
@@ -57,12 +57,12 @@
                                 <Label fx:id="lblBid" style="-fx-font-size:18; -fx-font-weight:bold;" text="...." />
                             </VBox>
                         </HBox>
-                        <VBox spacing="5" style="-fx-background-color:#fff5f5; -fx-padding:15; -fx-background-radius:10;">
-                            <children>
-                                <Label style="-fx-text-fill:#e74c3c;" text="Trạng thái sàn" />
-                                <Label fx:id="lblStatus" style="-fx-font-size:24; -fx-font-weight:bold; -fx-text-fill:#c0392b;" text="........" />
-                            </children>
-                        </VBox>
+                  <VBox spacing="5" style="-fx-background-color:#fff5f5; -fx-padding:15; -fx-background-radius:10;">
+                     <children>
+                        <Label style="-fx-text-fill:#e74c3c;" text="Trạng thái sàn" />
+                        <Label fx:id="lblStatus" style="-fx-font-size:24; -fx-font-weight:bold; -fx-text-fill:#c0392b;" text="........" />
+                     </children>
+                  </VBox>
 
                         <Label style="-fx-font-weight:bold;" text="Mô tả chi tiết:" />
                         <TextArea fx:id="taDescription" editable="false" prefHeight="150" style="-fx-background-radius:10;" wrapText="true" />
@@ -79,7 +79,7 @@
                             </HBox>
                         </VBox>
 
-                        <VBox spacing="10" style="-fx-padding:15; -fx-background-color:#f8f9fa; -fx-background-radius:10; -fx-border-color:#dee2e6; -fx-border-radius:10;">
+                        <VBox prefHeight="47.0" prefWidth="360.0" spacing="10" style="-fx-padding:15; -fx-background-color:#f8f9fa; -fx-background-radius:10; -fx-border-color:#dee2e6; -fx-border-radius:10;">
                             <Label style="-fx-font-weight:bold;" text="Nhập giá muốn đặt:" />
                             <TextField fx:id="tfBidAmount" prefHeight="40" promptText="VND..." style="-fx-font-size:16;" />
                             <Button fx:id="btnPlaceBid" maxWidth="Infinity" onAction="#handlePlaceBid" prefHeight="45" style="-fx-background-color:#28a745; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:14;" text="GỬI GIÁ ĐẤU" />
@@ -103,11 +103,6 @@
                             <Label text="Người chiến thắng:" />
                             <Label fx:id="lblWinner" style="-fx-font-weight:bold; -fx-text-fill:#228be6;" text="--" />
                         </HBox>
-
-                        <VBox fx:id="vboxCheckoutSection" alignment="CENTER" spacing="10" style="-fx-padding: 10 0 0 0;">
-                            <Button fx:id="btnCheckout" maxWidth="Infinity" onAction="#handleCheckout" prefHeight="50" style="-fx-background-color:#ff9f43; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:16; -fx-background-radius:8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" text="THANH TOÁN NGAY" managed="false" visible="false" />
-                            <Label fx:id="lblPostAuctionStatus" alignment="CENTER" style="-fx-font-size:16; -fx-font-weight:bold; -fx-text-fill:#e74c3c;" text="Giao dịch đã bị hủy!" wrapText="true" managed="false" visible="false" />
-                        </VBox>
                     </VBox>
 
                 </HBox>

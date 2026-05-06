@@ -83,7 +83,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         Auction sessionAuction = AuctionSession.getInstance().getCurrentAuction();
         Item sessionItem = AuctionSession.getInstance().getCurrentItem();
 
-        System.out.println("DEBUG: Auction có null ko? " + (sessionAuction == null));
+        System.out.println("DEBUG: Auction có null ko? " + sessionAuction.getAuctionId() + (sessionAuction == null));
         System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
 
         if (sessionAuction != null && sessionItem != null) {
@@ -158,6 +158,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         } catch (NumberFormatException e) {
             lblBidError.setStyle("-fx-text-fill: red;");
             lblBidError.setText("Vui lòng nhập số tiền hợp lệ!");
+            e.printStackTrace();
         }
     }
 
