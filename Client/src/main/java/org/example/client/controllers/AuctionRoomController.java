@@ -8,6 +8,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession; // Đưa Trạm trung chuyển vào
 import org.example.client.utils.UserSession;
@@ -15,6 +17,7 @@ import org.example.core.dto.BidRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.Item;
+import org.example.core.shared.enums.AuctionStatus;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -35,7 +38,9 @@ public class AuctionRoomController extends BaseController implements Initializab
     @FXML private ListView<String> lvBidHistory;
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private Button btnPlaceBid;
-
+    @FXML private VBox vboxCheckoutSection;
+    @FXML private Button btnCheckout;
+    @FXML private Label lblPostAuctionStatus;
     private XYChart.Series<Number, Number> priceSeries; // để vẽ biểu đồ
     private ScheduledExecutorService timerService; // auto đếm ngược time
 
@@ -223,6 +228,49 @@ public class AuctionRoomController extends BaseController implements Initializab
     private void stopTimer() {
         if (timerService != null && !timerService.isShutdown()) {
             timerService.shutdown();
+        }
+    }
+    private void checkPostAuctionStatus(AuctionStatus status, String winnerName, String currentUsername) {
+        // Ẩn nút Đặt Giá vì phòng đã đóng
+        tfBidAmount.setDisable(true);
+        btnPlaceBid.setDisable(true);
+
+        // Mở khóa VBox hiển thị phần thanh toán
+        vboxCheckoutSection.setVisible(true);
+        vboxCheckoutSection.setManaged(true);
+
+        if (status == AuctionStatus.FINISHED) {
+            if (winnerName.equals(currentUsername)) {
+                // Là người thắng -> Bật nút thanh toán
+                btnCheckout.setVisible(true);
+                btnCheckout.setManaged(true);
+                lblPostAuctionStatus.setVisible(false);
+                lblPostAuctionStatus.setManaged(false);
+            } else {
+                // Không phải người thắng -> Chỉ báo phòng đã kết thúc
+                btnCheckout.setVisible(false);
+                btnCheckout.setManaged(false);
+                lblPostAuctionStatus.setText("Phiên đấu giá đã kết thúc!");
+                lblPostAuctionStatus.setStyle("-fx-text-fill: #7f8c8d;"); // Màu xám
+                lblPostAuctionStatus.setVisible(true);
+                lblPostAuctionStatus.setManaged(true);
+            }
+        }
+        else if (status == AuctionStatus.PAID) {
+            btnCheckout.setVisible(false);
+            btnCheckout.setManaged(false);
+            lblPostAuctionStatus.setText("Đã thanh toán, kiểm tra kho đồ!");
+            lblPostAuctionStatus.setStyle("-fx-text-fill: #27ae60;"); // Màu xanh lá
+            lblPostAuctionStatus.setVisible(true);
+            lblPostAuctionStatus.setManaged(true);
+        }
+        else if (status == AuctionStatus.CANCELED) {
+            btnCheckout.setVisible(false);
+            btnCheckout.setManaged(false);
+            lblPostAuctionStatus.setText("Giao dịch đã bị hủy!");
+            lblPostAuctionStatus.setStyle("-fx-text-fill: #c0392b;"); // Màu đỏ
+            lblPostAuctionStatus.setVisible(true);
+            lblPostAuctionStatus.setManaged(true);
         }
     }
 }
