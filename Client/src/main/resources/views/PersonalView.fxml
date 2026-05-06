@@ -73,7 +73,7 @@
                               <Insets bottom="10.0" />
                            </VBox.margin>
                         </Label>
-                        <HBox alignment="CENTER_LEFT" layoutX="50.0" layoutY="117.0" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
+                        <VBox>
                            <children>
                               <HBox spacing="1.0">
                                  <children>
@@ -81,7 +81,7 @@
                                     <Label fx:id="lblRole" style="-fx-font-size: 15; -fx-text-fill: #333;" text="     Bidder" />
                                  </children>
                               </HBox>
-                              <Region maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                              <Region maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                               <HBox>
                                  <children>
                                     <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số dư:" />
@@ -89,7 +89,7 @@
                                  </children>
                               </HBox>
                            </children>
-                        </HBox>
+                        </VBox>
 
                         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                            <children>
