@@ -278,4 +278,5 @@ public class CreateItemController extends BaseController implements Initializabl
     void handleWareHouse(ActionEvent event) {
         switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
     }
+
 }
