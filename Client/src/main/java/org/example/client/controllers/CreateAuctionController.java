@@ -8,14 +8,11 @@ import com.google.gson.JsonParser;
 
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
-import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.dto.PendingRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
-import org.example.core.models.entities.Auction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item; // Đảm bảo bạn đã import đúng class Item của bạn
@@ -219,11 +216,6 @@ public class CreateAuctionController extends BaseController implements Initializ
             return;
         }
 
-        /*
-        if (getStartDate() == null) {
-            showAlert("Lỗi", "Vui lòng chọn Ngày bắt đầu đấu giá!");
-            return;
-        }*/
         if (getDuration().toMinutes() <= 0) {
             showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
             return;
@@ -249,29 +241,10 @@ public class CreateAuctionController extends BaseController implements Initializ
                     Platform.runLater(() -> {
                         if ("SUCCESS".equals(response.getStatus())) {
                             showAlert("Thành công", "Đã tạo cuộc đấu giá thành công!");
-
-                            try {
-                                // 1. Ép kiểu dữ liệu Server trả về thành đối tượng Auction
-                                // (Đảm bảo Server của đệ đã trả về newAuction trong response.getData() nhé)
-                                String auctionData = gson.toJson(response.getData());
-                                System.out.println("📦 RAW JSON TỪ SERVER: " + gson.toJson(response));
-                                Auction createdAuction =
-                                        gson.fromJson(auctionData, Auction.class);
-                                System.out.println("Check Auction ID sau khi parse: " + createdAuction.getAuctionId());
-                                // 2. 👉 BỎ VÉ VÀO TÚI (Lưu vào Trạm trung chuyển)
-                                AuctionSession.getInstance().setRoomData(createdAuction, selectedItem);
-
-                                // 3. Chuyển cảnh bằng hàm switchScene
-                                switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá");
-
-                                // 4. Tạo xong thì clear form
-                                tfStartingPrice.clear();
-                                cbPendingItems.getSelectionModel().clearSelection();
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                                showAlert("Lỗi dữ liệu", "Chuyển phòng thất bại do lỗi đọc dữ liệu đấu giá!");
-                            }
+                            switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá");
+                            // Tạo xong thì clear form đi hoặc chuyển hướng về trang Danh sách
+                            tfStartingPrice.clear();
+                            cbPendingItems.getSelectionModel().clearSelection();
                         } else {
                             showAlert("Lỗi tạo đấu giá", response.getMessage());
                         }
