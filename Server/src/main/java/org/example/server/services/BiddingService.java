@@ -88,7 +88,7 @@ public class BiddingService {
 
       boolean inserted =
           bidDAO.updateNewBid(
-              request.getAuctionId(), request.getAuctionId(), request.getBidAmount());
+              request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!inserted) {
         throw new Exception("Không thể ghi nhận lượt đặt giá.");
       }
