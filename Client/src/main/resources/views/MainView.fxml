@@ -43,6 +43,7 @@
                                       <items>
                                           <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                                           <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleUpgrade" text="🆙 Nâng cấp lên seller" />
                                       </items>
                                   </MenuButton>
                             </children>
