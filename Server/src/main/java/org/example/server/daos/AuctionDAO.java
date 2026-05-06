@@ -192,7 +192,7 @@ public class AuctionDAO {
 
   // 1
   public String getAuctionStatus(int auctionId) {
-    String sql = "SELECT status FROM auction_items WHERE auction_id = ?";
+    String sql = "SELECT status FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);

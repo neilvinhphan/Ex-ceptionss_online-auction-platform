@@ -47,7 +47,7 @@ public class BidDAO {
    */
   //1
   public BigDecimal getCurrentPrice(int auctionId) {
-    String sql = "SELECT current_price FROM auction_items WHERE auction_id = ?";
+    String sql = "SELECT current_price FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
@@ -81,7 +81,7 @@ public class BidDAO {
   public int getBidIdByItemsId(int itemId) {
     String sql = "SELECT b.bid_id " +
             "FROM bid b " +
-            "JOIN auction_items ai ON b.auction_id = ai.auction_id " +
+            "JOIN auction ai ON b.auction_id = ai.auction_id " +
             "WHERE ai.items_id = ? " +
             "ORDER BY b.bid_id DESC " +
             "LIMIT 1";
