@@ -25,15 +25,14 @@ public class BidDAO {
     }
     return instance;
   }
-  //1
-  public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {//1
-    String sql = "INSERT INTO bid (auction_id, user_id, amount, created_at) VALUES (?, ?, ?, ?)";
+
+  public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {
+    String sql = "INSERT INTO bid (auction_id, bidder_id, amount) VALUES (?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       ps.setInt(2, userId);
       ps.setBigDecimal(3, amount);
-      ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
       int rowsUpdated = ps.executeUpdate();
       return rowsUpdated > 0;
     } catch (SQLException | IOException e) {
@@ -45,15 +44,14 @@ public class BidDAO {
    * Lấy giá hiện tại của phiên từ bảng auction_items
    * Nếu chưa có -> trả null
    */
-  //1
   public BigDecimal getCurrentPrice(int auctionId) {
-    String sql = "SELECT current_price FROM auction_items WHERE auction_id = ?";
+    String sql = "SELECT highest_price FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getBigDecimal("current_price");
+          return rs.getBigDecimal("highest_price");
         }
         return null;
       }
@@ -65,9 +63,8 @@ public class BidDAO {
   /**
    * Cập nhật current_price sau khi nhận bid hợp lệ
    */
-  //1
   public boolean updateCurrentPrice(int auctionId, BigDecimal newPrice) {
-    String sql = "UPDATE auction_items SET current_price = ? WHERE auction_id = ?";
+    String sql = "UPDATE auction SET highest_price = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
@@ -77,11 +74,11 @@ public class BidDAO {
       throw new RuntimeException(e);
     }
   }
-  //1
+
   public int getBidIdByItemsId(int itemId) {
     String sql = "SELECT b.bid_id " +
             "FROM bid b " +
-            "JOIN auction_items ai ON b.auction_id = ai.auction_id " +
+            "JOIN auction ai ON b.auction_id = ai.auction_id " +
             "WHERE ai.items_id = ? " +
             "ORDER BY b.bid_id DESC " +
             "LIMIT 1";
@@ -100,10 +97,9 @@ public class BidDAO {
   /**
    * Lịch sử bid theo auction để FE vẽ biểu đồ
    */
-  //1
   public List<BidTransaction> getBidTransactionByAuctionId(int auctionId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT amount, created_at, user_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
+    String sql = "SELECT amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
@@ -111,7 +107,7 @@ public class BidDAO {
         while (rs.next()) {
           BigDecimal amount = rs.getBigDecimal("amount");
           Timestamp ts = rs.getTimestamp("created_at");
-          int bidderId = rs.getInt("user_id");
+          int bidderId = rs.getInt("bidder_id");
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
 
           transactions.add(new BidTransaction(amount, time, bidderId));
@@ -123,10 +119,9 @@ public class BidDAO {
     }
   }
 
-  //1
   public List<BidTransaction> getBidTransactionByUserId(int userId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT amount, created_at, user_id FROM bid WHERE user_id = ? ORDER BY created_at DESC";
+    String sql = "SELECT amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
@@ -134,7 +129,7 @@ public class BidDAO {
         while (rs.next()) {
           BigDecimal amount = rs.getBigDecimal("amount");
           Timestamp ts = rs.getTimestamp("created_at");
-          int bidderId = rs.getInt("user_id");
+          int bidderId = rs.getInt("bidder_id");
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
 
           transactions.add(new BidTransaction(amount, time, bidderId));

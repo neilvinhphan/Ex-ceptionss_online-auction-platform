@@ -30,4 +30,11 @@ public class AuctionClient {
             throw new RuntimeException("Error sending request: " + e.getMessage(), e);
         }
     }
+    public PrintWriter getOut() {
+        return this.out; // Trả về biến out đã khai báo ở trên cùng của class
+    }
+
+    public BufferedReader getIn() {
+        return this.in; // Trả về biến in đã khai báo ở trên cùng của class
+    }
 }
