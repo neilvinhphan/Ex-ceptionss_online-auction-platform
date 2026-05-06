@@ -50,6 +50,16 @@ public class WalletDAO {
 
   public boolean insertWalletTransaction(
       int userId, BigDecimal amount, WalletTransactionType type, int auctionId) {
-    return true;
+    String sql = "INSERT INTO wallet_transaction (user_id, amount, transaction_type, reference_id) VALUES (?,?,?,?)";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      ps.setBigDecimal(2, amount);
+      ps.setString(3, String.valueOf(type));
+      ps.setInt(4, auctionId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    } return false;
   }
 }
