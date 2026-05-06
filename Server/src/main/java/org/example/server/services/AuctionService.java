@@ -1,6 +1,5 @@
 package org.example.server.services;
 
-import org.example.core.dto.AuctionRequestDTO;
 import org.example.core.dto.CreateAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
