@@ -234,8 +234,10 @@ public class CreateAuctionController extends BaseController implements Initializ
       showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
       return;
     }
-      if(tfBidIncrement == null){
-          showAlert("Lỗi","Vui lòng nhập bước giá!");
+      String bidIncrText = tfBidIncrement.getText().trim();
+      if (bidIncrText.isEmpty()) {
+          showAlert("Lỗi", "Vui lòng nhập bước giá!");
+          return; // Dừng lại không chạy tiếp
       }
     if (getDuration().toMinutes() <= 0) {
       showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
