@@ -29,7 +29,7 @@ public class WalletDAO {
   public BigDecimal getAvailableBalance(int userId) {
     String sql =
         """
-                     SELECT (balance - (SELECT COALESCE(SUM(current_price), 0)
+                     SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
                      FROM auction
                      WHERE bidder_id = ? AND status = 'RUNNING')) AS available_balance FROM user WHERE user_id = ?""";
 
