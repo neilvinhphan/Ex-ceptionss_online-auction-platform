@@ -48,11 +48,11 @@ public class AuctionService {
       throw new Exception("Vật phẩm đang được đấu giá!");
     }
 
-
     // TODO: Gọi AuctionDAO.insert(newAuction) để lưu nháp xuống DB.
 
     // THÊM DÒNG NÀY VÀO ĐỂ LƯU XUỐNG DB THẬT SỰ NÀY:
-    int auction_id = AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
+    int auction_id =
+        AuctionDAO.getInstance().createNewAuctionItem(checkItem, durationMinutes, bidIncrement);
 
     Auction newAuction = auctionDAO.getAuctionByAuctionId(auction_id);
 
@@ -91,8 +91,16 @@ public class AuctionService {
   }
 
   public static void updateHighestBid(int auctionId, BidTransaction newBid) throws Exception {
-    // Gọi DAO cập nhật ID của người đang trả giá cao nhất vào bảng Auction.
+    // Móc tiền và ID người Bid ra
+    BigDecimal newPrice = newBid.getAmount();
+    int bidderId = newBid.getBidderId();
 
+    // Gọi DAO cập nhật ID của người đang trả giá cao nhất và Giá hiện tại vào bảng Auction.
+    boolean isUpdated = auctionDAO.updateHighestPriceByItemId(bidderId, newPrice);
+
+    if (!isUpdated) {
+      throw new Exception("Cập nhật giá thất bại, không tìm thấy phiên đấu giá!");
+    }
   }
 
   // ==========================================
