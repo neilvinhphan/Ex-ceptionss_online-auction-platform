@@ -126,34 +126,6 @@ public class AuctionService {
           public void run() {
             try {
               System.out.println(
-                  "[Background Job] Quét phiên đấu giá hết hạn lúc: " + LocalDateTime.now());
-
-              // Lấy list các phiên RUNNING đã qua giờ endTime
-              List<Auction> expiredAuctions =
-                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
-
-              // Lặp qua list và đổi trạng thái thành FINISHED
-              for (Auction a : expiredAuctions) {
-                if (LocalDateTime.now().isAfter(a.getEndTime())) {
-                  if (a.getId() > 0) {
-                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
-                    System.out.println("Đã tự động đóng phiên: " + a.getAuctionId());
-                  }
-                }
-              }
-
-            } catch (Exception e) {
-              System.err.println("Lỗi luồng Auto Close: " + e.getMessage());
-            }
-          }
-        };
-
-    Runnable autoCancelTask =
-        new Runnable() {
-          @Override
-          public void run() {
-            try {
-              System.out.println(
                   "[Background Job] Quét trạng thái thanh toán: " + LocalDateTime.now());
 
               // Lấy list các phiên FINISHED
@@ -216,26 +188,24 @@ public class AuctionService {
     if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
       throw new Exception("Số dư khả dụng không đủ!");
     }
-    // Trừ tiền của người mua
-    BigDecimal payingAmount = winner.getBalance().subtract(auction.getHighestBid());
-    userDAO.updateBalanceInDB(winnerId, payingAmount);
 
-    // Cộng tiền cho người bán
-    BigDecimal revenue = seller.getBalance().add(auction.getHighestBid());
-    userDAO.updateBalanceInDB(sellerId, revenue);
+    BigDecimal bidPrice = auction.getHighestBid();
+    // Trừ tiền người mua (Ghi đè số dư mới vào DB)
+    userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
+
+    // Cộng tiền người bán
+    userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
+
+    // Insert lịch sử (Truyền bidPrice, KHÔNG truyền số dư sau khi trừ)
+    walletDAO.insertWalletTransaction(
+        winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
+    walletDAO.insertWalletTransaction(
+        sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
 
     // Cập nhật trạng thái phiên
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
 
     // Cập nhật người sở hữu
     itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
-
-    // Insert hóa đơn biến động số dư
-    // Winner
-    walletDAO.insertWalletTransaction(
-        winnerId, payingAmount, WalletTransactionType.PAY_AUCTION, auctionId);
-    // Seller
-    walletDAO.insertWalletTransaction(
-        sellerId, revenue, WalletTransactionType.SELL_REVENUE, auctionId);
   }
 }
