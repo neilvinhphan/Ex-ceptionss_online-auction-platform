@@ -1,10 +1,13 @@
 package org.example.core.dto;
 
+import java.time.LocalDateTime;
+
 public class BidBroadcastDTO {
     private String type = "NEW_BID"; // Để Client biết đây là tin nhắn cập nhật giá
     private int auctionId;
     private double newPrice;
     private String leaderUsername;
+    private LocalDateTime newEndTime;
 
     public BidBroadcastDTO() {
         this.type = "NEW_BID";
@@ -16,6 +19,9 @@ public class BidBroadcastDTO {
         this.auctionId = auctionId;
         this.newPrice = newPrice;
         this.leaderUsername = leaderUsername;
+    }
+
+    public BidBroadcastDTO(int auctionId, double v, String realUsername, LocalDateTime currentEndTime) {
     }
 
     public String getType() {
@@ -48,5 +54,13 @@ public class BidBroadcastDTO {
 
     public void setLeaderUsername(String leaderUsername) {
         this.leaderUsername = leaderUsername;
+    }
+
+    public LocalDateTime getNewEndTime() {
+        return newEndTime;
+    }
+
+    public void setNewEndTime(LocalDateTime newEndTime) {
+        this.newEndTime = newEndTime;
     }
 }

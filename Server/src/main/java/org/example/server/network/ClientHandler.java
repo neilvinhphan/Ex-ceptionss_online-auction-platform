@@ -107,7 +107,7 @@ public class ClientHandler implements Runnable {
               handleGetBidHistory(request);
               break;
             case "GET_ACTIVE_AUCTIONS":
-              handleGetActiveAuctions(request);
+              handleGetActiveAuctions();
               break;
             default:
               System.out.println("Unknown action: " + request.getAction());
@@ -252,7 +252,7 @@ public class ClientHandler implements Runnable {
       ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
 
       // Báo thành công về Client
-      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!" , newAuction);
+      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!", newAuction);
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
@@ -267,26 +267,38 @@ public class ClientHandler implements Runnable {
       // Ép kiểu dữ liệu Client gửi lên thành BidRequestDTO
       String dataJson = gson.toJson(request.getData());
       org.example.core.dto.BidRequestDTO bidReq =
-          gson.fromJson(dataJson, org.example.core.dto.BidRequestDTO.class);
+              gson.fromJson(dataJson, org.example.core.dto.BidRequestDTO.class);
 
       // Ném xuống BiddingService để xử lý
       boolean success = org.example.server.services.BiddingService.getInstance().placeBid(bidReq);
 
       if (success) {
-        // Nếu đặt giá hợp lệ, tạo gói tin Broadcast
-        String username = "User_" + bidReq.getUserId();
+
+        String realUsername = "Unknown"; // Tên mặc định nếu không tìm thấy
+
+        try {
+          // Gọi UserDAO của bạn (bạn cần import hoặc trỏ đúng đường dẫn tới class UserDAO)
+          // Ví dụ: org.example.server.daos.UserDAO
+          org.example.core.models.users.User user = org.example.server.daos.UserDAO.getInstance().getUserByUserId(bidReq.getUserId());
+
+          if (user != null) {
+            realUsername = user.getUserName(); // Lấy tên thật (đảm bảo hàm get tên khớp với class User của bạn)
+          }
+        } catch (Exception e) {
+          System.out.println("Lỗi truy vấn tên người dùng: " + e.getMessage());
+        }
 
         org.example.core.dto.BidBroadcastDTO broadcastDTO =
-            new org.example.core.dto.BidBroadcastDTO(
-                bidReq.getAuctionId(),
-                bidReq
-                    .getBidAmount()
-                    .doubleValue(), // Nếu báo đỏ chỗ này thì đổi lại thành BigDecimal
-                username);
+                new org.example.core.dto.BidBroadcastDTO(
+                        bidReq.getAuctionId(),
+                        bidReq
+                                .getBidAmount()
+                                .doubleValue(),
+                        realUsername); // <--- TRUYỀN TÊN THẬT VÀO ĐÂY
 
         // Bọc lại thành Response chuẩn và HÉT LÊN CHO CẢ PHÒNG!
         Response broadcastResponse =
-            new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
+                new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
         broadcastMessage(gson.toJson(broadcastResponse));
 
       } else {
@@ -322,20 +334,23 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleGetActiveAuctions(Request request) {
+  private void handleGetActiveAuctions() {
     try {
       // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
-      List<Auction> activeItems = AuctionDAO.getInstance().getAllAuctionsByStatus(AuctionStatus.RUNNING);
+      List<Auction> activeItems =
+          AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
 
       // Khởi tạo phản hồi thành công
-      Response response = new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+      Response response =
+          new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
 
       // Gửi về cho client yêu cầu
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
       e.printStackTrace();
-      Response errorResponse = new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+      Response errorResponse =
+          new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }

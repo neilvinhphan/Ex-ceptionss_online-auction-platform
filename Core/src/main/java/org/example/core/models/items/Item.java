@@ -15,6 +15,8 @@ public abstract class Item extends Entity {
   private int itemId;
   private BigDecimal startingPrice;
   private String type;
+  private String image;
+
   protected Item() {
     super();
   }
@@ -26,6 +28,7 @@ public abstract class Item extends Entity {
     this.sellerID = builder.sellerID;
     this.status = ItemStatus.DRAFT;
     this.startingPrice = builder.startingPrice;
+    this.image = builder.image;
   }
 
   public abstract static class Builder<T extends Builder<T>> {
@@ -39,6 +42,7 @@ public abstract class Item extends Entity {
     protected LocalDateTime createdAt = LocalDateTime.now();
     protected String description;
     protected ItemStatus status;
+    protected String image;
 
     protected Builder(int sellerID, String itemName, BigDecimal startingPrice) {
       this.sellerID = sellerID;
@@ -72,7 +76,6 @@ public abstract class Item extends Entity {
     public abstract Item build();
   }
 
-  // getters/setters giữ lại nếu DAO đang cần
   public String getItemName() {
     return itemName;
   }
@@ -109,13 +112,31 @@ public abstract class Item extends Entity {
     this.itemId = itemId;
   }
 
-  public int getItemId() {return itemId;}
+  public int getItemId() {
+    return itemId;
+  }
 
-  public BigDecimal getStartingPrice() {return startingPrice;}
+  public BigDecimal getStartingPrice() {
+    return startingPrice;
+  }
 
-  public void setStartingPrice(BigDecimal startingPrice) {this.startingPrice = startingPrice;}
+  public void setStartingPrice(BigDecimal startingPrice) {
+    this.startingPrice = startingPrice;
+  }
 
-  public String getType() {return type;}
+  public String getType() {
+    return type;
+  }
 
-  public void setType(String type) {this.type = type;}
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getImage() {
+    return image;
+  }
+
+  public void setImage(String image) {
+    this.image = image;
+  }
 }
