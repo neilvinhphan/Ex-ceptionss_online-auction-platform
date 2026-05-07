@@ -282,7 +282,10 @@ public class AuctionRoomController extends BaseController implements Initializab
         cleanUpBeforeExit();
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
-
+    @FXML
+    public void handleCheckout(ActionEvent event) {
+        System.out.println("Chuyển qua giỏ hàng");
+    }
     // Gom chung logic dọn dẹp vào một hàm
     private void cleanUpBeforeExit() {
         stopTimer();
@@ -295,4 +298,6 @@ public class AuctionRoomController extends BaseController implements Initializab
             timerService.shutdown();
         }
     }
+
+
 }
