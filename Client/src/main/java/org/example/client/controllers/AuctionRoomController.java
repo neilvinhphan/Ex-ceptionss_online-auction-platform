@@ -169,30 +169,36 @@ public class AuctionRoomController extends BaseController implements Initializab
         new Thread(() -> {
             try {
                 String messageFromServer;
+                // Vòng lặp liên tục đọc ống mạng
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
 
-                    Response response = gson.fromJson(messageFromServer, Response.class);
+                    // ==========================================
+                    // ĐẶT TRY-CATCH VÀO ĐÂY ĐỂ BẢO VỆ LUỒNG KHÔNG BỊ CHẾT
+                    // ==========================================
+                    try {
+                        Response response = gson.fromJson(messageFromServer, Response.class);
 
-                    // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
-                    if ("NEW_BID".equals(response.getStatus())) {
-                        String innerData = gson.toJson(response.getData());
-                        BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
+                        // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
+                        if ("NEW_BID".equals(response.getStatus())) {
+                            String innerData = gson.toJson(response.getData());
+                            BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
 
-                        // Gọi hàm xử lý UI (Đã có sẵn của ông)
-                        onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername());
+                            // Gọi hàm xử lý UI
+                            onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername(), data.getNewEndTime());
+                        }
+                        // TH2: LỖI KHI MÌNH ĐẶT GIÁ
+                        else if ("ERROR_BID".equals(response.getStatus())) {
+                            Platform.runLater(() -> {
+                                lblBidError.setStyle("-fx-text-fill: red;");
+                                lblBidError.setText(response.getMessage());
+                            });
+                        }
+                    } catch (Exception ex) {
+                        System.err.println(" Lỗi khi xử lý gói tin từ Server: " + messageFromServer);
+                        ex.printStackTrace();
                     }
-                    // TH2: LỖI KHI MÌNH ĐẶT GIÁ
-                    else if ("ERROR_BID".equals(response.getStatus())) {
-                        Platform.runLater(() -> {
-                            lblBidError.setStyle("-fx-text-fill: red;");
-                            lblBidError.setText(response.getMessage());
-                        });
-                    }
-                    // TH3: ĐẤU GIÁ KẾT THÚC (Nếu Server có gửi thông báo này)
-                    else if ("AUCTION_END".equals(response.getStatus())) {
-                        // Tùy cấu trúc DTO kết thúc của ông, tôi làm ví dụ:
-                        // onAuctionEndBroadcastReceived(...)
-                    }
+                    // ==========================================
+
                 }
             } catch (Exception e) {
                 if (isListening) {
@@ -203,7 +209,8 @@ public class AuctionRoomController extends BaseController implements Initializab
     }
 
     // Các hàm cập nhật UI được gọi từ luồng lắng nghe
-    public void onNewBidBroadcastReceived(int incomingAuctionId, BigDecimal newPrice, String bidderName) {
+    // Thêm tham số LocalDateTime newEndTime vào hàm này
+    public void onNewBidBroadcastReceived(int incomingAuctionId, BigDecimal newPrice, String bidderName, LocalDateTime newEndTime) {
         if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
             Platform.runLater(() -> {
                 this.currentMaxPrice = newPrice;
@@ -214,6 +221,12 @@ public class AuctionRoomController extends BaseController implements Initializab
                 lvBidHistory.getItems().add(0, String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue()));
 
                 lblBidError.setText("");
+
+                if (newEndTime != null) {
+                    this.currentAuction.setEndTime(newEndTime); // Cập nhật lại biến đang giữ
+                    startCountdown(newEndTime); // GỌI LẠI HÀM NÀY ĐỂ ĐỒNG HỒ NHẢY SỐ MỚI
+                }
+                // ==========================================
             });
         }
     }
@@ -261,6 +274,10 @@ public class AuctionRoomController extends BaseController implements Initializab
                     lblStatus.setText("ĐÃ KẾT THÚC");
                     btnPlaceBid.setDisable(true);
                     tfBidAmount.setDisable(true);
+                    // Hien thi nguoi chien thang
+                    String winner = lblHighestBidder.getText();
+                    lblWinner.setText(winner);
+
                 } else {
                     long h = duration.toHours();
                     long m = duration.toMinutesPart();
