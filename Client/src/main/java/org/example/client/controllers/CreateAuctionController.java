@@ -243,6 +243,9 @@ public class CreateAuctionController extends BaseController implements Initializ
       // 3. Quy đổi thời gian
       long durationMinutes = getDuration().toMinutes();
       BigDecimal bidIncrement = new BigDecimal(tfBidIncrement.getText().trim());
+      if(tfBidIncrement == null){
+          showAlert("Cảnh báo!","Vui lòng nhập bước giá");
+      }
       // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
       CreateAuctionDTO requestDTO =
           new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement);

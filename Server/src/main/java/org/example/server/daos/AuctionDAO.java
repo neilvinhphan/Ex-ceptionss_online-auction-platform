@@ -66,7 +66,7 @@ public class AuctionDAO {
     List<Auction> auctions = new ArrayList<>();
     String sql =
         "SELECT a.*, "
-            + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
+            + "COALESCE(MAX(b.amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
             + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
