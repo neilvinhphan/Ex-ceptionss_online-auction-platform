@@ -257,7 +257,8 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML
     void handleMenuItem(ActionEvent event) {
         MenuItem menuItem = (MenuItem) event.getSource();
-        System.out.println("Đã chọn danh mục: " + menuItem.getText());
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
+
     }
 
     @FXML

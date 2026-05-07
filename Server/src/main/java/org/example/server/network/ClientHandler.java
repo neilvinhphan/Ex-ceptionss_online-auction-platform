@@ -107,9 +107,7 @@ public class ClientHandler implements Runnable {
               handleGetBidHistory(request);
               break;
             case "GET_ACTIVE_AUCTIONS":
-              List<Item> danhSach = AuctionDAO.getInstance().getAllItemByStatus(AuctionStatus.RUNNING);
-              Response res = new Response("SUCCESS", "Thành công", danhSach);
-              out.println(gson.toJson(res));
+              handleGetActiveAuctions(request);
               break;
             default:
               System.out.println("Unknown action: " + request.getAction());
@@ -320,6 +318,24 @@ public class ClientHandler implements Runnable {
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleGetActiveAuctions(Request request) {
+    try {
+      // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
+      List<Auction> activeItems = AuctionDAO.getInstance().getAllAuctionsByStatus(AuctionStatus.RUNNING);
+
+      // Khởi tạo phản hồi thành công
+      Response response = new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+
+      // Gửi về cho client yêu cầu
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }

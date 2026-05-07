@@ -27,7 +27,7 @@ public class BidDAO {
   }
 
   public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {
-    String sql = "INSERT INTO bid (auction_id, bidder_id, amount) VALUES (?, ?, ?)";
+    String sql = "INSERT INTO bid (auction_id, bidder_id, bid_amount) VALUES (?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
@@ -99,13 +99,13 @@ public class BidDAO {
    */
   public List<BidTransaction> getBidTransactionByAuctionId(int auctionId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
+    String sql = "SELECT bid_amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          BigDecimal amount = rs.getBigDecimal("amount");
+          BigDecimal amount = rs.getBigDecimal("bid_amount");
           Timestamp ts = rs.getTimestamp("created_at");
           int bidderId = rs.getInt("bidder_id");
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
@@ -121,13 +121,13 @@ public class BidDAO {
 
   public List<BidTransaction> getBidTransactionByUserId(int userId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
+    String sql = "SELECT bid_amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
-          BigDecimal amount = rs.getBigDecimal("amount");
+          BigDecimal amount = rs.getBigDecimal("bid_amount");
           Timestamp ts = rs.getTimestamp("created_at");
           int bidderId = rs.getInt("bidder_id");
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
