@@ -8,8 +8,6 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -45,10 +43,8 @@
                                 <VBox spacing="12.0">
                                     <children>
                                         <CheckBox mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả " />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Bất động sản " />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ cổ" />
+                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ điện" />
                                         <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Phương tiện" />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Trang sức" />
                                         <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Tác phẩm nghệ thuật" />
                                     </children>
                                     <VBox.margin>
@@ -68,7 +64,6 @@
                                         <RadioButton mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả" />
                                         <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Sắp diễn ra" />
                                         <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Đang diễn ra" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Đã kết thúc" />
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="25.0" />
@@ -118,7 +113,6 @@
                                             </font>
                                         </Label>
                                         <Region HBox.hgrow="ALWAYS" />
-                                        <TextField prefWidth="300.0" promptText="Tìm kiếm tài sản 🔍" style="-fx-background-radius: 20; -fx-padding: 10 15; -fx-border-color: #DDD; -fx-border-radius: 20; -fx-background-color: white;" />
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="30.0" />

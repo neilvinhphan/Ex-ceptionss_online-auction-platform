@@ -9,8 +9,10 @@ import com.google.gson.JsonParseException;
 import org.example.core.dto.*;
 
 import org.example.core.models.entities.Auction;
+import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
 
+import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
 
 import org.example.core.models.items.Item;
@@ -103,6 +105,11 @@ public class ClientHandler implements Runnable {
               break;
             case "GET_BID_HISTORY":
               handleGetBidHistory(request);
+              break;
+            case "GET_ACTIVE_AUCTIONS":
+              List<Item> danhSach = AuctionDAO.getInstance().getAllItemByStatus(AuctionStatus.RUNNING);
+              Response res = new Response("SUCCESS", "Thành công", danhSach);
+              out.println(gson.toJson(res));
               break;
             default:
               System.out.println("Unknown action: " + request.getAction());

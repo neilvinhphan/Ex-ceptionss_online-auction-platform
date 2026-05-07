@@ -54,11 +54,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
         loadActiveAuctions();
     }
 
-    /**
-     * Hàm gọi lên Server lấy danh sách các cuộc đấu giá
-     */
     private void loadActiveAuctions() {
-        // Gửi Request không cần payload vì ta lấy TẤT CẢ các sản phẩm đang/sắp đấu
         Request request = new Request("GET_ACTIVE_AUCTIONS", null);
         String jsonRequest = gson.toJson(request);
 
@@ -70,8 +66,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
                 Platform.runLater(() -> {
                     if ("SUCCESS".equals(response.getStatus())) {
-
-                        // --- ĐOẠN NÀY LÀ BÓC TÁCH JSON Y HỆT BÊN WAREHOUSE CỦA ĐỆ ---
                         String jsonData = gson.toJson(response.getData());
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                         List<Item> fetchedItems = new ArrayList<>();
@@ -81,7 +75,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
                             String type = itemObj.get("type").getAsString();
                             Item parsedItem = null;
 
-                            // Ép kiểu cho đúng loại hàng
                             switch (type.toUpperCase()) {
                                 case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
                                 case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
@@ -92,7 +85,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
                                 fetchedItems.add(parsedItem);
                             }
                         }
-                        // -----------------------------------------------------------
 
                         System.out.println("Đã tải xong " + fetchedItems.size() + " phòng đấu giá.");
 
@@ -125,7 +117,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
         card.setPrefWidth(310.0);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);");
 
-        // Phần khung ảnh (Có thể hiển thị loại của Item cho ngầu)
+        // Phần khung ảnh
         AnchorPane imagePane = new AnchorPane();
         imagePane.setPrefHeight(180.0);
         imagePane.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
@@ -169,7 +161,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
         showAlert("Thông báo", "Bạn vừa chọn tham gia phòng: " + item.getItemName());
     }
 
-    // ==== CÁC HÀM XỬ LÝ MENU GIỮ NGUYÊN ====
     @FXML
     public void handleMain(ActionEvent event) {
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
@@ -187,6 +178,5 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     @FXML
     public void handleMenuItem(ActionEvent event) {
-        // Tùy logic của đệ
     }
 }

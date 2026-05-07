@@ -142,7 +142,7 @@
                               <VBox>
                                  <children>
                                     <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Bước giá" />
-                                    <TextField style="-fx-border-radius: 15;" />
+                                    <TextField fx:id="tfBidIncrement" style="-fx-border-radius: 15;" />
       
                                               <Region style="-fx-border-color: #EEEEEE; -fx-border-width: 1 0 0 0;" />
                                  </children>
