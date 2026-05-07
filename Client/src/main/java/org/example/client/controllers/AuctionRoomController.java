@@ -295,4 +295,8 @@ public class AuctionRoomController extends BaseController implements Initializab
             timerService.shutdown();
         }
     }
+
+    public void handleCheckout(ActionEvent actionEvent) {
+        System.out.println("chuyen sang catalog");
+    }
 }
