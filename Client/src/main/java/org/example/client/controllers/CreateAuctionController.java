@@ -47,6 +47,7 @@ public class CreateAuctionController extends BaseController implements Initializ
   @FXML private ComboBox<Item> cbPendingItems;
   @FXML private ComboBox<String> cbCategory;
   @FXML private TextField tfStartingPrice;
+  @FXML private TextField tfBidIncrement;
   // Danh sách lưu toàn bộ item chưa đấu giá kéo từ server về
   private List<Item> allPendingItems = new ArrayList<>();
   // Cờ chống lặp vô hạn giữa 2 cái Listener
@@ -85,7 +86,7 @@ public class CreateAuctionController extends BaseController implements Initializ
   private void loadPendingItems() {
     // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
     int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
-    //      int sellerId = 2;
+
     ArrayList<Item> allItem = new ArrayList<>();
     cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
 
@@ -241,10 +242,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     try {
       // 3. Quy đổi thời gian
       long durationMinutes = getDuration().toMinutes();
-      BigDecimal bidIncrement =
-          new BigDecimal(
-              "10000"); // Tạm thời để cứng mức tăng giá, sau này có thể thêm trường nhập vào
-
+      BigDecimal bidIncrement = new BigDecimal(tfBidIncrement.getText().trim());
       // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
       CreateAuctionDTO requestDTO =
           new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement);

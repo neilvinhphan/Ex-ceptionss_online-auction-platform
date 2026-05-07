@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -50,11 +51,16 @@ import java.util.ResourceBundle;
 public class WareHouseController extends BaseController implements Initializable {
 
     // ===== KHAI BÁO CÁC THÀNH PHẦN GIAO DIỆN =====
-    @FXML private TableView<Item> productTable;
-    @FXML private TableColumn<Item, String> colName;
-    @FXML private TableColumn<Item, String> colDescription;
-    @FXML private TableColumn<Item, BigDecimal> colStartingPrice;
-    @FXML private TableColumn<Item, String> colStatus;
+    @FXML
+    private TableView<Item> productTable;
+    @FXML
+    private TableColumn<Item, String> colName;
+    @FXML
+    private TableColumn<Item, String> colDescription;
+    @FXML
+    private TableColumn<Item, BigDecimal> colStartingPrice;
+    @FXML
+    private TableColumn<Item, String> colStatus;
     @FXML
     private MenuButton menuUser;
     // Công cụ gọi Server
@@ -137,8 +143,10 @@ public class WareHouseController extends BaseController implements Initializable
                             // Ép kiểu cho đúng loại hàng
                             switch (type.toUpperCase()) {
                                 case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                                case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                                case "VEHICLE" -> parsedItem = gson.fromJson(itemObj, VehicleItem.class);
+                                case "ELECTRONICS" ->
+                                        parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
+                                case "VEHICLE" ->
+                                        parsedItem = gson.fromJson(itemObj, VehicleItem.class);
                             }
 
                             if (parsedItem != null) {
@@ -162,26 +170,39 @@ public class WareHouseController extends BaseController implements Initializable
     }
 
     @FXML
-    public void handleMain(ActionEvent event) { switchScene(event, "/views/MainView.fxml", "Trang chủ"); }
+    public void handleMain(ActionEvent event) {
+        switchScene(event, "/views/MainView.fxml", "Trang chủ");
+    }
 
     @FXML
-    public void handleUserUi(ActionEvent event) { switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân"); }
+    public void handleUserUi(ActionEvent event) {
+        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+    }
 
     @FXML
-    public void handleCreateItem(ActionEvent event) { switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá"); }
+    public void handleCreateItem(ActionEvent event) {
+        switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
+    }
 
     @FXML
-    public void handleLogout(ActionEvent event) { switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống "); }
+    public void handleLogout(ActionEvent event) {
+        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống ");
+    }
 
     @FXML
-    public void handleAddProduct(ActionEvent event) { switchScene(event, "/views/CreateItemView.fxml", "Thêm sản phẩm đấu giá"); }
+    public void handleAddProduct(ActionEvent event) {
+        switchScene(event, "/views/CreateItemView.fxml", "Thêm sản phẩm đấu giá");
+    }
 
     @FXML
-    public void handleCreateAuction(ActionEvent event) { switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá"); }
+    public void handleCreateAuction(ActionEvent event) {
+        switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
+    }
 
     @FXML
     public void handleMenuItem(ActionEvent event) {
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia"); }
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
+    }
 
     @FXML
     public void handleDeleteProduct(ActionEvent event) {
@@ -236,14 +257,15 @@ public class WareHouseController extends BaseController implements Initializable
 
     @FXML
     public void handleEditProduct(ActionEvent event) {
+        // 1. Lấy dòng đang chọn
         Item selectedItem = productTable.getSelectionModel().getSelectedItem();
-        int itemId = selectedItem.getItemId();
-        String itemType = selectedItem.getType();
 
         if (selectedItem == null) {
             showAlert("Thông báo", "Vui lòng chọn một sản phẩm để sửa!");
             return;
         }
+        int itemId = selectedItem.getItemId();
+        String itemType = selectedItem.getType();
 
         // 1. Tạo một Dialog tùy chỉnh
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -294,13 +316,14 @@ public class WareHouseController extends BaseController implements Initializable
                             Platform.runLater(() -> {
                                 if ("SUCCESS".equals(serverResponse.getStatus())) {
                                     System.out.println(newName + newDesc + newPrice);
+                                    showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
+
                                     // Cập nhật ngay trên bảng để người dùng thấy luôn
                                     selectedItem.setItemName(newName);
                                     selectedItem.setDescription(newDesc);
                                     selectedItem.setStartingPrice(newPrice);
-                                    productTable.refresh();
-                                    showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
-                                } else {
+                                //    productTable.refresh();
+                                        } else {
                                     showAlert("Lỗi", serverResponse.getMessage());
                                 }
                             });

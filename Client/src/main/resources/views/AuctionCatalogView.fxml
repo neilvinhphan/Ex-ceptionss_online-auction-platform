@@ -8,8 +8,6 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -45,10 +43,8 @@
                                 <VBox spacing="12.0">
                                     <children>
                                         <CheckBox mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả " />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Bất động sản " />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ cổ" />
+                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ điện" />
                                         <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Phương tiện" />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Trang sức" />
                                         <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Tác phẩm nghệ thuật" />
                                     </children>
                                     <VBox.margin>
@@ -68,7 +64,6 @@
                                         <RadioButton mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả" />
                                         <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Sắp diễn ra" />
                                         <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Đang diễn ra" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Đã kết thúc" />
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="25.0" />
@@ -118,36 +113,18 @@
                                             </font>
                                         </Label>
                                         <Region HBox.hgrow="ALWAYS" />
-                                        <TextField prefWidth="300.0" promptText="Tìm kiếm tài sản 🔍" style="-fx-background-radius: 20; -fx-padding: 10 15; -fx-border-color: #DDD; -fx-border-radius: 20; -fx-background-color: white;" />
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="30.0" />
                                     </VBox.margin>
                                 </HBox>
 
-                                <FlowPane hgap="25.0" maxWidth="1.7976931348623157E308" vgap="25.0" VBox.vgrow="ALWAYS">
-                                    <children>
-                                        <VBox prefWidth="310.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);">
-                                            <children>
-                                                <AnchorPane prefHeight="180.0" style="-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;">
-                                                    <children>
-                                                        <Label layoutX="110.0" layoutY="80.0" style="-fx-text-fill: #90A4AE; -fx-font-size: 18; -fx-font-weight: bold;" text="[Hình Ảnh]" />
-                                                    </children>
-                                                </AnchorPane>
-                                                <VBox spacing="10.0" style="-fx-padding: 15;">
-                                                    <children>
-                                                        <Label style="-fx-font-size: 14; -fx-text-fill: #555;" text="Sản phẩm 1" />
-                                                        <Label style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;" text="Giá: 1k" />
-                                                        <Button maxWidth="Infinity" onAction="#handleJoinAuction" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="THAM GIA PHÒNG" />
-                                                    </children>
-                                                </VBox>
-                                            </children>
-                                        </VBox>
-                                    </children>
+                                <FlowPane fx:id="auctionFlowPane" hgap="25.0" maxWidth="1.7976931348623157E308" vgap="25.0" VBox.vgrow="ALWAYS">
                                     <padding>
                                         <Insets bottom="20.0" right="20.0" />
                                     </padding>
                                 </FlowPane>
+
                             </children>
                             <padding>
                                 <Insets bottom="20.0" right="40.0" />
