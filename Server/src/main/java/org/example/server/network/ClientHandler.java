@@ -109,6 +109,11 @@ public class ClientHandler implements Runnable {
             case "GET_ACTIVE_AUCTIONS":
               handleGetActiveAuctions();
               break;
+            case "LEAVE_ROOM":
+              // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
+              Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng thành công");
+              sendMessage(gson.toJson(leaveRes));
+              break;
             default:
               System.out.println("Unknown action: " + request.getAction());
           }
