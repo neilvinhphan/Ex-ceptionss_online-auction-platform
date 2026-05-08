@@ -114,21 +114,16 @@ public class BiddingService {
 
   /** handleAntiSniping: nếu bid trong 1/10 thời gian cuối thì cộng thêm 1/10 thời lượng phiên */
   private void handleAntiSniping(int auctionId, Auction auction, LocalDateTime now) {
-    LocalDateTime startTime = auction.getStartTime();
     LocalDateTime endTime = auction.getEndTime();
-    if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
-      return;
+    if (endTime == null || !endTime.isAfter(now)) {
+      return; // Nếu chưa setup giờ hoặc phiên đã kết thúc thì bỏ qua
     }
 
-    long totalSeconds = Duration.between(startTime, endTime).getSeconds();
-    long antiSnipingSeconds = Math.max(1, totalSeconds / 10);
+    long antiSnipingSeconds = 120;
 
     boolean inSnipingWindow = auction.isAntiSniping(now, antiSnipingSeconds);
     if (!inSnipingWindow) return;
-
     auction.extendEndTime(antiSnipingSeconds);
-
-    // TODO: bạn cần method update end_time trong AuctionDAO
     auctionDAO.updateAuctionEndTime(auctionId, auction.getEndTime());
   }
 

@@ -169,41 +169,29 @@ public class AuctionRoomController extends BaseController implements Initializab
         new Thread(() -> {
             try {
                 String messageFromServer;
-                // Vòng lặp liên tục đọc ống mạng
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-
-                    // ==========================================
-                    // ĐẶT TRY-CATCH VÀO ĐÂY ĐỂ BẢO VỆ LUỒNG KHÔNG BỊ CHẾT
-                    // ==========================================
-                    try {
+                    try { // BỌC TRY-CATCH VÀO ĐÂY
                         Response response = gson.fromJson(messageFromServer, Response.class);
 
-                        // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
                         if ("NEW_BID".equals(response.getStatus())) {
                             String innerData = gson.toJson(response.getData());
                             BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
 
-                            // Gọi hàm xử lý UI
+                            // Bổ sung lấy data.getNewEndTime()
                             onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername(), data.getNewEndTime());
                         }
-                        // TH2: LỖI KHI MÌNH ĐẶT GIÁ
                         else if ("ERROR_BID".equals(response.getStatus())) {
                             Platform.runLater(() -> {
                                 lblBidError.setStyle("-fx-text-fill: red;");
                                 lblBidError.setText(response.getMessage());
                             });
                         }
-                    } catch (Exception ex) {
-                        System.err.println(" Lỗi khi xử lý gói tin từ Server: " + messageFromServer);
-                        ex.printStackTrace();
+                    } catch (Exception parseEx) {
+                        System.err.println("Lỗi bóc tách gói tin: " + parseEx.getMessage());
                     }
-                    // ==========================================
-
                 }
             } catch (Exception e) {
-                if (isListening) {
-                    System.out.println("Mất kết nối với Server: " + e.getMessage());
-                }
+                if (isListening) System.out.println("Mất kết nối Server.");
             }
         }).start();
     }
@@ -231,7 +219,6 @@ public class AuctionRoomController extends BaseController implements Initializab
         }
     }
 
-    // ... (Hàm onAuctionEndBroadcastReceived giữ nguyên của ông) ...
     public void onAuctionEndBroadcastReceived(int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
         if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
             Platform.runLater(() -> {
