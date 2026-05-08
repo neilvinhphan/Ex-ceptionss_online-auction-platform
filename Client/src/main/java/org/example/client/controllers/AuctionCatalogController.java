@@ -20,6 +20,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.models.entities.Auction; // Cần import model Auction
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
@@ -33,152 +34,163 @@ import java.util.ResourceBundle;
 
 public class AuctionCatalogController extends BaseController implements Initializable {
 
-    @FXML
-    private FlowPane auctionFlowPane;
+  @FXML private FlowPane auctionFlowPane;
 
-    @FXML
-    private MenuButton menuUser;
+  @FXML private MenuButton menuUser;
 
-    private Gson gson = ClientManager.getInstance().getGson();
-    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+  private Gson gson = ClientManager.getInstance().getGson();
+  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        auctionFlowPane.setStyle("-fx-border-color: red; -fx-min-height: 200; -fx-min-width: 200;");
-        // Cập nhật tên người dùng đang đăng nhập
-        User currentUser = UserSession.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            menuUser.setText(currentUser.getUserName());
-        }
-
-        // Vừa mở giao diện lên là gọi Server lấy danh sách đấu giá
-        loadActiveAuctions();
+  @Override
+  public void initialize(URL location, ResourceBundle resources) {
+    User currentUser = UserSession.getInstance().getCurrentUser();
+    if (currentUser != null) {
+      menuUser.setText(currentUser.getUserName());
     }
 
-    private void loadActiveAuctions() {
-        Request request = new Request("GET_ACTIVE_AUCTIONS", null);
-        String jsonRequest = gson.toJson(request);
+    loadActiveAuctions();
+  }
 
-        new Thread(() -> {
-            try {
+  private void loadActiveAuctions() {
+    Request request = new Request("GET_ACTIVE_AUCTIONS", null);
+    String jsonRequest = gson.toJson(request);
+
+    new Thread(
+            () -> {
+              try {
                 System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                System.out.println("JSON THO TU SERVER: " + jsonResponse); // <-- Thêm dòng này
                 Response response = gson.fromJson(jsonResponse, Response.class);
 
-                Platform.runLater(() -> {
-                    if ("SUCCESS".equals(response.getStatus())) {
+                Platform.runLater(
+                    () -> {
+                      if ("SUCCESS".equals(response.getStatus())) {
                         String jsonData = gson.toJson(response.getData());
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                        List<Item> fetchedItems = new ArrayList<>();
+                        List<Auction> fetchedAuctions = new ArrayList<>();
 
                         for (JsonElement element : jsonArray) {
-                            JsonObject itemObj = element.getAsJsonObject();
+                          JsonObject auctionObj = element.getAsJsonObject();
+
+                          // Map dữ liệu cơ bản của Auction
+                          Auction auction = gson.fromJson(auctionObj, Auction.class);
+
+                          // Xử lý đa hình cho thuộc tính Item nằm bên trong Auction
+                          if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
+                            JsonObject itemObj = auctionObj.getAsJsonObject("item");
                             String type = itemObj.get("type").getAsString();
                             Item parsedItem = null;
-                            System.out.println("Type nhan duoc: " + type);
-                            switch (type.toUpperCase()) {
-                                case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                                case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                                case "VEHICLE" -> parsedItem = gson.fromJson(itemObj, VehicleItem.class);
-                            }
 
-                            if (parsedItem != null) {
-                                fetchedItems.add(parsedItem);
+                            switch (type.toUpperCase()) {
+                              case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
+                              case "ELECTRONICS" ->
+                                  parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
+                              case "VEHICLE" ->
+                                  parsedItem = gson.fromJson(itemObj, VehicleItem.class);
                             }
+                            // Gắn Item đã parse vào Auction
+                            auction.setItem(parsedItem);
+                          }
+
+                          if (auction.getItem() != null) {
+                            fetchedAuctions.add(auction);
+                          }
                         }
 
-                        System.out.println("Đã tải xong " + fetchedItems.size() + " phòng đấu giá.");
+                        System.out.println(
+                            "Đã tải xong " + fetchedAuctions.size() + " phòng đấu giá.");
 
-                        // Xóa giao diện cũ
                         auctionFlowPane.getChildren().clear();
 
-                        // Đổ List vừa bóc tách ra giao diện FlowPane
-                        for (Item item : fetchedItems) {
-                            // Gọi hàm vẽ cái Card
-                            VBox card = createAuctionCard(item);
-                            auctionFlowPane.getChildren().add(card);
+                        for (Auction auction : fetchedAuctions) {
+                          VBox card = createAuctionCard(auction);
+                          auctionFlowPane.getChildren().add(card);
                         }
 
-                    } else {
-                        showAlert("Lỗi", "Không thể tải danh sách đấu giá: " + response.getMessage());
-                    }
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", "Mất kết nối tới máy chủ: " + e.getMessage()));
+                      } else {
+                        showAlert(
+                            "Lỗi", "Không thể tải danh sách đấu giá: " + response.getMessage());
+                      }
+                    });
+              } catch (Exception e) {
+                Platform.runLater(
+                    () -> showAlert("Lỗi kết nối", "Mất kết nối tới máy chủ: " + e.getMessage()));
                 e.printStackTrace();
-            }
-        }).start();
-    }
+              }
+            })
+        .start();
+  }
 
-    /**
-     * Hàm vẽ giao diện thẻ (Card) cho từng sản phẩm
-     */
-    private VBox createAuctionCard(Item item) {
-        VBox card = new VBox();
-        card.setPrefWidth(310.0);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);");
+  /** Truyền thẳng Auction vào để lấy giá highestBid và dữ liệu Item */
+  private VBox createAuctionCard(Auction auction) {
+    Item item = auction.getItem();
 
-        // Phần khung ảnh
-        AnchorPane imagePane = new AnchorPane();
-        imagePane.setPrefHeight(180.0);
-        imagePane.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
-        Label imgLabel = new Label("[" + item.getType() + "]"); // In loại Item ra hình
-        imgLabel.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 18; -fx-font-weight: bold;");
-        imgLabel.setLayoutX(110.0);
-        imgLabel.setLayoutY(80.0);
-        imagePane.getChildren().add(imgLabel);
+    VBox card = new VBox();
+    card.setPrefWidth(310.0);
+    card.setStyle(
+        "-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);");
 
-        // Phần thông tin
-        VBox infoBox = new VBox();
-        infoBox.setSpacing(10.0);
-        infoBox.setStyle("-fx-padding: 15;");
+    AnchorPane imagePane = new AnchorPane();
+    imagePane.setPrefHeight(180.0);
+    imagePane.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
+    Label imgLabel = new Label("[" + item.getType() + "]");
+    imgLabel.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 18; -fx-font-weight: bold;");
+    imgLabel.setLayoutX(110.0);
+    imgLabel.setLayoutY(80.0);
+    imagePane.getChildren().add(imgLabel);
 
-        Label lblName = new Label(item.getItemName());
-        lblName.setStyle("-fx-font-size: 14; -fx-text-fill: #555;");
+    VBox infoBox = new VBox();
+    infoBox.setSpacing(10.0);
+    infoBox.setStyle("-fx-padding: 15;");
 
-        // Format giá cho đẹp, ví dụ: 5000000 -> 5,000,000 đ
-        Label lblPrice = new Label("Giá k.điểm: " + String.format("%,d", item.getStartingPrice().longValue()) + " đ");
-        lblPrice.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;");
+    Label lblName = new Label(item.getItemName());
+    lblName.setStyle("-fx-font-size: 14; -fx-text-fill: #555;");
 
-        Button btnJoin = new Button("THAM GIA PHÒNG");
-        btnJoin.setMaxWidth(Double.MAX_VALUE);
-        btnJoin.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+    // Thay vì dùng giá khởi điểm của Item, dùng giá cao nhất của Auction
+    Label lblPrice =
+        new Label(
+            "Giá hiện tại: " + String.format("%,d", auction.getHighestBid().longValue()) + " đ");
+    lblPrice.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #e53935;");
 
-        // Gắn sự kiện click
-        btnJoin.setOnAction(e -> {
-            System.out.println("Đang vào phòng đấu giá của Item ID: " + item.getItemId());
-            handleJoinAuction(item);
+    Button btnJoin = new Button("THAM GIA PHÒNG");
+    btnJoin.setMaxWidth(Double.MAX_VALUE);
+    btnJoin.setStyle(
+        "-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+
+    btnJoin.setOnAction(
+        e -> {
+          System.out.println("Đang vào phòng đấu giá ID: " + auction.getAuctionId());
+          handleJoinAuction(auction);
         });
 
-        infoBox.getChildren().addAll(lblName, lblPrice, btnJoin);
-        card.getChildren().addAll(imagePane, infoBox);
+    infoBox.getChildren().addAll(lblName, lblPrice, btnJoin);
+    card.getChildren().addAll(imagePane, infoBox);
 
-        return card;
-    }
+    return card;
+  }
 
-    private void handleJoinAuction(Item item) {
-        // Viết logic để chuyển Scene sang phòng đấu giá, truyền cái Item đó sang
-        // ...
-        showAlert("Thông báo", "Bạn vừa chọn tham gia phòng: " + item.getItemName());
-    }
+  private void handleJoinAuction(Auction auction) {
+    // Truyền thẳng đối tượng Auction sang scene kế tiếp
+    showAlert(
+        "Thông báo",
+        "Bạn vừa chọn tham gia phòng của sản phẩm: " + auction.getItem().getItemName());
+  }
 
-    @FXML
-    public void handleMain(ActionEvent event) {
-        switchScene(event, "/views/MainView.fxml", "Trang chủ");
-    }
+  @FXML
+  public void handleMain(ActionEvent event) {
+    switchScene(event, "/views/MainView.fxml", "Trang chủ");
+  }
 
-    @FXML
-    public void handleUserUi(ActionEvent event) {
-        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-    }
+  @FXML
+  public void handleUserUi(ActionEvent event) {
+    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+  }
 
-    @FXML
-    public void handleLogout(ActionEvent event) {
-        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống ");
-    }
+  @FXML
+  public void handleLogout(ActionEvent event) {
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống ");
+  }
 
-    @FXML
-    public void handleMenuItem(ActionEvent event) {
-    }
+  @FXML
+  public void handleMenuItem(ActionEvent event) {}
 }
