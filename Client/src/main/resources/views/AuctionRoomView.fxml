@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -38,8 +39,10 @@
 
                     <VBox spacing="15" style="-fx-background-color:white; -fx-padding:20; -fx-background-radius:15; -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 0);" HBox.hgrow="ALWAYS">
 
-                        <StackPane prefHeight="300" style="-fx-background-color:#dfe6e9; -fx-background-radius:10;">
-                            <Label style="-fx-text-fill:#636e72;" text="ẢNH SẢN PHẨM" />
+                        <StackPane prefHeight="300" style="-fx-background-color: transparent; -fx-background-radius: 10;">
+                     <children>
+                        <ImageView fx:id="ivItemImage" fitHeight="301.0" fitWidth="476.0" pickOnBounds="true" preserveRatio="true" />
+                     </children>
                         </StackPane>
 
                         <HBox alignment="CENTER_LEFT" spacing="10">
@@ -105,8 +108,8 @@
                         </HBox>
 
                         <VBox fx:id="vboxCheckoutSection" alignment="CENTER" spacing="10" style="-fx-padding: 10 0 0 0;">
-                            <Button fx:id="btnCheckout" maxWidth="Infinity" onAction="#handleCheckout" prefHeight="50" style="-fx-background-color:#ff9f43; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:16; -fx-background-radius:8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" text="THANH TOÁN NGAY" managed="false" visible="false" />
-                            <Label fx:id="lblPostAuctionStatus" alignment="CENTER" style="-fx-font-size:16; -fx-font-weight:bold; -fx-text-fill:#e74c3c;" text="Giao dịch đã bị hủy!" wrapText="true" managed="false" visible="false" />
+                            <Button fx:id="btnCheckout" managed="false" maxWidth="Infinity" onAction="#handleCheckout" prefHeight="50" style="-fx-background-color:#ff9f43; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:16; -fx-background-radius:8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" text="THANH TOÁN NGAY" visible="false" />
+                            <Label fx:id="lblPostAuctionStatus" alignment="CENTER" managed="false" style="-fx-font-size:16; -fx-font-weight:bold; -fx-text-fill:#e74c3c;" text="Giao dịch đã bị hủy!" visible="false" wrapText="true" />
                         </VBox>
                     </VBox>
 

@@ -8,6 +8,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
@@ -39,7 +41,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     @FXML private ListView<String> lvBidHistory;
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private Button btnPlaceBid;
-
+    @FXML private ImageView ivItemImage;
     private XYChart.Series<Number, Number> priceSeries;
     private ScheduledExecutorService timerService;
 
@@ -106,8 +108,22 @@ public class AuctionRoomController extends BaseController implements Initializab
 
         lblItemName.setText(item.getItemName());
         taDescription.setText(item.getDescription());
-        lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-        lblStatus.setText(auction.getStatus().toString());
+        if (item.getImage() != null && !item.getImage().isEmpty()) {
+            try {
+                javafx.scene.image.Image decodedImage = org.example.client.utils.ImageUtils.decodeBase64ToImage(item.getImage());
+                if (decodedImage != null) {
+                    ivItemImage.setImage(decodedImage);
+                }
+            } catch (Exception e) {
+                System.err.println("Lỗi hiển thị ảnh trong phòng: " + e.getMessage());
+            }
+        }
+        if (auction.getBidIncrement() != null) {
+            lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+        } else {
+            lblBid.setText("K co du lieu");
+        }
+        lblStatus.setText(auction.getStatus() != null ? auction.getStatus().toString() : "k co du lieu");
         lblWinner.setText("--");
 
         // 1. Mặc định ban đầu cứ cho là "Chưa có"
