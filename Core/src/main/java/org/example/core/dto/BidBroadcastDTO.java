@@ -21,7 +21,12 @@ public class BidBroadcastDTO {
         this.leaderUsername = leaderUsername;
     }
 
-    public BidBroadcastDTO(int auctionId, double v, String realUsername, LocalDateTime currentEndTime) {
+    public BidBroadcastDTO(int auctionId, double newPrice, String leaderUsername, LocalDateTime newEndTime) {
+        this.type = "NEW_BID";
+        this.auctionId = auctionId;
+        this.newPrice = newPrice;
+        this.leaderUsername = leaderUsername;
+        this.newEndTime = newEndTime; // Đã gán dữ liệu thời gian đàng hoàng
     }
 
     public String getType() {

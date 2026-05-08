@@ -142,6 +142,9 @@ private double startPrice;
   }
 
   public void setStatus(AuctionStatus status) {
+    if (status == null) {
+      System.out.println("WARNING: Đang cố tình set Status thành NULL cho Auction ID: " + this.id);
+    }
     this.status = status;
   }
 

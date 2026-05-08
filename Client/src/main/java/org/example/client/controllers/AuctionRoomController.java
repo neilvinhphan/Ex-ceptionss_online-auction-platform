@@ -8,8 +8,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
-
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
@@ -41,7 +39,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     @FXML private ListView<String> lvBidHistory;
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private Button btnPlaceBid;
-    @FXML private ImageView ivItemImage;
+
     private XYChart.Series<Number, Number> priceSeries;
     private ScheduledExecutorService timerService;
 
@@ -108,22 +106,8 @@ public class AuctionRoomController extends BaseController implements Initializab
 
         lblItemName.setText(item.getItemName());
         taDescription.setText(item.getDescription());
-        if (item.getImage() != null && !item.getImage().isEmpty()) {
-            try {
-                javafx.scene.image.Image decodedImage = org.example.client.utils.ImageUtils.decodeBase64ToImage(item.getImage());
-                if (decodedImage != null) {
-                    ivItemImage.setImage(decodedImage);
-                }
-            } catch (Exception e) {
-                System.err.println("Lỗi hiển thị ảnh trong phòng: " + e.getMessage());
-            }
-        }
-        if (auction.getBidIncrement() != null) {
-            lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-        } else {
-            lblBid.setText("K co du lieu");
-        }
-        lblStatus.setText(auction.getStatus() != null ? auction.getStatus().toString() : "k co du lieu");
+        lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+        lblStatus.setText(auction.getStatus().toString());
         lblWinner.setText("--");
 
         // 1. Mặc định ban đầu cứ cho là "Chưa có"
@@ -185,41 +169,29 @@ public class AuctionRoomController extends BaseController implements Initializab
         new Thread(() -> {
             try {
                 String messageFromServer;
-                // Vòng lặp liên tục đọc ống mạng
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-
-                    // ==========================================
-                    // ĐẶT TRY-CATCH VÀO ĐÂY ĐỂ BẢO VỆ LUỒNG KHÔNG BỊ CHẾT
-                    // ==========================================
-                    try {
+                    try { // BỌC TRY-CATCH VÀO ĐÂY
                         Response response = gson.fromJson(messageFromServer, Response.class);
 
-                        // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
                         if ("NEW_BID".equals(response.getStatus())) {
                             String innerData = gson.toJson(response.getData());
                             BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
 
-                            // Gọi hàm xử lý UI
+                            // Bổ sung lấy data.getNewEndTime()
                             onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername(), data.getNewEndTime());
                         }
-                        // TH2: LỖI KHI MÌNH ĐẶT GIÁ
                         else if ("ERROR_BID".equals(response.getStatus())) {
                             Platform.runLater(() -> {
                                 lblBidError.setStyle("-fx-text-fill: red;");
                                 lblBidError.setText(response.getMessage());
                             });
                         }
-                    } catch (Exception ex) {
-                        System.err.println(" Lỗi khi xử lý gói tin từ Server: " + messageFromServer);
-                        ex.printStackTrace();
+                    } catch (Exception parseEx) {
+                        System.err.println("Lỗi bóc tách gói tin: " + parseEx.getMessage());
                     }
-                    // ==========================================
-
                 }
             } catch (Exception e) {
-                if (isListening) {
-                    System.out.println("Mất kết nối với Server: " + e.getMessage());
-                }
+                if (isListening) System.out.println("Mất kết nối Server.");
             }
         }).start();
     }
@@ -247,7 +219,6 @@ public class AuctionRoomController extends BaseController implements Initializab
         }
     }
 
-    // ... (Hàm onAuctionEndBroadcastReceived giữ nguyên của ông) ...
     public void onAuctionEndBroadcastReceived(int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
         if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
             Platform.runLater(() -> {
@@ -316,12 +287,25 @@ public class AuctionRoomController extends BaseController implements Initializab
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
 
-    // Gom chung logic dọn dẹp vào một hàm
-    private void cleanUpBeforeExit() {
-        stopTimer();
-        isListening = false; // Ngắt Thread lắng nghe Socket để giải phóng RAM
-        AuctionSession.getInstance().clearSession();
+  private void cleanUpBeforeExit() {
+    stopTimer();
+
+    // 1. Gửi cục xương (Chim mồi) lên Server TRƯỚC
+    try {
+      org.example.core.dto.Request dummyReq = new org.example.core.dto.Request("LEAVE_ROOM", null);
+      if (outToServer != null) {
+        outToServer.println(gson.toJson(dummyReq));
+      }
+    } catch (Exception e) {
+      System.out.println("Lỗi gửi chim mồi: " + e.getMessage());
     }
+
+    // 2. Hạ cờ để vòng lặp tự ngắt khi nhận được cục xương
+    isListening = false;
+
+    // 3. Clear bộ nhớ
+    AuctionSession.getInstance().clearSession();
+  }
 
     private void stopTimer() {
         if (timerService != null && !timerService.isShutdown()) {

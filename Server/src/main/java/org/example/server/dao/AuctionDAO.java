@@ -100,14 +100,14 @@ public class AuctionDAO {
     // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
     String sql =
         "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
-            + "i.items_name AS item_name, i.type AS item_type, i.start_price, "
+            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
             + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
             + "WHERE a.status = ? "
             + "GROUP BY a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
-            + "i.items_name, i.type, i.start_price";
+            + "i.items_name, i.type, i.start_price, i.image";
 
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -119,6 +119,10 @@ public class AuctionDAO {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
         auction.setItemId(rs.getInt("items_id"));
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+          auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
+        }
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
@@ -141,6 +145,7 @@ public class AuctionDAO {
             item.setItemName(rs.getString("item_name"));
             item.setType(itemType);
             item.setStartingPrice(rs.getBigDecimal("start_price"));
+            item.setImage(rs.getString("image"));
 
             // Gắn Item hoàn chỉnh vào Auction
             auction.setItem(item);

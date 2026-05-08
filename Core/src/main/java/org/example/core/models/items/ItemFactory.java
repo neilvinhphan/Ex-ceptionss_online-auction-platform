@@ -39,14 +39,6 @@ public class ItemFactory {
       }
       default -> throw new Exception("Unknown item type: " + type);
     }
-    // Gán các thuộc tính chung từ Table ITEM trong Database
-    item.setItemId(rs.getInt("item_id"));
-    item.setItemName(rs.getString("item_name"));
-    item.setDescription(rs.getString("description"));
-    item.setSellerID(rs.getInt("seller_id"));
-    item.setStartingPrice(rs.getBigDecimal("starting_price"));
-    item.setType(type);
-    item.setImage(rs.getString("image"));
 
     return item;
   }
