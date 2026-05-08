@@ -44,6 +44,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        auctionFlowPane.setStyle("-fx-border-color: red; -fx-min-height: 200; -fx-min-width: 200;");
         // Cập nhật tên người dùng đang đăng nhập
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -62,6 +63,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
             try {
                 System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                System.out.println("JSON THO TU SERVER: " + jsonResponse); // <-- Thêm dòng này
                 Response response = gson.fromJson(jsonResponse, Response.class);
 
                 Platform.runLater(() -> {
@@ -74,7 +76,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
                             JsonObject itemObj = element.getAsJsonObject();
                             String type = itemObj.get("type").getAsString();
                             Item parsedItem = null;
-
+                            System.out.println("Type nhan duoc: " + type);
                             switch (type.toUpperCase()) {
                                 case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
                                 case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
