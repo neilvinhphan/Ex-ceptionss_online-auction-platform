@@ -29,15 +29,6 @@ public class BiddingService {
   // lock theo từng auction để tránh đè giá cùng lúc
   private final ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
 
-  //    BiddingService() {
-  //        this(BidDAO.getInstance(), AuctionDAO.getInstance());
-  //    }
-  //
-  //    BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO) {
-  //        this.bidDAO = Objects.requireNonNull(bidDAO, "bidDAO must not be null");
-  //        this.auctionDAO = Objects.requireNonNull(auctionDAO, "auctionDAO must not be null");
-  //    }
-
   public static BiddingService getInstance() {
     if (instance == null) {
       synchronized (BiddingService.class) {
