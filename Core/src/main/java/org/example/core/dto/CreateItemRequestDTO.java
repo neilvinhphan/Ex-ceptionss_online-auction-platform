@@ -8,7 +8,7 @@ public abstract class CreateItemRequestDTO {
     private BigDecimal startingPrice;
     private String description;
     private int sellerID;
-
+    private String base64Image;
 
     public CreateItemRequestDTO(){}
 
@@ -43,4 +43,8 @@ public abstract class CreateItemRequestDTO {
     public void setStartingPrice(BigDecimal startingPrice) {
         this.startingPrice = startingPrice;
     }
-}
+
+    public String getBase64Image() { return base64Image; }
+    public void setBase64Image(String base64Image) {
+        this.base64Image = base64Image;
+    }}

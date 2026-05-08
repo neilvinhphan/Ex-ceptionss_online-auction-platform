@@ -27,6 +27,8 @@ import javafx.stage.Window;
 import java.io.File;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.file.Files;
+import java.util.Base64;
 import java.util.ResourceBundle;
 
 public class CreateItemController extends BaseController implements Initializable {
@@ -126,12 +128,6 @@ public class CreateItemController extends BaseController implements Initializabl
         );
 
         selectedImageFile = fileChooser.showOpenDialog(window);
-
-        if (selectedImageFile != null) {
-            // Hiển thị ảnh lên ImageView
-            Image image = new Image(selectedImageFile.toURI().toString());
-            imagePreview.setImage(image);
-        }
     }
 
     @FXML
@@ -196,6 +192,12 @@ public class CreateItemController extends BaseController implements Initializabl
             itemDTO.setType(category);
             itemDTO.setDescription(description);
             itemDTO.setSellerID(sellerId);
+            if (selectedImageFile != null) {
+                String base64String = encodeFileToBase64(selectedImageFile);
+                if (base64String != null) {
+                    itemDTO.setBase64Image(base64String);
+                }
+            }
       System.out.println("Tao luong");
             try {
                 Request request = new Request("CREATE_ITEM", itemDTO);
@@ -226,10 +228,6 @@ public class CreateItemController extends BaseController implements Initializabl
                 showAlert("Tạo sản phẩm đấu giá thất bại!", e.getMessage());
             }
 
-            // ===== 4. ẢNH =====
-         //   if (selectedImageFile != null) {
-           //     itemDTO.setImageFile(selectedImageFile); // nếu DTO có field này
-           // }
 
             // ===== 5. DEBUG =====
 //            System.out.println("DTO: " + itemDTO);
@@ -278,6 +276,15 @@ public class CreateItemController extends BaseController implements Initializabl
     @FXML
     void handleWareHouse(ActionEvent event) {
         switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
+    }
+    private String encodeFileToBase64(File file) { // mã hóa ảnh
+        try {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            return Base64.getEncoder().encodeToString(fileContent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }
