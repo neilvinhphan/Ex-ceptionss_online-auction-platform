@@ -287,12 +287,25 @@ public class AuctionRoomController extends BaseController implements Initializab
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
 
-    // Gom chung logic dọn dẹp vào một hàm
-    private void cleanUpBeforeExit() {
-        stopTimer();
-        isListening = false; // Ngắt Thread lắng nghe Socket để giải phóng RAM
-        AuctionSession.getInstance().clearSession();
+  private void cleanUpBeforeExit() {
+    stopTimer();
+
+    // 1. Gửi cục xương (Chim mồi) lên Server TRƯỚC
+    try {
+      org.example.core.dto.Request dummyReq = new org.example.core.dto.Request("LEAVE_ROOM", null);
+      if (outToServer != null) {
+        outToServer.println(gson.toJson(dummyReq));
+      }
+    } catch (Exception e) {
+      System.out.println("Lỗi gửi chim mồi: " + e.getMessage());
     }
+
+    // 2. Hạ cờ để vòng lặp tự ngắt khi nhận được cục xương
+    isListening = false;
+
+    // 3. Clear bộ nhớ
+    AuctionSession.getInstance().clearSession();
+  }
 
     private void stopTimer() {
         if (timerService != null && !timerService.isShutdown()) {
