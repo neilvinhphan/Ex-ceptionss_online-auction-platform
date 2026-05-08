@@ -1,7 +1,10 @@
 package org.example.server.daos;
 
+import org.example.core.models.items.ArtItem;
+import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
+import org.example.core.models.items.VehicleItem;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.config.DBConnection;
 import org.example.core.models.entities.Auction;
@@ -91,6 +94,69 @@ public class AuctionDAO {
     return auctions;
   }
 
+  public List<Auction> getAllAuctionsByStatusForCatalog(AuctionStatus status) {
+    List<Auction> auctions = new ArrayList<>();
+
+    // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
+    String sql =
+        "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
+            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, "
+            + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
+            + "FROM auction a "
+            + "JOIN items i ON a.items_id = i.items_id "
+            + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
+            + "WHERE a.status = ? "
+            + "GROUP BY a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
+            + "i.items_name, i.type, i.start_price, i.image";
+
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      ps.setString(1, String.valueOf(status));
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        Auction auction = new Auction();
+        auction.setAuctionId(rs.getInt("auction_id"));
+        auction.setItemId(rs.getInt("items_id"));
+        auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+        auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        auction.setHighestBid(rs.getBigDecimal("highest_price"));
+
+        // 2. Bóc tách dữ liệu Item và khởi tạo object đa hình
+        String itemType = rs.getString("item_type");
+        Item item = null;
+
+        if (itemType != null) {
+          switch (itemType.toUpperCase()) {
+            case "ART" -> item = new ArtItem();
+            case "ELECTRONICS" -> item = new ElectronicsItem();
+            case "VEHICLE" -> item = new VehicleItem();
+              // Nếu sau này có thêm loại nào thì add case vào đây
+          }
+
+          // Set các thuộc tính chung của Item
+          if (item != null) {
+            item.setItemId(rs.getInt("items_id"));
+            item.setItemName(rs.getString("item_name"));
+            item.setType(itemType);
+            item.setStartingPrice(rs.getBigDecimal("start_price"));
+            item.setImage(rs.getString("image"));
+
+            // Gắn Item hoàn chỉnh vào Auction
+            auction.setItem(item);
+          }
+        }
+
+        auctions.add(auction);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    return auctions;
+  }
+
   public int getAuctionIdByItemId(int itemId) {
     String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -124,7 +190,8 @@ public class AuctionDAO {
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
-    } return -1;
+    }
+    return -1;
   }
 
   public void setAuctionStatus(int auctionId, AuctionStatus status) {

@@ -39,12 +39,15 @@ public class ItemFactory {
       }
       default -> throw new Exception("Unknown item type: " + type);
     }
+
     return item;
   }
 
   public static Item createItemDTO(CreateItemRequestDTO itemDTO) throws Exception {
     Item trueItem;
-    switch (itemDTO.getType().toUpperCase()) {
+    String type = itemDTO.getType().toUpperCase();
+
+    switch (type) {
       case "ART" -> {
         CreateArtItemDTO artItemDTO = (CreateArtItemDTO) itemDTO;
         ArtItem artItem = new ArtItem();
@@ -71,10 +74,14 @@ public class ItemFactory {
       }
       default -> throw new Exception("Unknown item type: " + itemDTO.getType());
     }
+    // Map các trường chung từ DTO sang Model
+    trueItem.setType(type);
     trueItem.setItemName(itemDTO.getItemName());
     trueItem.setDescription(itemDTO.getDescription());
     trueItem.setSellerID(itemDTO.getSellerID());
     trueItem.setStartingPrice(itemDTO.getStartingPrice());
+    trueItem.setImage(itemDTO.getBase64Image());
+
     return trueItem;
   }
 }
