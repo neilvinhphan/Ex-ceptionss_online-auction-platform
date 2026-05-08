@@ -171,8 +171,15 @@ public class AuctionRoomController extends BaseController implements Initializab
               try {
                 String messageFromServer;
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-                  System.out.println(
-                      "[ZOMBIE CHECK] Phòng đấu giá vừa đọc được data: " + messageFromServer);
+                  // THÊM DÒNG NÀY VÀO ĐẦU VÒNG LẶP:
+                  // Nếu cờ đã hạ (nghĩa là đang thoát phòng), đớp được cục xương xong thì THOÁT
+                  // LUÔN!
+                  if (!isListening) {
+                    System.out.println("[ZOMBIE] Đã đớp được cục xương và tự sát thành công!");
+                    break;
+                  }
+
+                  // ... Code xử lý NEW_BID, ERROR_BID cũ của bro giữ nguyên bên dưới ...
 
                   Response response = gson.fromJson(messageFromServer, Response.class);
 
@@ -306,10 +313,23 @@ public class AuctionRoomController extends BaseController implements Initializab
     switchScene(event, "/views/MainView.fxml", "Trang chủ");
   }
 
-  // Gom chung logic dọn dẹp vào một hàm
   private void cleanUpBeforeExit() {
     stopTimer();
-    isListening = false; // Ngắt Thread lắng nghe Socket để giải phóng RAM
+
+    // 1. Gửi cục xương (Chim mồi) lên Server TRƯỚC
+    try {
+      org.example.core.dto.Request dummyReq = new org.example.core.dto.Request("LEAVE_ROOM", null);
+      if (outToServer != null) {
+        outToServer.println(gson.toJson(dummyReq));
+      }
+    } catch (Exception e) {
+      System.out.println("Lỗi gửi chim mồi: " + e.getMessage());
+    }
+
+    // 2. Hạ cờ để vòng lặp tự ngắt khi nhận được cục xương
+    isListening = false;
+
+    // 3. Clear bộ nhớ
     AuctionSession.getInstance().clearSession();
   }
 
