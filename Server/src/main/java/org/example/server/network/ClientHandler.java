@@ -107,7 +107,7 @@ public class ClientHandler implements Runnable {
               handleGetBidHistory(request);
               break;
             case "GET_ACTIVE_AUCTIONS":
-              handleGetActiveAuctions(request);
+              handleGetActiveAuctions();
               break;
             default:
               System.out.println("Unknown action: " + request.getAction());
@@ -252,7 +252,7 @@ public class ClientHandler implements Runnable {
       ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
 
       // Báo thành công về Client
-      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!" , newAuction);
+      Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!", newAuction);
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
@@ -334,20 +334,23 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleGetActiveAuctions(Request request) {
+  private void handleGetActiveAuctions() {
     try {
       // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
-      List<Auction> activeItems = AuctionDAO.getInstance().getAllAuctionsByStatus(AuctionStatus.RUNNING);
+      List<Auction> activeItems =
+          AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
 
       // Khởi tạo phản hồi thành công
-      Response response = new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+      Response response =
+          new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
 
       // Gửi về cho client yêu cầu
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
       e.printStackTrace();
-      Response errorResponse = new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+      Response errorResponse =
+          new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
