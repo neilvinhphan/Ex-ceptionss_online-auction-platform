@@ -40,10 +40,10 @@ public class ItemService {
     String newDescription = requestPayload.getDescription();
     BigDecimal newPrice = requestPayload.getPrice();
 
-    if (itemDAO.updateItemDescriptionByItemId(itemId, newDescription) &&
-        itemDAO.updateItemNameByItemId(itemId, newName) &&
-        itemDAO.updateStartPriceByItemId(itemId, newPrice)) {
-        return true;
+    if (itemDAO.updateItemDescriptionByItemId(itemId, newDescription)
+        && itemDAO.updateItemNameByItemId(itemId, newName)
+        && itemDAO.updateStartPriceByItemId(itemId, newPrice)) {
+      return true;
     } else {
       return false;
     }
@@ -101,7 +101,7 @@ public class ItemService {
     if (item == null) {
       throw new Exception("Item data is required.");
     }
-    if(item.getSellerID() <= 0) {
+    if (item.getSellerID() <= 0) {
       throw new Exception("Invalid seller ID.");
     }
     if (item.getType() == null || item.getType().trim().isEmpty()) {
@@ -113,8 +113,12 @@ public class ItemService {
     if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
       throw new Exception("Item description is required.");
     }
-    if (item.getStartingPrice() == null || item.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
+    if (item.getStartingPrice() == null
+        || item.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
       throw new Exception("Starting price must be greater than zero.");
+    }
+    if (item.getBase64Image() == null || item.getBase64Image().trim().isEmpty()) {
+      throw new Exception("Item image is required.");
     }
   }
 }
