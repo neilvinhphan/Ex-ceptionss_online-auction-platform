@@ -32,295 +32,260 @@ import java.util.concurrent.TimeUnit;
 
 public class AuctionRoomController extends BaseController implements Initializable {
 
-  @FXML private Label lblItemName, lblTimer, lblStatus, lblBid;
-  @FXML private Label lblCurrentPrice, lblHighestBidder, lblWinner, lblBidError;
-  @FXML private TextArea taDescription;
-  @FXML private TextField tfBidAmount;
-  @FXML private ListView<String> lvBidHistory;
-  @FXML private LineChart<Number, Number> lineChart;
-  @FXML private Button btnPlaceBid;
+    @FXML private Label lblItemName, lblTimer, lblStatus, lblBid;
+    @FXML private Label lblCurrentPrice, lblHighestBidder, lblWinner, lblBidError;
+    @FXML private TextArea taDescription;
+    @FXML private TextField tfBidAmount;
+    @FXML private ListView<String> lvBidHistory;
+    @FXML private LineChart<Number, Number> lineChart;
+    @FXML private Button btnPlaceBid;
 
-  private XYChart.Series<Number, Number> priceSeries;
-  private ScheduledExecutorService timerService;
+    private XYChart.Series<Number, Number> priceSeries;
+    private ScheduledExecutorService timerService;
 
-  private Auction currentAuction;
-  private BigDecimal currentMaxPrice;
-  private int bidStepCount = 0;
+    private Auction currentAuction;
+    private BigDecimal currentMaxPrice;
+    private int bidStepCount = 0;
 
-  private Gson gson;
-  private int currentAuctionId;
-  private int currentUserId;
+    private Gson gson;
+    private int currentAuctionId;
+    private int currentUserId;
 
-  // --- Đồ nghề Socket ---
-  private PrintWriter outToServer;
-  private BufferedReader inFromServer;
-  private volatile boolean isListening = true; // Cờ để tắt luồng nghe khi thoát phòng
+    // --- Đồ nghề Socket ---
+    private PrintWriter outToServer;
+    private BufferedReader inFromServer;
+    private volatile boolean isListening = true; // Cờ để tắt luồng nghe khi thoát phòng
 
-  @Override
-  public void initialize(URL location, ResourceBundle resources) {
-    if (UserSession.getInstance().getCurrentUser() != null) {
-      this.currentUserId = UserSession.getInstance().getCurrentUser().getUserId();
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        if (UserSession.getInstance().getCurrentUser() != null) {
+            this.currentUserId = UserSession.getInstance().getCurrentUser().getUserId();
+        }
+
+        // [ĐÃ SỬA LỖI]: Không lấy currentAuctionId ở đây vì currentAuction đang bị null!
+
+        // 1. Khởi tạo biểu đồ
+        priceSeries = new XYChart.Series<>();
+        priceSeries.setName("Biến động giá");
+        lineChart.getData().add(priceSeries);
+
+        // 2. Lấy Gson và Socket từ ClientManager
+        gson = ClientManager.getInstance().getGson();
+
+        // Móc cái AuctionClient ra trước
+        org.example.client.network.AuctionClient clientSocket = ClientManager.getInstance().getClient();
+
+        // Rồi mới lấy ống in/out từ clientSocket
+        outToServer = clientSocket.getOut();
+        inFromServer = clientSocket.getIn();
+
+        // 3. LẤY DỮ LIỆU TỪ TRẠM TRUNG CHUYỂN
+        Auction sessionAuction = AuctionSession.getInstance().getCurrentAuction();
+        Item sessionItem = AuctionSession.getInstance().getCurrentItem();
+
+        System.out.println("DEBUG: Auction có null ko? " + sessionAuction.getAuctionId() + (sessionAuction == null));
+        System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
+
+        if (sessionAuction != null && sessionItem != null) {
+            // Setup giao diện ngay lập tức
+            setupRoom(sessionAuction, sessionItem);
+
+            // 4. MỞ BỘ ĐÀM LẮNG NGHE SERVER
+            listenFromServer();
+        } else {
+            showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
+        }
     }
 
-    // [ĐÃ SỬA LỖI]: Không lấy currentAuctionId ở đây vì currentAuction đang bị null!
+    private void setupRoom(Auction auction, Item item) {
+        this.currentAuction = auction;
+        // [ĐÃ FIX]: Gán ID phòng ở đây sau khi auction đã có dữ liệu thật
+        this.currentAuctionId = auction.getAuctionId();
 
-    // 1. Khởi tạo biểu đồ
-    priceSeries = new XYChart.Series<>();
-    priceSeries.setName("Biến động giá");
-    lineChart.getData().add(priceSeries);
+        this.currentMaxPrice = auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
 
-    // 2. Lấy Gson và Socket từ ClientManager
-    gson = ClientManager.getInstance().getGson();
+        lblItemName.setText(item.getItemName());
+        taDescription.setText(item.getDescription());
+        lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+        lblStatus.setText(auction.getStatus().toString());
+        lblWinner.setText("--");
 
-    // Móc cái AuctionClient ra trước
-    org.example.client.network.AuctionClient clientSocket = ClientManager.getInstance().getClient();
+        // 1. Mặc định ban đầu cứ cho là "Chưa có"
+        String topBidder = "Chưa có";
+        // 2. Kiểm tra xem lịch sử đặt giá đã có cái nào chưa?
+        if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
+            int lastIndex = auction.getBidHistory().size() - 1;
+            topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
+        }
 
-    // Rồi mới lấy ống in/out từ clientSocket
-    outToServer = clientSocket.getOut();
-    inFromServer = clientSocket.getIn();
+        // 3. Cập nhật lên Giao diện
+        updatePriceUI(currentMaxPrice, topBidder);
+        updateChart(currentMaxPrice);
 
-    // 3. LẤY DỮ LIỆU TỪ TRẠM TRUNG CHUYỂN
-    Auction sessionAuction = AuctionSession.getInstance().getCurrentAuction();
-    Item sessionItem = AuctionSession.getInstance().getCurrentItem();
-
-    System.out.println(
-        "DEBUG: Auction có null ko? " + sessionAuction.getAuctionId() + (sessionAuction == null));
-    System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
-
-    if (sessionAuction != null && sessionItem != null) {
-      // Setup giao diện ngay lập tức
-      setupRoom(sessionAuction, sessionItem);
-
-      // 4. MỞ BỘ ĐÀM LẮNG NGHE SERVER
-      listenFromServer();
-    } else {
-      showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
-    }
-  }
-
-  private void setupRoom(Auction auction, Item item) {
-    this.currentAuction = auction;
-    // [ĐÃ FIX]: Gán ID phòng ở đây sau khi auction đã có dữ liệu thật
-    this.currentAuctionId = auction.getAuctionId();
-
-    this.currentMaxPrice =
-        auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
-
-    lblItemName.setText(item.getItemName());
-    taDescription.setText(item.getDescription());
-    //lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-    if (auction.getBidIncrement() != null) {
-      lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-    } else {
-      lblBid.setText("0 VND");
-    }
-    if (auction.getStatus() != null) {
-      lblStatus.setText(auction.getStatus().toString());
-    } else {
-      lblStatus.setText("UNKNOWN"); // Giá trị mặc định nếu null
-    }
-    lblWinner.setText("--");
-
-    // 1. Mặc định ban đầu cứ cho là "Chưa có"
-    String topBidder = "Chưa có";
-    // 2. Kiểm tra xem lịch sử đặt giá đã có cái nào chưa?
-    if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-      int lastIndex = auction.getBidHistory().size() - 1;
-      topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
+        startCountdown(auction.getEndTime());
     }
 
-    // 3. Cập nhật lên Giao diện
-    updatePriceUI(currentMaxPrice, topBidder);
-    updateChart(currentMaxPrice);
+    @FXML
+    private void handlePlaceBid(ActionEvent event) {
+        String input = tfBidAmount.getText().trim();
+        lblBidError.setText("");
 
-    startCountdown(auction.getEndTime());
-  }
+        try {
+            BigDecimal bidAmount = new BigDecimal(input);
+            // Kiểm tra giá tại Client trước
+            if (bidAmount.compareTo(currentMaxPrice) <= 0) {
+                lblBidError.setStyle("-fx-text-fill: red;");
+                lblBidError.setText("Giá đặt phải cao hơn giá hiện tại!");
+                return;
+            }
 
-  @FXML
-  private void handlePlaceBid(ActionEvent event) {
-    String input = tfBidAmount.getText().trim();
-    lblBidError.setText("");
+            // ĐÓNG GÓI DỮ LIỆU ĐỂ GỬI QUA SOCKET
+            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
+            Request requestContainer = new Request("PLACE_BID", bidReq);
 
-    try {
-      BigDecimal bidAmount = new BigDecimal(input);
-      // Kiểm tra giá tại Client trước
-      if (bidAmount.compareTo(currentMaxPrice) <= 0) {
-        lblBidError.setStyle("-fx-text-fill: red;");
-        lblBidError.setText("Giá đặt phải cao hơn giá hiện tại!");
-        return;
-      }
+            // Gửi đi
+            if (outToServer != null) {
+                outToServer.println(gson.toJson(requestContainer));
 
-      // ĐÓNG GÓI DỮ LIỆU ĐỂ GỬI QUA SOCKET
-      BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
-      Request requestContainer = new Request("PLACE_BID", bidReq);
+                tfBidAmount.clear();
+                lblBidError.setStyle("-fx-text-fill: green;");
+                lblBidError.setText("Đã gửi yêu cầu, đang chờ xác nhận...");
+            } else {
+                lblBidError.setStyle("-fx-text-fill: red;");
+                lblBidError.setText("Lỗi mạng: Không thể gửi dữ liệu!");
+            }
 
-      // Gửi đi
-      if (outToServer != null) {
-        outToServer.println(gson.toJson(requestContainer));
-
-        tfBidAmount.clear();
-        lblBidError.setStyle("-fx-text-fill: green;");
-        lblBidError.setText("Đã gửi yêu cầu, đang chờ xác nhận...");
-      } else {
-        lblBidError.setStyle("-fx-text-fill: red;");
-        lblBidError.setText("Lỗi mạng: Không thể gửi dữ liệu!");
-      }
-
-    } catch (NumberFormatException e) {
-      lblBidError.setStyle("-fx-text-fill: red;");
-      lblBidError.setText("Vui lòng nhập số tiền hợp lệ!");
-      e.printStackTrace();
+        } catch (NumberFormatException e) {
+            lblBidError.setStyle("-fx-text-fill: red;");
+            lblBidError.setText("Vui lòng nhập số tiền hợp lệ!");
+            e.printStackTrace();
+        }
     }
-  }
 
-  /** LUỒNG CHẠY NGẦM LẮNG NGHE REAL-TIME TỪ SERVER */
-  private void listenFromServer() {
-    new Thread(
-            () -> {
-              try {
+    /**
+     * LUỒNG CHẠY NGẦM LẮNG NGHE REAL-TIME TỪ SERVER
+     */
+    private void listenFromServer() {
+        new Thread(() -> {
+            try {
                 String messageFromServer;
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-                  // THÊM DÒNG NÀY VÀO ĐẦU VÒNG LẶP:
-                  // Nếu cờ đã hạ (nghĩa là đang thoát phòng), đớp được cục xương xong thì THOÁT
-                  // LUÔN!
-                  if (!isListening) {
-                    System.out.println("[ZOMBIE] Đã đớp được cục xương và tự sát thành công!");
-                    break;
-                  }
+                    try { // BỌC TRY-CATCH VÀO ĐÂY
+                        Response response = gson.fromJson(messageFromServer, Response.class);
 
-                  // ... Code xử lý NEW_BID, ERROR_BID cũ của bro giữ nguyên bên dưới ...
+                        if ("NEW_BID".equals(response.getStatus())) {
+                            String innerData = gson.toJson(response.getData());
+                            BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
 
-                  Response response = gson.fromJson(messageFromServer, Response.class);
-
-                  // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
-                  if ("NEW_BID".equals(response.getStatus())) {
-                    String innerData = gson.toJson(response.getData());
-                    BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
-
-                    // Gọi hàm xử lý UI (Đã có sẵn của ông)
-                    onNewBidBroadcastReceived(
-                        data.getAuctionId(),
-                        BigDecimal.valueOf(data.getNewPrice()),
-                        data.getLeaderUsername());
-                  }
-                  // TH2: LỖI KHI MÌNH ĐẶT GIÁ
-                  else if ("ERROR_BID".equals(response.getStatus())) {
-                    Platform.runLater(
-                        () -> {
-                          lblBidError.setStyle("-fx-text-fill: red;");
-                          lblBidError.setText(response.getMessage());
-                        });
-                  }
-                  // TH3: ĐẤU GIÁ KẾT THÚC (Nếu Server có gửi thông báo này)
-                  else if ("AUCTION_END".equals(response.getStatus())) {
-                    // Tùy cấu trúc DTO kết thúc của ông, tôi làm ví dụ:
-                    // onAuctionEndBroadcastReceived(...)
-                  }
+                            // Bổ sung lấy data.getNewEndTime()
+                            onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername(), data.getNewEndTime());
+                        }
+                        else if ("ERROR_BID".equals(response.getStatus())) {
+                            Platform.runLater(() -> {
+                                lblBidError.setStyle("-fx-text-fill: red;");
+                                lblBidError.setText(response.getMessage());
+                            });
+                        }
+                    } catch (Exception parseEx) {
+                        System.err.println("Lỗi bóc tách gói tin: " + parseEx.getMessage());
+                    }
                 }
-              } catch (Exception e) {
-                if (isListening) {
-                  System.out.println("Mất kết nối với Server: " + e.getMessage());
-                }
-              }
-            })
-        .start();
-  }
-
-  // Các hàm cập nhật UI được gọi từ luồng lắng nghe
-  public void onNewBidBroadcastReceived(
-      int incomingAuctionId, BigDecimal newPrice, String bidderName) {
-    if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
-      Platform.runLater(
-          () -> {
-            this.currentMaxPrice = newPrice;
-            updatePriceUI(newPrice, bidderName);
-            updateChart(newPrice);
-
-            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            lvBidHistory
-                .getItems()
-                .add(
-                    0,
-                    String.format(
-                        "[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue()));
-
-            lblBidError.setText("");
-          });
-    }
-  }
-
-  // ... (Hàm onAuctionEndBroadcastReceived giữ nguyên của ông) ...
-  public void onAuctionEndBroadcastReceived(
-      int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
-    if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
-      Platform.runLater(
-          () -> {
-            stopTimer();
-            lblTimer.setText("00:00:00");
-            lblStatus.setText("ĐÃ KẾT THÚC");
-            lblWinner.setText(winnerName);
-            btnPlaceBid.setDisable(true);
-            tfBidAmount.setDisable(true);
-            if (winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())) {
-              showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
-            } else {
-              showAlert(
-                  "Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+            } catch (Exception e) {
+                if (isListening) System.out.println("Mất kết nối Server.");
             }
-          });
+        }).start();
     }
-  }
 
-  private void updatePriceUI(BigDecimal price, String bidder) {
-    lblCurrentPrice.setText(String.format("%,d VND", price.longValue()));
-    lblHighestBidder.setText(bidder);
-  }
+    // Các hàm cập nhật UI được gọi từ luồng lắng nghe
+    // Thêm tham số LocalDateTime newEndTime vào hàm này
+    public void onNewBidBroadcastReceived(int incomingAuctionId, BigDecimal newPrice, String bidderName, LocalDateTime newEndTime) {
+        if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
+            Platform.runLater(() -> {
+                this.currentMaxPrice = newPrice;
+                updatePriceUI(newPrice, bidderName);
+                updateChart(newPrice);
 
-  private void updateChart(BigDecimal price) {
-    bidStepCount++;
-    priceSeries.getData().add(new XYChart.Data<>(bidStepCount, price.doubleValue()));
-  }
+                String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                lvBidHistory.getItems().add(0, String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue()));
 
-  private void startCountdown(LocalDateTime endTime) {
-    if (endTime == null) return;
+                lblBidError.setText("");
 
-    stopTimer();
-    timerService = Executors.newSingleThreadScheduledExecutor();
-    timerService.scheduleAtFixedRate(
-        () -> {
-          Duration duration = Duration.between(LocalDateTime.now(), endTime);
-          Platform.runLater(
-              () -> {
-                if (duration.isNegative() || duration.isZero()) {
-                  stopTimer();
-                  lblTimer.setText("00:00:00");
-                  lblStatus.setText("ĐÃ KẾT THÚC");
-                  btnPlaceBid.setDisable(true);
-                  tfBidAmount.setDisable(true);
-                } else {
-                  long h = duration.toHours();
-                  long m = duration.toMinutesPart();
-                  long s = duration.toSecondsPart();
-                  lblTimer.setText(String.format("%02d:%02d:%02d", h, m, s));
+                if (newEndTime != null) {
+                    this.currentAuction.setEndTime(newEndTime); // Cập nhật lại biến đang giữ
+                    startCountdown(newEndTime); // GỌI LẠI HÀM NÀY ĐỂ ĐỒNG HỒ NHẢY SỐ MỚI
                 }
-              });
-        },
-        0,
-        1,
-        TimeUnit.SECONDS);
-  }
+                // ==========================================
+            });
+        }
+    }
 
-  @FXML
-  private void handleBackToCatalog(ActionEvent event) {
-    cleanUpBeforeExit();
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
-  }
+    public void onAuctionEndBroadcastReceived(int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
+        if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
+            Platform.runLater(() -> {
+                stopTimer();
+                lblTimer.setText("00:00:00");
+                lblStatus.setText("ĐÃ KẾT THÚC");
+                lblWinner.setText(winnerName);
+                btnPlaceBid.setDisable(true);
+                tfBidAmount.setDisable(true);
+                if(winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())){
+                    showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
+                } else {
+                    showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+                }
+            });
+        }
+    }
 
-  @FXML
-  private void handleMain(ActionEvent event) {
-    cleanUpBeforeExit();
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
+    private void updatePriceUI(BigDecimal price, String bidder) {
+        lblCurrentPrice.setText(String.format("%,d VND", price.longValue()));
+        lblHighestBidder.setText(bidder);
+    }
+
+    private void updateChart(BigDecimal price) {
+        bidStepCount++;
+        priceSeries.getData().add(new XYChart.Data<>(bidStepCount, price.doubleValue()));
+    }
+
+    private void startCountdown(LocalDateTime endTime) {
+        if (endTime == null) return;
+
+        stopTimer();
+        timerService = Executors.newSingleThreadScheduledExecutor();
+        timerService.scheduleAtFixedRate(() -> {
+            Duration duration = Duration.between(LocalDateTime.now(), endTime);
+            Platform.runLater(() -> {
+                if (duration.isNegative() || duration.isZero()) {
+                    stopTimer();
+                    lblTimer.setText("00:00:00");
+                    lblStatus.setText("ĐÃ KẾT THÚC");
+                    btnPlaceBid.setDisable(true);
+                    tfBidAmount.setDisable(true);
+                    // Hien thi nguoi chien thang
+                    String winner = lblHighestBidder.getText();
+                    lblWinner.setText(winner);
+
+                } else {
+                    long h = duration.toHours();
+                    long m = duration.toMinutesPart();
+                    long s = duration.toSecondsPart();
+                    lblTimer.setText(String.format("%02d:%02d:%02d", h, m, s));
+                }
+            });
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    @FXML
+    private void handleBackToCatalog(ActionEvent event) {
+        cleanUpBeforeExit();
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+    }
+
+    @FXML
+    private void handleMain(ActionEvent event) {
+        cleanUpBeforeExit();
+        switchScene(event, "/views/MainView.fxml", "Trang chủ");
+    }
 
   private void cleanUpBeforeExit() {
     stopTimer();
@@ -342,13 +307,13 @@ public class AuctionRoomController extends BaseController implements Initializab
     AuctionSession.getInstance().clearSession();
   }
 
-  private void stopTimer() {
-    if (timerService != null && !timerService.isShutdown()) {
-      timerService.shutdown();
+    private void stopTimer() {
+        if (timerService != null && !timerService.isShutdown()) {
+            timerService.shutdown();
+        }
     }
-  }
 
-  public void handleCheckout(ActionEvent actionEvent) {
-    System.out.println("chuyen sang catalog");
-  }
+    public void handleCheckout(ActionEvent actionEvent) {
+        System.out.println("chuyen sang catalog");
+    }
 }
