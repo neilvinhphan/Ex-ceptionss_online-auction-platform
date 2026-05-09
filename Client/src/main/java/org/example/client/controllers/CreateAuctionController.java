@@ -330,15 +330,17 @@ public class CreateAuctionController extends BaseController implements Initializ
   void handleWareHouse(ActionEvent event) {
     switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
   }
+  @FXML
+    public void handleWaitPayment(ActionEvent event) {
+      switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
 
+  }
   @FXML
   void handleCreateItem(ActionEvent event) {
     switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
   }
 
   public void handleMenuItem(ActionEvent event) {
-    MenuItem item = (MenuItem) event.getSource();
-    menuUser.setText(item.getText()); // Tạm thời theo code cũ của bạn
     switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
   }
 
@@ -350,4 +352,9 @@ public class CreateAuctionController extends BaseController implements Initializ
     int minutes = (durationMinuteSpinner.getValue() != null) ? durationMinuteSpinner.getValue() : 0;
     return Duration.ofHours(hours).plusMinutes(minutes);
   }
+
+
+    public void handleHistoryAuction(ActionEvent event) {
+        switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
+    }
 }

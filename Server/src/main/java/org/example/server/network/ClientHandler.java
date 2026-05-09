@@ -109,6 +109,15 @@ public class ClientHandler implements Runnable {
             case "GET_ACTIVE_AUCTIONS":
               handleGetActiveAuctions();
               break;
+            case "GET_PAID_HISTORY":
+              // t đến khúc chết não r :((
+              break;
+            case "GET_PENDING_PAYMENTS":
+              break;
+            case "PAY_ITEM":
+              break;
+            case "PAY_ALL":
+              break;
             case "LEAVE_ROOM":
               // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
               Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng thành công");
@@ -282,8 +291,6 @@ public class ClientHandler implements Runnable {
         String realUsername = "Unknown"; // Tên mặc định nếu không tìm thấy
 
         try {
-          // Gọi UserDAO của bạn (bạn cần import hoặc trỏ đúng đường dẫn tới class UserDAO)
-          // Ví dụ: org.example.server.daos.UserDAO
           org.example.core.models.users.User user = org.example.server.daos.UserDAO.getInstance().getUserByUserId(bidReq.getUserId());
 
           if (user != null) {
@@ -292,20 +299,29 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
           System.out.println("Lỗi truy vấn tên người dùng: " + e.getMessage());
         }
+        LocalDateTime currentEndTime = null;
+
+        try {
+          org.example.core.models.entities.Auction updatedAuction = org.example.server.daos.AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
+          if (updatedAuction != null) {
+            currentEndTime = updatedAuction.getEndTime(); // Lấy giờ mới (đã được BiddingService gia hạn nếu có)
+          }
+        } catch (Exception e) {
+          System.out.println("Lỗi lấy thời gian kết thúc: " + e.getMessage());
+        }
+        // ==========================================
 
         org.example.core.dto.BidBroadcastDTO broadcastDTO =
                 new org.example.core.dto.BidBroadcastDTO(
                         bidReq.getAuctionId(),
-                        bidReq
-                                .getBidAmount()
-                                .doubleValue(),
-                        realUsername); // <--- TRUYỀN TÊN THẬT VÀO ĐÂY
+                        bidReq.getBidAmount().doubleValue(),
+                        realUsername,
+                        currentEndTime); // Lúc này currentEndTime đã ngậm giờ thật rồi!
 
         // Bọc lại thành Response chuẩn và HÉT LÊN CHO CẢ PHÒNG!
         Response broadcastResponse =
                 new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
         broadcastMessage(gson.toJson(broadcastResponse));
-
       } else {
         Response errorResponse = new Response("ERROR_BID", "Đặt giá không thành công.");
         sendMessage(gson.toJson(errorResponse));

@@ -121,6 +121,10 @@ public class AuctionDAO {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
         auction.setItemId(rs.getInt("items_id"));
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+          auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
+        }
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));

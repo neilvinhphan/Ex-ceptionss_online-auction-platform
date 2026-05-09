@@ -36,18 +36,8 @@ public class MainController extends BaseController implements Initializable {
 
   @FXML
   private void handleMenuItem(ActionEvent event) {
-    MenuItem item = (MenuItem) event.getSource();
-    MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-    parentMenu.setText(item.getText());
     switchScene(event,"/views/AuctionCatalogView.fxml","Danh mục sản phẩm đấu giá");
   }
-
-  @FXML
-  private void handleRoomAuction(ActionEvent event){
-  MenuItem item = (MenuItem) event.getSource();
-  MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-  parentMenu.setText(item.getText());
-}
 
   @FXML
   void handleMain(ActionEvent event) {
