@@ -15,6 +15,8 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
@@ -26,6 +28,7 @@ import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.client.utils.ImageUtils;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -130,23 +133,46 @@ public class AuctionCatalogController extends BaseController implements Initiali
     card.setStyle(
         "-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);");
 
-    AnchorPane imagePane = new AnchorPane();
-    imagePane.setPrefHeight(180.0);
-    imagePane.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
-    Label imgLabel = new Label("[" + item.getType() + "]");
-    imgLabel.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 18; -fx-font-weight: bold;");
-    imgLabel.setLayoutX(110.0);
-    imgLabel.setLayoutY(80.0);
-    imagePane.getChildren().add(imgLabel);
+    // --- PHẦN XỬ LÝ ẢNH TỐI ƯU ---
+    // Sử dụng StackPane để ảnh luôn nằm giữa khung hình
+    javafx.scene.layout.StackPane imageContainer = new javafx.scene.layout.StackPane();
+    imageContainer.setPrefHeight(180.0);
+    imageContainer.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
+
+    ImageView imageView = new ImageView();
+
+    // Kiểm tra và lấy ảnh từ Base64
+    if (item.getImage() != null && !item.getImage().isEmpty()) {
+      Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
+      if (decodedImage != null) {
+        imageView.setImage(decodedImage);
+      }
+    }
+
+    // Nếu không có ảnh hoặc lỗi decode, hiển thị placeholder
+    if (imageView.getImage() == null) {
+      Label imgLabel = new Label("No Image Available");
+      imgLabel.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 14; -fx-font-style: italic;");
+      imageContainer.getChildren().add(imgLabel);
+    }
+
+    // Thiết lập kích thước hiển thị cho ảnh để không làm vỡ card
+    imageView.setFitWidth(310.0);
+    imageView.setFitHeight(180.0);
+    imageView.setPreserveRatio(true); // Giữ tỉ lệ ảnh gốc
+    imageView.setSmooth(true); // Làm mượt ảnh khi scale
+
+    imageContainer.getChildren().add(imageView);
+    // --- KẾT THÚC PHẦN XỬ LÝ ẢNH ---
 
     VBox infoBox = new VBox();
     infoBox.setSpacing(10.0);
     infoBox.setStyle("-fx-padding: 15;");
 
     Label lblName = new Label(item.getItemName());
-    lblName.setStyle("-fx-font-size: 14; -fx-text-fill: #555;");
+    lblName.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #333;");
+    lblName.setWrapText(true); // Cho phép xuống dòng nếu tên quá dài
 
-    // Thay vì dùng giá khởi điểm của Item, dùng giá cao nhất của Auction
     Label lblPrice =
         new Label(
             "Giá hiện tại: " + String.format("%,d", auction.getHighestBid().longValue()) + " đ");
@@ -155,16 +181,15 @@ public class AuctionCatalogController extends BaseController implements Initiali
     Button btnJoin = new Button("THAM GIA PHÒNG");
     btnJoin.setMaxWidth(Double.MAX_VALUE);
     btnJoin.setStyle(
-        "-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+        "-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;");
 
     btnJoin.setOnAction(
         e -> {
-          System.out.println("Đang vào phòng đấu giá ID: " + auction.getAuctionId());
           handleJoinAuction(auction);
         });
 
     infoBox.getChildren().addAll(lblName, lblPrice, btnJoin);
-    card.getChildren().addAll(imagePane, infoBox);
+    card.getChildren().addAll(imageContainer, infoBox);
 
     return card;
   }
