@@ -19,6 +19,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
+import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
@@ -183,10 +184,9 @@ public class AuctionCatalogController extends BaseController implements Initiali
     btnJoin.setStyle(
         "-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;");
 
-    btnJoin.setOnAction(
-        e -> {
-          handleJoinAuction(auction);
-        });
+    btnJoin.setOnAction(e -> {
+      handleJoinAuction(e, auction);
+    });
 
     infoBox.getChildren().addAll(lblName, lblPrice, btnJoin);
     card.getChildren().addAll(imageContainer, infoBox);
@@ -194,11 +194,17 @@ public class AuctionCatalogController extends BaseController implements Initiali
     return card;
   }
 
-  private void handleJoinAuction(Auction auction) {
-    // Truyền thẳng đối tượng Auction sang scene kế tiếp
-    showAlert(
-        "Thông báo",
-        "Bạn vừa chọn tham gia phòng của sản phẩm: " + auction.getItem().getItemName());
+  private void handleJoinAuction(ActionEvent event, Auction auction) {
+    try {
+      // 1. Nhét dữ liệu vào Trạm trung chuyển
+      AuctionSession.getInstance().setCurrentAuction(auction);
+      AuctionSession.getInstance().setCurrentItem(auction.getItem());
+      switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá: " + auction.getItem().getItemName());
+
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      showAlert("Lỗi", "Không thể vào phòng đấu giá: " + ex.getMessage());
+    }
   }
 
   @FXML
