@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -58,71 +59,64 @@ public class AuctionCatalogController extends BaseController implements Initiali
   private void loadActiveAuctions() {
     Request request = new Request("GET_ACTIVE_AUCTIONS", null);
     String jsonRequest = gson.toJson(request);
+    new Thread(() -> {
+      try {
+        System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
+        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+        Response response = gson.fromJson(jsonResponse, Response.class);
 
-    new Thread(
-            () -> {
-              try {
-                System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
+        if ("SUCCESS".equals(response.getStatus())) {
+          // --- BƯỚC 1: PARSE DỮ LIỆU NGAY TẠI LUỒNG MẠNG ---
+          String jsonData = gson.toJson(response.getData());
+          JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+          List<Auction> fetchedAuctions = new ArrayList<>();
 
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(response.getStatus())) {
-                        String jsonData = gson.toJson(response.getData());
-                        JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                        List<Auction> fetchedAuctions = new ArrayList<>();
+          for (JsonElement element : jsonArray) {
+            JsonObject auctionObj = element.getAsJsonObject();
+            Auction auction = gson.fromJson(auctionObj, Auction.class);
 
-                        for (JsonElement element : jsonArray) {
-                          JsonObject auctionObj = element.getAsJsonObject();
+            if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
+              JsonObject itemObj = auctionObj.getAsJsonObject("item");
+              String type = itemObj.get("type").getAsString();
+              Item parsedItem = switch (type.toUpperCase()) {
+                case "ART" -> gson.fromJson(itemObj, ArtItem.class);
+                case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
+                case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
+                default -> null;
+              };
+              auction.setItem(parsedItem);
+            }
+            if (auction.getItem() != null) fetchedAuctions.add(auction);
+          }
 
-                          // Map dữ liệu cơ bản của Auction
-                          Auction auction = gson.fromJson(auctionObj, Auction.class);
+          // --- BƯỚC 2: CHỈ ĐẨY VIỆC VẼ KHUNG VÀO UI ---
+          Platform.runLater(() -> {
+            auctionFlowPane.getChildren().clear();
+            for (Auction auction : fetchedAuctions) {
+              VBox card = createAuctionCard(auction); // Hàm này giờ không chứa code decode ảnh nữa
+              auctionFlowPane.getChildren().add(card);
 
-                          // Xử lý đa hình cho thuộc tính Item nằm bên trong Auction
-                          if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
-                            JsonObject itemObj = auctionObj.getAsJsonObject("item");
-                            String type = itemObj.get("type").getAsString();
-                            Item parsedItem = null;
-
-                            switch (type.toUpperCase()) {
-                              case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                              case "ELECTRONICS" ->
-                                  parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                              case "VEHICLE" ->
-                                  parsedItem = gson.fromJson(itemObj, VehicleItem.class);
-                            }
-                            // Gắn Item đã parse vào Auction
-                            auction.setItem(parsedItem);
-                          }
-
-                          if (auction.getItem() != null) {
-                            fetchedAuctions.add(auction);
-                          }
-                        }
-
-                        System.out.println(
-                            "Đã tải xong " + fetchedAuctions.size() + " phòng đấu giá.");
-
-                        auctionFlowPane.getChildren().clear();
-
-                        for (Auction auction : fetchedAuctions) {
-                          VBox card = createAuctionCard(auction);
-                          auctionFlowPane.getChildren().add(card);
-                        }
-
-                      } else {
-                        showAlert(
-                            "Lỗi", "Không thể tải danh sách đấu giá: " + response.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Mất kết nối tới máy chủ: " + e.getMessage()));
-                e.printStackTrace();
+              // --- BƯỚC 3: TẠO LUỒNG RIÊNG CHO TỪNG CÁI ẢNH ---
+              String base64 = auction.getItem().getImage();
+              if (base64 != null && !base64.isEmpty()) {
+                new Thread(() -> {
+                  Image img = ImageUtils.decodeBase64ToImage(base64);
+                  Platform.runLater(() -> {
+                    ImageView iv = (ImageView) card.lookup(".auction-image");
+                    if (iv != null && img != null) iv.setImage(img);
+                  });
+                }).start();
               }
-            })
-        .start();
+            }
+          });
+        }
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi", "Mất kết nối: " + e.getMessage()));
+        e.printStackTrace();
+      }
+    }).start();
+
+
   }
 
   /** Truyền thẳng Auction vào để lấy giá highestBid và dữ liệu Item */
@@ -136,19 +130,19 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     // --- PHẦN XỬ LÝ ẢNH TỐI ƯU ---
     // Sử dụng StackPane để ảnh luôn nằm giữa khung hình
-    javafx.scene.layout.StackPane imageContainer = new javafx.scene.layout.StackPane();
+    StackPane imageContainer = new javafx.scene.layout.StackPane();
     imageContainer.setPrefHeight(180.0);
     imageContainer.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
 
     ImageView imageView = new ImageView();
-
+    imageView.getStyleClass().add("auction-image");
     // Kiểm tra và lấy ảnh từ Base64
-    if (item.getImage() != null && !item.getImage().isEmpty()) {
-      Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
-      if (decodedImage != null) {
-        imageView.setImage(decodedImage);
-      }
-    }
+//    if (item.getImage() != null && !item.getImage().isEmpty()) {
+//      Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
+//      if (decodedImage != null) {
+//        imageView.setImage(decodedImage);
+//      }
+//    }
 
     // Nếu không có ảnh hoặc lỗi decode, hiển thị placeholder
     if (imageView.getImage() == null) {
