@@ -84,7 +84,6 @@
                     </center>
                 </BorderPane>
 
-                <!-- FOOTER: GIỮ NGUYÊN -->
                 <HBox alignment="CENTER_LEFT" spacing="60.0" style="-fx-background-color: #0f2b25; -fx-padding: 40 60;">
                     <children>
                         <VBox spacing="10.0">
