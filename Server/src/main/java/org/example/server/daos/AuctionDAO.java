@@ -86,6 +86,8 @@ public class AuctionDAO {
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
+        auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+        auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
         auctions.add(auction);
       }
     } catch (SQLException | IOException e) {
@@ -99,7 +101,7 @@ public class AuctionDAO {
 
     // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
     String sql =
-        "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
+        "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment,"
             + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
@@ -122,6 +124,8 @@ public class AuctionDAO {
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
+        auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+        auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
 
         // 2. Bóc tách dữ liệu Item và khởi tạo object đa hình
         String itemType = rs.getString("item_type");
