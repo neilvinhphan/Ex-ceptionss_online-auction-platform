@@ -56,6 +56,10 @@ public class WaitPaymentController extends BaseController implements Initializab
     private ObservableList<PendingItemDTO> observableList = FXCollections.observableArrayList();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            menuUser.setText(currentUser.getUserName());
+        }
         // 1. Cấu hình các cột hiển thị dữ liệu bình thường
         colName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
         colPrice.setCellValueFactory(new PropertyValueFactory<>("winPrice"));

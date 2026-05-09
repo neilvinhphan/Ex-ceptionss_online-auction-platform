@@ -285,6 +285,9 @@ public class CreateAuctionController extends BaseController implements Initializ
                           Platform.runLater(
                               () -> {
                                 showAlert("Thành công", "Đã tạo cuộc đấu giá thành công!");
+                                  // Trong handleSubmit của CreateAuctionController
+                                  System.out.println("DEBUG Ảnh trước khi vào phòng: " + selectedItem.getImage());
+// Nếu nó in ra null hoặc "" thì lỗi là do lúc loadPendingItems chưa lấy ảnh về.
                                 switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá");
                               });
 
