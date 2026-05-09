@@ -107,7 +107,7 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="Danh sách sản phẩm">
+                                        <Label text="Danh sách phòng đấu giá">
                                             <font>
                                                 <Font name="System Bold" size="24.0" />
                                             </font>
@@ -139,13 +139,7 @@
                             </BorderPane.margin>
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá ">
-                                    <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
-                                    </items>
-                                </MenuButton>
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" text="Danh sách phòng" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                                     <items>
@@ -158,7 +152,7 @@
                     </top>
 
                     <bottom>
-                        <HBox spacing="60.0" style="-fx-background-color: #0f2b25; -fx-padding: 40 60;" BorderPane.alignment="CENTER">
+                        <HBox alignment="CENTER_LEFT" spacing="60.0" style="-fx-background-color: #0f2b25; -fx-padding: 40 60;">
                             <children>
                                 <VBox spacing="10.0">
                                     <children>
@@ -168,8 +162,10 @@
                                 </VBox>
                                 <VBox spacing="10.0">
                                     <children>
-                                        <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18;" text="Liên hệ với chúng tôi" />
+                                        <Label style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;" text="Liên hệ với chúng tôi" />
                                         <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="☎ Hotline: 0378.466.888" />
+                                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="📧 Email: exception@daugia.vn" />
+                                        <Label style="-fx-font-size: 14; -fx-text-fill: #A0B3AE;" text="📍 Địa chỉ: 144 Xuân Thủy, Cầu Giấy, Hà Nội" />
                                     </children>
                                 </VBox>
                             </children>

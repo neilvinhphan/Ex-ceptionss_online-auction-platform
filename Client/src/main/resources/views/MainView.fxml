@@ -31,15 +31,9 @@
                         <HBox alignment="CENTER" layoutY="35.0" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: rgba(0, 0, 0, 0.4); -fx-padding: 10 30;" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="75.0" AnchorPane.topAnchor="35.0">
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" prefHeight="32.0" prefWidth="191.0" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: rgba(0, 0, 0, 0.000); -fx-font-size: 16; -fx-text-fill: white;" text="Trang chủ" />
-                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" prefHeight="31.0" prefWidth="161.0" style="-fx-background-radius: 30;" text="Danh sách phòng">
-                                    <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🔋 Đồ điện" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
-                                    </items>
-                                </MenuButton>
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 50;" text="Danh sách phòng" />
                                 <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
-                                  <MenuButton fx:id="menuUser" accessibleText="người dùng" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true;" text="User">
+                                  <MenuButton fx:id="menuUser" accessibleText="người dùng" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true; -fx-font-weight: bold;" text="User">
                                       <items>
                                           <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                                           <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />

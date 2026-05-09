@@ -9,6 +9,7 @@ import com.google.gson.JsonParseException;
 import org.example.core.dto.*;
 
 import org.example.core.models.entities.Auction;
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
 
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.example.core.network.LocalDateTimeAdapter;
+import org.example.server.services.BiddingService;
 import org.example.server.services.ItemService;
 
 public class ClientHandler implements Runnable {
@@ -108,6 +110,15 @@ public class ClientHandler implements Runnable {
               break;
             case "GET_ACTIVE_AUCTIONS":
               handleGetActiveAuctions();
+              break;
+            case "GET_PAID_HISTORY":
+              // t đến khúc chết não r :((
+              break;
+            case "GET_PENDING_PAYMENTS":
+              break;
+            case "PAY_ITEM":
+              break;
+            case "PAY_ALL":
               break;
             case "LEAVE_ROOM":
               // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
@@ -332,8 +343,7 @@ public class ClientHandler implements Runnable {
       Integer auctionId = gson.fromJson(dataJson, Integer.class);
 
       // Gọi Service lấy danh sách lịch sử
-      List<org.example.core.models.entities.BidTransaction> history =
-          org.example.server.services.BiddingService.getInstance().getBidHistory(auctionId);
+      List<BidTransaction> history = BiddingService.getInstance().getBidHistory(auctionId);
 
       // Bọc lại thành Response gửi về cho Client
       Response response = new Response("SUCCESS", "Lấy lịch sử thành công", history);
@@ -349,8 +359,7 @@ public class ClientHandler implements Runnable {
   private void handleGetActiveAuctions() {
     try {
       // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
-      List<Auction> activeItems =
-          AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
+      List<Auction> activeItems = AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
 
       // Khởi tạo phản hồi thành công
       Response response =
@@ -366,6 +375,27 @@ public class ClientHandler implements Runnable {
       sendMessage(gson.toJson(errorResponse));
     }
   }
+
+//  private void handleGetPaidHistory(Request request) {
+//    try {
+//      // Giả sử Client gửi data chính là cái userId (kiểu int)
+//      String dataJson = gson.toJson(request.getData());
+//      Integer userId = gson.fromJson(dataJson, Integer.class);
+//
+//      // Gọi Service lấy danh sách lịch sử
+//      List<PaidHistoryDTO> paidHistoryDTO =  BiddingService.getInstance().getPaidHistory(userId);
+//
+//
+//      // Bọc lại thành Response gửi về cho Client
+//      Response response = new Response("SUCCESS", "Lấy lịch sử thanh toán thành công", paidHistoryDTO);
+//      sendMessage(gson.toJson(response));
+//
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//      Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử thanh toán: " + e.getMessage());
+//      sendMessage(gson.toJson(errorResponse));
+//    }
+//  }
 
   public synchronized void sendMessage(String message) {
     out.println(message);

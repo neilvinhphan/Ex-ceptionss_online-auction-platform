@@ -55,11 +55,16 @@ public class ItemDAO {
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
           item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
           items.add(item);
         }
         return items;

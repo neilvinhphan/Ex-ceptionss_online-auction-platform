@@ -27,11 +27,10 @@ public class WalletDAO {
   }
 
   public BigDecimal getAvailableBalance(int userId) {
-    String sql =
-        """
-                     SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
-                     FROM auction
-                     WHERE bidder_id = ? AND status = 'RUNNING')) AS available_balance FROM user WHERE user_id = ?""";
+    String sql = """
+        SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
+        FROM auction
+        WHERE bidder_id = ? AND status = 'RUNNING')) AS available_balance FROM user WHERE user_id = ?""";
 
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -48,8 +47,7 @@ public class WalletDAO {
     return BigDecimal.ZERO;
   }
 
-  public boolean insertWalletTransaction(
-      int userId, BigDecimal amount, WalletTransactionType type, int auctionId) {
+  public boolean insertWalletTransaction(int userId, BigDecimal amount, WalletTransactionType type, int auctionId) {
     String sql = "INSERT INTO wallet_transaction (user_id, amount, transaction_type, reference_id) VALUES (?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
     PreparedStatement ps = connection.prepareStatement(sql)) {

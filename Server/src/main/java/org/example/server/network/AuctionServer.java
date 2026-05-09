@@ -1,5 +1,7 @@
 package org.example.server.network;
 
+import org.example.server.services.AuctionService;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -9,6 +11,11 @@ public class AuctionServer {
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Auction Server started on port " + PORT);
+            AuctionService.startAutoCloseJob();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down server...");
+                AuctionService.stopAutoCloseJob();
+            }));
             while (true) {
                 var clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());

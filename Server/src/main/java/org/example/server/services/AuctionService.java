@@ -62,7 +62,7 @@ public class AuctionService {
   // Lấy các phiên đấu giá theo trạng thái
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     // Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING)
-    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatus(status);
+    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(status);
     return auction;
   }
 
@@ -125,8 +125,17 @@ public class AuctionService {
           @Override
           public void run() {
             try {
-              System.out.println(
-                  "[Background Job] Quét trạng thái thanh toán: " + LocalDateTime.now());
+              List<Auction> runningAuction =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+              LocalDateTime now = LocalDateTime.now();
+
+              for (Auction a : runningAuction) {
+                if (now.isAfter(a.getEndTime())) {
+                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                    System.out.println(
+                        "Phiên: " + a.getAuctionId() + " đã kết thúc do hết thời gian!");
+                }
+              }
 
               // Lấy list các phiên FINISHED
               List<Auction> finishedAuctions =
@@ -154,7 +163,7 @@ public class AuctionService {
         };
 
     // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
-    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.SECONDS);
     System.out.println("Đã kích hoạt hệ thống Auto-Close ngầm!");
   }
 

@@ -8,8 +8,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
+import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.BidBroadcastDTO;
 import org.example.core.dto.BidRequestDTO;
@@ -39,7 +43,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     @FXML private ListView<String> lvBidHistory;
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private Button btnPlaceBid;
-
+    @FXML private ImageView ivItemImage;
     private XYChart.Series<Number, Number> priceSeries;
     private ScheduledExecutorService timerService;
 
@@ -106,8 +110,22 @@ public class AuctionRoomController extends BaseController implements Initializab
 
         lblItemName.setText(item.getItemName());
         taDescription.setText(item.getDescription());
-        lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-        lblStatus.setText(auction.getStatus().toString());
+        if (item.getImage() != null && !item.getImage().isEmpty()) {
+            try {
+                Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
+                if (decodedImage != null) {
+                    ivItemImage.setImage(decodedImage);
+                }
+            } catch (Exception e) {
+                System.err.println("Lỗi hiển thị ảnh trong phòng: " + e.getMessage());
+            }
+        }
+        if (auction.getBidIncrement() != null) {
+            lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+        } else {
+            lblBid.setText("K co du lieu");
+        }
+        lblStatus.setText(auction.getStatus() != null ? auction.getStatus().toString() : "k co du lieu");
         lblWinner.setText("--");
 
         // 1. Mặc định ban đầu cứ cho là "Chưa có"
@@ -224,7 +242,7 @@ public class AuctionRoomController extends BaseController implements Initializab
             Platform.runLater(() -> {
                 stopTimer();
                 lblTimer.setText("00:00:00");
-                lblStatus.setText("ĐÃ KẾT THÚC");
+                lblStatus.setText("FINISHED");
                 lblWinner.setText(winnerName);
                 btnPlaceBid.setDisable(true);
                 tfBidAmount.setDisable(true);
@@ -258,7 +276,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                 if (duration.isNegative() || duration.isZero()) {
                     stopTimer();
                     lblTimer.setText("00:00:00");
-                    lblStatus.setText("ĐÃ KẾT THÚC");
+                    lblStatus.setText("FINISHED");
                     btnPlaceBid.setDisable(true);
                     tfBidAmount.setDisable(true);
                     // Hien thi nguoi chien thang
@@ -280,14 +298,19 @@ public class AuctionRoomController extends BaseController implements Initializab
         cleanUpBeforeExit();
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
     }
+    @FXML
+    public void handleCheckout(ActionEvent event) {
+        cleanUpBeforeExit();
+        switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
 
+    }
     @FXML
     private void handleMain(ActionEvent event) {
         cleanUpBeforeExit();
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
 
-  private void cleanUpBeforeExit() {
+    private void cleanUpBeforeExit() {
     stopTimer();
 
     // 1. Gửi cục xương (Chim mồi) lên Server TRƯỚC
@@ -311,9 +334,5 @@ public class AuctionRoomController extends BaseController implements Initializab
         if (timerService != null && !timerService.isShutdown()) {
             timerService.shutdown();
         }
-    }
-
-    public void handleCheckout(ActionEvent actionEvent) {
-        System.out.println("chuyen sang catalog");
     }
 }

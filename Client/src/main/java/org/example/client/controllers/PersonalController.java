@@ -57,12 +57,12 @@ public class PersonalController extends BaseController implements Initializable 
 
     @FXML
     private void handleMenuItem(ActionEvent event) {
-        MenuItem item = (MenuItem) event.getSource();
-        MenuButton parentMenu = (MenuButton) item.getParentPopup().getOwnerNode();
-        parentMenu.setText(item.getText());
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
     }
-
+@FXML
+public void handleHistoryAuction(ActionEvent event) {
+    switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
+}
     @FXML
     void handleCreateAuction(ActionEvent event) {
         if (userRole.equals(RoleType.BIDDER)) {
@@ -165,5 +165,10 @@ public class PersonalController extends BaseController implements Initializable 
     @FXML
     void handleWareHouse(ActionEvent event) {
         switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
+    }
+    @FXML
+    public void handleWaitPayment(ActionEvent event) {
+        switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
+
     }
 }

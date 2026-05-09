@@ -63,12 +63,13 @@ public class BidDAO {
   /**
    * Cập nhật current_price sau khi nhận bid hợp lệ
    */
-  public boolean updateCurrentPrice(int auctionId, BigDecimal newPrice) {
-    String sql = "UPDATE auction SET highest_price = ? WHERE auction_id = ?";
+  public boolean updateCurrentPrice(int auctionId, int bidderId, BigDecimal newPrice) {
+    String sql = "UPDATE auction SET highest_price = ?, bidder_id = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
-      ps.setInt(2, auctionId);
+      ps.setInt(2, bidderId);
+      ps.setInt(3, auctionId);
       return ps.executeUpdate() > 0;
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
