@@ -107,7 +107,7 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="Danh sách sản phẩm">
+                                        <Label text="Danh sách phòng đấu giá">
                                             <font>
                                                 <Font name="System Bold" size="24.0" />
                                             </font>
@@ -139,13 +139,7 @@
                             </BorderPane.margin>
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh mục đấu giá ">
-                                    <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏠 Bất động sản" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ cổ" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
-                                    </items>
-                                </MenuButton>
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" text="Danh sách phòng" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                                     <items>

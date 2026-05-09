@@ -296,7 +296,12 @@ public class AuctionRoomController extends BaseController implements Initializab
         cleanUpBeforeExit();
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
     }
+    @FXML
+    public void handleCheckout(ActionEvent event) {
+        cleanUpBeforeExit();
+        switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
 
+    }
     @FXML
     private void handleMain(ActionEvent event) {
         cleanUpBeforeExit();
@@ -329,7 +334,4 @@ public class AuctionRoomController extends BaseController implements Initializab
         }
     }
 
-    public void handleCheckout(ActionEvent actionEvent) {
-        System.out.println("chuyen sang catalog");
-    }
 }

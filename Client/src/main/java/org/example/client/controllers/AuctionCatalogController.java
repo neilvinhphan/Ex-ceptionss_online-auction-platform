@@ -223,5 +223,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
   }
 
   @FXML
-  public void handleMenuItem(ActionEvent event) {}
+  public void handleMenuItem(ActionEvent event) {
+  }
 }

@@ -170,7 +170,10 @@ public class WareHouseController extends BaseController implements Initializable
   public void handleMain(ActionEvent event) {
     switchScene(event, "/views/MainView.fxml", "Trang chủ");
   }
-
+@FXML
+public void handleHistoryAuction(ActionEvent event) {
+  switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
+}
   @FXML
   public void handleUserUi(ActionEvent event) {
     switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
@@ -348,5 +351,9 @@ public class WareHouseController extends BaseController implements Initializable
                 }
               }
             });
+  }
+
+  public void handleWaitPayment(ActionEvent event) {
+    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
   }
 }
