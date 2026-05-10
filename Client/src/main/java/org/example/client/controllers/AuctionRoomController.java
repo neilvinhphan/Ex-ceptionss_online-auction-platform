@@ -23,6 +23,7 @@ import org.example.core.dto.BidRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
 
 import java.io.BufferedReader;
@@ -133,20 +134,37 @@ public class AuctionRoomController extends BaseController implements Initializab
         auction.getStatus() != null ? auction.getStatus().toString() : "k co du lieu");
     lblWinner.setText("--");
 
-    // 1. Mặc định ban đầu cứ cho là "Chưa có"
-    String topBidder = "Chưa có";
-    // 2. Kiểm tra xem lịch sử đặt giá đã có cái nào chưa?
-    if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-      int lastIndex = auction.getBidHistory().size() - 1;
-      topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
-    }
-    System.out.println(auction.getBidHistory());
-    System.out.println(auction.getBidderId());
-    System.out.println(topBidder);
+    // --- ĐÂY LÀ KHÚC "HỒI MÃ THƯƠNG" ---
 
-    // 3. Cập nhật lên Giao diện
-    updatePriceUI(currentMaxPrice, topBidder);
-    updateChart(currentMaxPrice);
+    // 1. Xóa sạch dữ liệu cũ trên biểu đồ/list (nếu có)
+    priceSeries.getData().clear();
+    lvBidHistory.getItems().clear();
+    bidStepCount = 0;
+
+    // 2. Nếu có lịch sử, lặp qua để vẽ lại từ đầu
+    if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
+      for (BidTransaction bid : auction.getBidHistory()) {
+        // Vẽ lên biểu đồ
+        bidStepCount++;
+        priceSeries.getData().add(new XYChart.Data<>(bidStepCount, bid.getAmount().doubleValue()));
+
+        // Thêm vào ListView lịch sử
+        String time = bid.getTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String historyLine =
+            String.format(
+                "[%s] %s đã đặt %,d VND", time, bid.getBidderName(), bid.getAmount().longValue());
+        lvBidHistory.getItems().add(0, historyLine); // Thằng mới nhất lên đầu
+      }
+
+      // Cập nhật người dẫn đầu hiện tại là thằng cuối cùng trong list
+      String topBidder =
+          auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
+      updatePriceUI(currentMaxPrice, topBidder);
+    } else {
+      // Nếu chưa có ai bid, vẽ điểm khởi đầu là giá sàn
+      priceSeries.getData().add(new XYChart.Data<>(0, item.getStartingPrice().doubleValue()));
+      updatePriceUI(currentMaxPrice, "Chưa có");
+    }
 
     startCountdown(auction.getEndTime());
   }

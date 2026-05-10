@@ -24,12 +24,10 @@ public class UserSession {
         this.currentUser = currentUser;
     }
 
-    // Hàm này dùng để xóa thông tin khi người dùng bấm Đăng xuất
     public void cleanUserSession() {
         this.currentUser = null;
     }
 
     public int getSellerID() {return sellerID;}
-
      public void setSellerID(int sellerID) {this.sellerID = sellerID;}
 }

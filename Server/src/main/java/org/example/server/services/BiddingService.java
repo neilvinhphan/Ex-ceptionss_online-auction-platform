@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.BidRequestDTO;
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
@@ -45,8 +46,8 @@ public class BiddingService {
     return auctionLocks.computeIfAbsent(auctionId, id -> new ReentrantLock());
   }
 
-  /**z
-   * placeBid (cốt lõi): 1) lock theo auction 2) validate domain 3) validate amount >= current +
+  /**
+   * z placeBid (cốt lõi): 1) lock theo auction 2) validate domain 3) validate amount >= current +
    * increment 4) ghi DB bid + cập nhật current price 5) anti sniping
    */
   public boolean placeBid(BidRequestDTO request) throws Exception {
@@ -77,18 +78,20 @@ public class BiddingService {
         throw new Exception("Giá đặt phải >= " + minAcceptable);
       }
 
-
       BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
       if (request.getBidAmount().compareTo(availableBalance) > 0) {
         throw new Exception("Sô dư khả dụng không đủ!");
       }
 
-      boolean inserted = bidDAO.updateNewBid(request.getAuctionId(), request.getUserId(), request.getBidAmount());
+      boolean inserted =
+          bidDAO.updateNewBid(request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!inserted) {
         throw new Exception("Không thể ghi nhận lượt đặt giá.");
       }
 
-      boolean updatedPrice = bidDAO.updateCurrentPrice(request.getAuctionId(), request.getUserId(), request.getBidAmount());
+      boolean updatedPrice =
+          bidDAO.updateCurrentPrice(
+              request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!updatedPrice) {
         throw new Exception("Không thể cập nhật giá hiện tại.");
       }
@@ -118,6 +121,6 @@ public class BiddingService {
 
   /** Lấy lịch sử để FE vẽ chart */
   public List<BidTransaction> getBidHistory(int auctionId) {
-    return bidDAO.getBidTransactionByAuctionId(auctionId);
+    return bidDAO.getBidHistoryByAuctionId(auctionId);
   }
 }

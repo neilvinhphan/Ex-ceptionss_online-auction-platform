@@ -1,5 +1,6 @@
 package org.example.server.daos;
 
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
@@ -23,6 +24,7 @@ import java.util.List;
 
 public class AuctionDAO {
   private static volatile AuctionDAO instance;
+  private static BidDAO bidDAO = BidDAO.getInstance();
 
   private AuctionDAO() {}
 
@@ -132,7 +134,8 @@ public class AuctionDAO {
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
         auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-        List<BidTransaction> bidTransactions = BidDAO.getInstance().getBidTransactionByAuctionId(auction.getAuctionId());
+        List<BidTransaction> bidTransactions =
+            BidDAO.getInstance().getBidHistoryByAuctionId(auction.getAuctionId());
         auction.setBidHistory(bidTransactions);
 
         // 2. Bóc tách dữ liệu Item và khởi tạo object đa hình
@@ -184,6 +187,17 @@ public class AuctionDAO {
     }
     return -1;
   }
+
+  //  // Ví dụ trong AuctionDAO.java
+  //  public Auction getAuctionWithHistory(int auctionId) {
+  //    Auction auction = getAuctionByAuctionId(auctionId); // Lấy thông tin cơ bản
+  //    if (auction != null) {
+  //      // Lấy toàn bộ lịch sử bid của phòng này, sắp xếp theo thời gian tăng dần
+  //      List<BidTransaction> history = bidDAO.getBidHistoryByAuctionId(auctionId);
+  //      auction.setBidHistory(history);
+  //    }
+  //    return auction;
+  //  }
 
   public int createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
     String sql =

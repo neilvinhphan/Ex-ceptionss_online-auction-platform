@@ -27,9 +27,10 @@ public class BidDAO {
   }
 
   public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {
-    String sql = "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
+    String sql =
+        "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       ps.setInt(2, userId);
       ps.setBigDecimal(3, amount);
@@ -41,14 +42,11 @@ public class BidDAO {
     }
   }
 
-  /**
-   * Lấy giá hiện tại của phiên từ bảng auction_items
-   * Nếu chưa có -> trả null
-   */
+  /** Lấy giá hiện tại của phiên từ bảng auction_items Nếu chưa có -> trả null */
   public BigDecimal getCurrentPrice(int auctionId) {
     String sql = "SELECT highest_price FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
@@ -61,13 +59,11 @@ public class BidDAO {
     }
   }
 
-  /**
-   * Cập nhật current_price sau khi nhận bid hợp lệ
-   */
+  /** Cập nhật current_price sau khi nhận bid hợp lệ */
   public boolean updateCurrentPrice(int auctionId, int bidderId, BigDecimal newPrice) {
     String sql = "UPDATE auction SET highest_price = ?, bidder_id = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
       ps.setInt(2, bidderId);
       ps.setInt(3, auctionId);
@@ -78,14 +74,15 @@ public class BidDAO {
   }
 
   public int getBidIdByItemsId(int itemId) {
-    String sql = "SELECT b.bid_id " +
-            "FROM bid b " +
-            "JOIN auction ai ON b.auction_id = ai.auction_id " +
-            "WHERE ai.items_id = ? " +
-            "ORDER BY b.bid_id DESC " +
-            "LIMIT 1";
+    String sql =
+        "SELECT b.bid_id "
+            + "FROM bid b "
+            + "JOIN auction ai ON b.auction_id = ai.auction_id "
+            + "WHERE ai.items_id = ? "
+            + "ORDER BY b.bid_id DESC "
+            + "LIMIT 1";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) return rs.getInt("bid_id");
@@ -96,14 +93,13 @@ public class BidDAO {
     }
   }
 
-  /**
-   * Lịch sử bid theo auction để FE vẽ biểu đồ
-   */
-  public List<BidTransaction> getBidTransactionByAuctionId(int auctionId) {
+  /** Lịch sử bid theo auction để FE vẽ biểu đồ */
+  public List<BidTransaction> getBidHistoryByAuctionId(int auctionId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT bid_amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
+    String sql =
+        "SELECT bid_amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -124,9 +120,10 @@ public class BidDAO {
 
   public List<BidTransaction> getBidTransactionByUserId(int userId) {
     List<BidTransaction> transactions = new ArrayList<>();
-    String sql = "SELECT bid_amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
+    String sql =
+        "SELECT bid_amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {

@@ -5,9 +5,11 @@ import java.math.BigDecimal;
 public class DepositRequestDTO {
     private int userId;
     private BigDecimal amount;
-    public DepositRequestDTO(int userId, BigDecimal amount) {
+    private String password;
+    public DepositRequestDTO(int userId, BigDecimal amount,String password) {
         this.userId = userId;
         this.amount = amount;
+        this.password = password;
     }
 
     public int getUserId() {
@@ -22,4 +24,6 @@ public class DepositRequestDTO {
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
+    public String getPassword() { return password; }
+    public void setPassword(String password){this.password=password;}
 }
