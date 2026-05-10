@@ -1,9 +1,12 @@
 package org.example.server.services;
 
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.models.users.SellerProfile;
 import org.example.core.models.users.User;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
+
+import java.util.List;
 
 public class UserService {
   private final UserDAO userDAO;
@@ -17,6 +20,10 @@ public class UserService {
   public UserService() {
     this.userDAO = UserDAO.getInstance();
   }
+//
+//  public static List<PaidHistoryDTO> getAllPaidHistory(int userId) throws Exception {
+//    return UserDAO.getAllPaidHistoryByUsername(userId);
+//  }
 
   // Xem thông tin
   public User viewProfile(String username) throws Exception {
@@ -32,8 +39,7 @@ public class UserService {
   }
 
   // Đổi mật khẩu
-  public void changePassword(String username, String currentPassword, String newPassword)
-      throws Exception {
+  public void changePassword(String username, String currentPassword, String newPassword) throws Exception {
     if (username == null || username.trim().isEmpty()) {
       throw new Exception("Username is required.");
     }

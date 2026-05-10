@@ -246,10 +246,12 @@ public class WaitPaymentController extends BaseController implements Initializab
     public void handleMenuItem(ActionEvent event) {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach cuoc dau gia");
     }
-@FXML
-public void handleHistoryAuction(ActionEvent event) {
-    switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-}
+
+    @FXML
+    public void handleHistoryAuction(ActionEvent event) {
+        switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
+    }
+
     @FXML
     public void handleLogout(ActionEvent event) {
         switchScene(event, "/views/LoginView.fxml", "Dang nhap he thong");

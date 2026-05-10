@@ -8,10 +8,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
+import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.BidBroadcastDTO;
 import org.example.core.dto.BidRequestDTO;
@@ -110,7 +112,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         taDescription.setText(item.getDescription());
         if (item.getImage() != null && !item.getImage().isEmpty()) {
             try {
-                javafx.scene.image.Image decodedImage = org.example.client.utils.ImageUtils.decodeBase64ToImage(item.getImage());
+                Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
                 if (decodedImage != null) {
                     ivItemImage.setImage(decodedImage);
                 }
@@ -240,7 +242,7 @@ public class AuctionRoomController extends BaseController implements Initializab
             Platform.runLater(() -> {
                 stopTimer();
                 lblTimer.setText("00:00:00");
-                lblStatus.setText("ĐÃ KẾT THÚC");
+                lblStatus.setText("FINISHED");
                 lblWinner.setText(winnerName);
                 btnPlaceBid.setDisable(true);
                 tfBidAmount.setDisable(true);
@@ -274,7 +276,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                 if (duration.isNegative() || duration.isZero()) {
                     stopTimer();
                     lblTimer.setText("00:00:00");
-                    lblStatus.setText("ĐÃ KẾT THÚC");
+                    lblStatus.setText("FINISHED");
                     btnPlaceBid.setDisable(true);
                     tfBidAmount.setDisable(true);
                     // Hien thi nguoi chien thang
@@ -308,7 +310,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         switchScene(event, "/views/MainView.fxml", "Trang chủ");
     }
 
-  private void cleanUpBeforeExit() {
+    private void cleanUpBeforeExit() {
     stopTimer();
 
     // 1. Gửi cục xương (Chim mồi) lên Server TRƯỚC
@@ -333,5 +335,4 @@ public class AuctionRoomController extends BaseController implements Initializab
             timerService.shutdown();
         }
     }
-
 }

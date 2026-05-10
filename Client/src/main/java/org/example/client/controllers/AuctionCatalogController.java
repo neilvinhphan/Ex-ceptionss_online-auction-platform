@@ -87,10 +87,8 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
                             switch (type.toUpperCase()) {
                               case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                              case "ELECTRONICS" ->
-                                  parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                              case "VEHICLE" ->
-                                  parsedItem = gson.fromJson(itemObj, VehicleItem.class);
+                              case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
+                              case "VEHICLE" -> parsedItem = gson.fromJson(itemObj, VehicleItem.class);
                             }
                             // Gắn Item đã parse vào Auction
                             auction.setItem(parsedItem);
