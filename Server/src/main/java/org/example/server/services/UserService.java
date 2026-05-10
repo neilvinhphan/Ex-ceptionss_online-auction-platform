@@ -109,4 +109,11 @@ public class UserService {
     BigDecimal newBalance = currentBalance.add(amount);
     return userDAO.updateBalanceInDB(userId, newBalance);
   }
+
+  public boolean updateRole(int userId) throws Exception {
+    if(userId <= 0 ) {
+      throw new Exception("ID nguoi dung khong hop le");
+    }
+    return userDAO.updateRoleInDB(userId);
+  }
 }
