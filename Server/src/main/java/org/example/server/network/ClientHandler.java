@@ -37,6 +37,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.BiddingService;
 import org.example.server.services.ItemService;
+import org.example.server.services.UserService;
 
 public class ClientHandler implements Runnable {
   public static final List<ClientHandler> connectedClients = new CopyOnWriteArrayList<>();
@@ -111,6 +112,9 @@ public class ClientHandler implements Runnable {
               break;
             case "GET_ACTIVE_AUCTIONS":
               handleGetActiveAuctions();
+              break;
+            case "DEPOSIT":
+              handleDeposit(request);
               break;
             case "GET_PAID_HISTORY":
               // t đến khúc chết não r :((
@@ -356,6 +360,29 @@ public class ClientHandler implements Runnable {
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleDeposit(Request request) {
+    UserService userService = new UserService();
+    try {
+      String dataJson = gson.toJson(request.getData());
+      DepositRequestDTO depositRequest = gson.fromJson(dataJson, DepositRequestDTO.class);
+
+      boolean success = userService.balanceDeposit(depositRequest.getUserId(), depositRequest.getAmount());
+
+      Response response;
+      if (success) {
+        response = new Response("SUCCESS", "Nạp tiền thành công!");
+      } else {
+        response = new Response("ERROR", "Nạp tiền thất bại.");
+      }
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi nạp tiền: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
