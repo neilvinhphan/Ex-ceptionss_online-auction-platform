@@ -24,7 +24,7 @@
                         <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
                         <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-cursor: hand; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 50; -fx-background-color: #28a745;" text="Danh sách phòng" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <MenuButton fx:id="menuUser" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                        <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
                            <items>
                               <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
                               <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
