@@ -62,7 +62,7 @@ public class AuctionService {
   // Lấy các phiên đấu giá theo trạng thái
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     // Gọi DAO lấy danh sách các phòng đấu giá theo trạng thái (Ví dụ: Lấy các phòng RUNNING)
-    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatus(status);
+    List<Auction> auction = AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(status);
     return auction;
   }
 
