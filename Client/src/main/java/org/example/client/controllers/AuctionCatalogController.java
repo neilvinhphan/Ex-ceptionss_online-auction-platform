@@ -10,10 +10,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.RadioButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -41,7 +44,11 @@ public class AuctionCatalogController extends BaseController implements Initiali
   @FXML private FlowPane auctionFlowPane;
 
   @FXML private MenuButton menuUser;
+  // Khai báo List lưu dữ liệu gốc từ Server
+  private List<Auction> allAuctionsList = new ArrayList<>();
 
+  @FXML private CheckBox cbTypeAll, cbTypeElectronics, cbTypeVehicle, cbTypeArt;
+  @FXML private RadioButton rbPriceAll, rbPrice1, rbPrice2, rbPrice3, rbPrice4, rbPrice5;
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
@@ -54,73 +61,72 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     loadActiveAuctions();
   }
+  // Hàm này chuyên dùng để vẽ giao diện từ 1 danh sách cho trước
+  private void displayAuctions(List<Auction> auctionsToDisplay) {
+    auctionFlowPane.getChildren().clear(); // Xóa sạch cái cũ
 
+    for (Auction auction : auctionsToDisplay) {
+      VBox card = createAuctionCard(auction);
+      auctionFlowPane.getChildren().add(card);
+
+      // Xử lý ảnh (Giữ nguyên code cũ của bạn)
+      String base64 = auction.getItem().getImage();
+      if (base64 != null && !base64.isEmpty()) {
+        new Thread(() -> {
+          Image img = ImageUtils.decodeBase64ToImage(base64);
+          Platform.runLater(() -> {
+            ImageView iv = (ImageView) card.lookup(".auction-image");
+            if (iv != null && img != null) iv.setImage(img);
+          });
+        }).start();
+      }
+    }
+  }
   private void loadActiveAuctions() {
     Request request = new Request("GET_ACTIVE_AUCTIONS", null);
     String jsonRequest = gson.toJson(request);
+    new Thread(() -> {
+      try {
+        System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
+        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+        Response response = gson.fromJson(jsonResponse, Response.class);
 
-    new Thread(
-            () -> {
-              try {
-                System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
+        if ("SUCCESS".equals(response.getStatus())) {
+          // --- BƯỚC 1: PARSE DỮ LIỆU NGAY TẠI LUỒNG MẠNG ---
+          String jsonData = gson.toJson(response.getData());
+          JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+          List<Auction> fetchedAuctions = new ArrayList<>();
 
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(response.getStatus())) {
-                        String jsonData = gson.toJson(response.getData());
-                        JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                        List<Auction> fetchedAuctions = new ArrayList<>();
+          for (JsonElement element : jsonArray) {
+            JsonObject auctionObj = element.getAsJsonObject();
+            Auction auction = gson.fromJson(auctionObj, Auction.class);
 
-                        for (JsonElement element : jsonArray) {
-                          JsonObject auctionObj = element.getAsJsonObject();
+            if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
+              JsonObject itemObj = auctionObj.getAsJsonObject("item");
+              String type = itemObj.get("type").getAsString();
+              Item parsedItem = switch (type.toUpperCase()) {
+                case "ART" -> gson.fromJson(itemObj, ArtItem.class);
+                case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
+                case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
+                default -> null;
+              };
+              auction.setItem(parsedItem);
+            }
+            if (auction.getItem() != null) fetchedAuctions.add(auction);
+          }
+          allAuctionsList = new ArrayList<>(fetchedAuctions);
+          // --- BƯỚC 2: CHỈ ĐẨY VIỆC VẼ KHUNG VÀO UI ---
+          Platform.runLater(() -> {
+            displayAuctions(allAuctionsList);
+          });
+        }
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi", "Mất kết nối: " + e.getMessage()));
+        e.printStackTrace();
+      }
+    }).start();
 
-                          // Map dữ liệu cơ bản của Auction
-                          Auction auction = gson.fromJson(auctionObj, Auction.class);
 
-                          // Xử lý đa hình cho thuộc tính Item nằm bên trong Auction
-                          if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
-                            JsonObject itemObj = auctionObj.getAsJsonObject("item");
-                            String type = itemObj.get("type").getAsString();
-                            Item parsedItem = null;
-
-                            switch (type.toUpperCase()) {
-                              case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                              case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                              case "VEHICLE" -> parsedItem = gson.fromJson(itemObj, VehicleItem.class);
-                            }
-                            // Gắn Item đã parse vào Auction
-                            auction.setItem(parsedItem);
-                          }
-
-                          if (auction.getItem() != null) {
-                            fetchedAuctions.add(auction);
-                          }
-                        }
-
-                        System.out.println(
-                            "Đã tải xong " + fetchedAuctions.size() + " phòng đấu giá.");
-
-                        auctionFlowPane.getChildren().clear();
-
-                        for (Auction auction : fetchedAuctions) {
-                          VBox card = createAuctionCard(auction);
-                          auctionFlowPane.getChildren().add(card);
-                        }
-
-                      } else {
-                        showAlert(
-                            "Lỗi", "Không thể tải danh sách đấu giá: " + response.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Mất kết nối tới máy chủ: " + e.getMessage()));
-                e.printStackTrace();
-              }
-            })
-        .start();
   }
 
   /** Truyền thẳng Auction vào để lấy giá highestBid và dữ liệu Item */
@@ -134,19 +140,19 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     // --- PHẦN XỬ LÝ ẢNH TỐI ƯU ---
     // Sử dụng StackPane để ảnh luôn nằm giữa khung hình
-    javafx.scene.layout.StackPane imageContainer = new javafx.scene.layout.StackPane();
+    StackPane imageContainer = new javafx.scene.layout.StackPane();
     imageContainer.setPrefHeight(180.0);
     imageContainer.setStyle("-fx-background-color: #ECEFF1; -fx-background-radius: 10 10 0 0;");
 
     ImageView imageView = new ImageView();
-
+    imageView.getStyleClass().add("auction-image");
     // Kiểm tra và lấy ảnh từ Base64
-    if (item.getImage() != null && !item.getImage().isEmpty()) {
-      Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
-      if (decodedImage != null) {
-        imageView.setImage(decodedImage);
-      }
-    }
+//    if (item.getImage() != null && !item.getImage().isEmpty()) {
+//      Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
+//      if (decodedImage != null) {
+//        imageView.setImage(decodedImage);
+//      }
+//    }
 
     // Nếu không có ảnh hoặc lỗi decode, hiển thị placeholder
     if (imageView.getImage() == null) {
@@ -225,5 +231,58 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
   @FXML
   public void handleMenuItem(ActionEvent event) {
+  }
+
+  @FXML
+  public void handleFilter(ActionEvent event) {
+    // Nếu danh sách gốc chưa load xong thì không làm gì cả
+    if (allAuctionsList == null || allAuctionsList.isEmpty()) return;
+
+    List<Auction> filteredList = new ArrayList<>();
+
+    for (Auction auction : allAuctionsList) {
+      Item item = auction.getItem();
+      if (item == null) continue;
+
+      // 1. LỌC THEO LOẠI TÀI SẢN
+      boolean matchType = false;
+      if (cbTypeAll.isSelected()) {
+        matchType = true; // Nếu chọn "Tất cả" thì loại nào cũng qua
+      } else {
+        // Dùng instanceof để kiểm tra Class của Item
+        if (cbTypeElectronics.isSelected() && item instanceof ElectronicsItem) matchType = true;
+        if (cbTypeVehicle.isSelected() && item instanceof VehicleItem) matchType = true;
+        if (cbTypeArt.isSelected() && item instanceof ArtItem) matchType = true;
+      }
+
+      // Nếu không khớp loại tài sản thì bỏ qua, xét phòng tiếp theo
+      if (!matchType) continue;
+
+      // 2. LỌC THEO GIÁ HIỆN TẠI
+      boolean matchPrice = false;
+      double price = auction.getHighestBid() != null ? auction.getHighestBid().doubleValue() : 0;
+
+      if (rbPriceAll.isSelected()) {
+        matchPrice = true;
+      } else if (rbPrice1.isSelected() && price < 50000000) {
+        matchPrice = true;
+      } else if (rbPrice2.isSelected() && price >= 50000000 && price <= 200000000) {
+        matchPrice = true;
+      } else if (rbPrice3.isSelected() && price > 200000000 && price <= 500000000) {
+        matchPrice = true;
+      } else if (rbPrice4.isSelected() && price > 500000000 && price <= 2000000000) {
+        matchPrice = true;
+      } else if (rbPrice5.isSelected() && price > 2000000000) {
+        matchPrice = true;
+      }
+
+      // Nếu không khớp giá thì bỏ qua
+      if (!matchPrice) continue;
+
+      // Nếu vượt qua cả 2 bài test thì cho vào danh sách hiển thị
+      filteredList.add(auction);
+    }
+    // Sau khi lọc xong, đẩy cái list mới vào hàm vẽ UI
+    displayAuctions(filteredList);
   }
 }

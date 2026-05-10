@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #F8F9FA; -fx-background: #F8F9FA;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionCatalogController">
+<ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background-color: #F8F9FA; -fx-background: #F8F9FA;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionCatalogController">
     <content>
         <VBox>
             <children>
@@ -42,14 +42,12 @@
                                 </Label>
                                 <VBox spacing="12.0">
                                     <children>
-                                        <CheckBox mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả " />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ điện" />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Phương tiện" />
-                                        <CheckBox mnemonicParsing="false" style="-fx-cursor: hand;" text="Tác phẩm nghệ thuật" />
+                                        <CheckBox fx:id="cbTypeAll" mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả " />
+                                        <CheckBox fx:id="cbTypeElectronics" mnemonicParsing="false" style="-fx-cursor: hand;" text="Đồ điện" />
+                                        <CheckBox fx:id="cbTypeVehicle" mnemonicParsing="false" style="-fx-cursor: hand;" text="Phương tiện" />
+                                        <CheckBox fx:id="cbTypeArt" mnemonicParsing="false" style="-fx-cursor: hand;" text="Tác phẩm nghệ thuật" />
                                     </children>
-                                    <VBox.margin>
-                                        <Insets bottom="25.0" />
-                                    </VBox.margin>
+                                    <VBox.margin><Insets bottom="25.0" /></VBox.margin>
                                 </VBox>
                                 <Label text="Trạng thái tài sản">
                                     <font>
@@ -79,19 +77,17 @@
                                 </Label>
                                 <VBox spacing="12.0">
                                     <children>
-                                        <RadioButton mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Dưới 50.000.000" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="50.000.000 - 200.000.000" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="200.000.001 - 500.000.000" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="500.000.001 - 2.000.000.000" />
-                                        <RadioButton mnemonicParsing="false" style="-fx-cursor: hand;" text="Trên 2.000.000.000" />
+                                        <RadioButton fx:id="rbPriceAll" mnemonicParsing="false" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả" />
+                                        <RadioButton fx:id="rbPrice1" mnemonicParsing="false" style="-fx-cursor: hand;" text="Dưới 50.000.000" />
+                                        <RadioButton fx:id="rbPrice2" mnemonicParsing="false" style="-fx-cursor: hand;" text="50.000.000 - 200.000.000" />
+                                        <RadioButton fx:id="rbPrice3" mnemonicParsing="false" style="-fx-cursor: hand;" text="200.000.001 - 500.000.000" />
+                                        <RadioButton fx:id="rbPrice4" mnemonicParsing="false" style="-fx-cursor: hand;" text="500.000.001 - 2.000.000.000" />
+                                        <RadioButton fx:id="rbPrice5" mnemonicParsing="false" style="-fx-cursor: hand;" text="Trên 2.000.000.000" />
                                     </children>
-                                    <VBox.margin>
-                                        <Insets bottom="25.0" />
-                                    </VBox.margin>
+                                    <VBox.margin><Insets bottom="25.0" /></VBox.margin>
                                 </VBox>
                                 <Region VBox.vgrow="ALWAYS" />
-                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 12 15; -fx-font-size: 15; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="LỌC TÀI SẢN" />
+                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleFilter" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 12 15; -fx-font-size: 15; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="LỌC TÀI SẢN" />
                             </children>
                             <padding>
                                 <Insets bottom="20.0" left="25.0" right="25.0" top="30.0" />
@@ -139,12 +135,12 @@
                             </BorderPane.margin>
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                        <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" text="Danh sách phòng" />
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" prefHeight="25.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" text="Danh sách phòng" />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                                <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-font-weight: bold; -fx-cursor: hand;" styleClass="user-menu-btn" text="User">
                                     <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" styleClass="user-menu-btn .menu-item" text="👤 Hồ sơ cá nhân" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleLogout" styleClass="user-menu-btn .menu-item" text="➜] Đăng xuất" />
                                     </items>
                                 </MenuButton>
                             </children>

@@ -22,7 +22,7 @@ public class AuctionClient {
         }
     }
 
-    public String sendRequest(String requestJson) {
+    public synchronized String sendRequest(String requestJson) {
         try {
             out.println(requestJson);
             return in.readLine();
