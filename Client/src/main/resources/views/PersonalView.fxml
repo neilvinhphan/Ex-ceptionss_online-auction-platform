@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.PersonalController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.PersonalController">
    <content>
       <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
          <children>
@@ -22,12 +22,12 @@
                   <HBox alignment="CENTER" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
                      <children>
                         <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                        <Button mnemonicParsing="false" onAction="#handleMenuItem" style="-fx-cursor: hand; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 50; -fx-background-color: #28a745;" text="Danh sách phòng" />
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" prefHeight="25.0" style="-fx-cursor: hand; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 50; -fx-background-color: #28a745;" text="Danh sách phòng" />
                         <Region HBox.hgrow="ALWAYS" />
-                        <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                        <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" styleClass="user-menu-btn" text="User">
                            <items>
-                              <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
-                              <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleUserUi" styleClass="user-menu-btn .menu-item" text="👤 Hồ sơ cá nhân" />
+                              <MenuItem mnemonicParsing="false" onAction="#handleLogout" styleClass="user-menu-btn .menu-item" text="➜] Đăng xuất" />
                            </items>
                         </MenuButton>
                      </children>
