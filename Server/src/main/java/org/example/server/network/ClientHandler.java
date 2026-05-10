@@ -379,12 +379,11 @@ public class ClientHandler implements Runnable {
 
         // 2. NHÉT newBalance VÀO THAM SỐ THỨ 3 CỦA RESPONSE
         response = new Response("SUCCESS", "Nạp tiền thành công!", newBalance);
-
-        // Gửi về Client
-        sendMessage(gson.toJson(response));
       } else {
         response = new Response("ERROR", "Nạp tiền thất bại.");
       }
+
+      // CHỈ GỬI 1 LẦN DUY NHẤT Ở ĐÂY
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
