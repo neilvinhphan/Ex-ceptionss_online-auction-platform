@@ -27,18 +27,24 @@ public class WalletDAO {
   }
 
   public BigDecimal getAvailableBalance(int userId) {
+    // Sử dụng IN ('RUNNING', 'FINISHED') để chặn tiền ở cả 2 trạng thái
     String sql = """
-        SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
-        FROM auction
-        WHERE bidder_id = ? AND status = 'RUNNING')) AS available_balance FROM user WHERE user_id = ?""";
+      SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
+      FROM auction
+      WHERE bidder_id = ? AND status IN ('RUNNING', 'FINISHED'))) AS available_balance 
+      FROM `user` 
+      WHERE user_id = ?""";
 
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       preparedStatement.setInt(1, userId);
       preparedStatement.setInt(2, userId);
+
       try (ResultSet rs = preparedStatement.executeQuery()) {
         if (rs.next()) {
-          return rs.getBigDecimal("available_balance");
+          BigDecimal balance = rs.getBigDecimal("available_balance");
+          // Tránh trả về null nếu có lỗi logic, mặc định là 0
+          return balance != null ? balance : BigDecimal.ZERO;
         }
       }
     } catch (SQLException | IOException e) {

@@ -1,5 +1,6 @@
 package org.example.server.daos;
 
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
@@ -101,7 +102,7 @@ public class AuctionDAO {
 
     // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
     String sql =
-        "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment,"
+        "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment, a.bidder_id,"
             + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
@@ -121,6 +122,7 @@ public class AuctionDAO {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
         auction.setItemId(rs.getInt("items_id"));
+        auction.setBidderId(rs.getInt("bidder_id"));
         String statusStr = rs.getString("status");
         if (statusStr != null) {
           auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
@@ -130,6 +132,8 @@ public class AuctionDAO {
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
         auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
+        List<BidTransaction> bidTransactions = BidDAO.getInstance().getBidTransactionByAuctionId(auction.getAuctionId());
+        auction.setBidHistory(bidTransactions);
 
         // 2. Bóc tách dữ liệu Item và khởi tạo object đa hình
         String itemType = rs.getString("item_type");

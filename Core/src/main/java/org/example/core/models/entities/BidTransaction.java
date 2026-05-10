@@ -23,10 +23,11 @@ public class BidTransaction {
     this.bidderName = bidderName;
   }
 
-  public BidTransaction(BigDecimal amount, LocalDateTime time, int bidderID) {
+  public BidTransaction(BigDecimal amount, LocalDateTime time, int bidderID, String bidderName) {
     this.amount = amount;
     this.time = time;
     this.bidderID = bidderID;
+    this.bidderName = bidderName;
   }
 
   public void setBidAmount(BigDecimal amount) {

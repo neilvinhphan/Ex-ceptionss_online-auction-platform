@@ -6,6 +6,7 @@ import org.example.core.models.users.User;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class UserService {
@@ -89,5 +90,17 @@ public class UserService {
       throw new Exception("Cannot update seller rating.");
     }
     return user;
+  }
+
+  public boolean balanceDeposit(int userId, BigDecimal amount) throws Exception {
+    BigDecimal currentBalance = userDAO.getUserByUserId(userId).getBalance();
+    if(amount.compareTo(BigDecimal.ZERO) < 0) {
+      throw new Exception("Số tiền nạp phải lớn hơn 0");
+    }
+    if(userId <= 0) {
+      throw new Exception("ID người dùng không hợp lệ");
+    }
+    BigDecimal newBalance = currentBalance.add(amount);
+    return userDAO.updateBalanceInDB(userId, newBalance);
   }
 }

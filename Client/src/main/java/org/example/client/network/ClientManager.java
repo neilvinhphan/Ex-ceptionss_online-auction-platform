@@ -17,13 +17,7 @@ public class ClientManager {
     private static volatile ClientManager instance;
     private final AuctionClient client;
     private final Gson gson;
-/*
-    public ClientManager() {
-        this.client = new AuctionClient();
-        this.gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-    }*/
+
 // SỬA public THÀNH private ĐỂ CHUẨN SINGLETON
 private ClientManager() {
     this.client = new AuctionClient();

@@ -21,6 +21,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.server.daos.UserDAO;
 import org.example.server.services.AuctionService;
 import org.example.server.services.AuthService;
 
@@ -36,15 +37,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.BiddingService;
 import org.example.server.services.ItemService;
+import org.example.server.services.UserService;
 
 public class ClientHandler implements Runnable {
   public static final List<ClientHandler> connectedClients = new CopyOnWriteArrayList<>();
+  UserDAO userDAO = UserDAO.getInstance();
 
   private final Socket clientSocket;
   private BufferedReader in;
   private PrintWriter out;
 
-  // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
   private final Gson gson =
       new GsonBuilder()
           .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -110,6 +112,9 @@ public class ClientHandler implements Runnable {
               break;
             case "GET_ACTIVE_AUCTIONS":
               handleGetActiveAuctions();
+              break;
+            case "DEPOSIT":
+              handleDeposit(request);
               break;
             case "GET_PAID_HISTORY":
               // t đến khúc chết não r :((
@@ -282,21 +287,22 @@ public class ClientHandler implements Runnable {
     try {
       // Ép kiểu dữ liệu Client gửi lên thành BidRequestDTO
       String dataJson = gson.toJson(request.getData());
-      org.example.core.dto.BidRequestDTO bidReq =
-              gson.fromJson(dataJson, org.example.core.dto.BidRequestDTO.class);
+      BidRequestDTO bidReq = gson.fromJson(dataJson, BidRequestDTO.class);
 
       // Ném xuống BiddingService để xử lý
-      boolean success = org.example.server.services.BiddingService.getInstance().placeBid(bidReq);
+      boolean success = BiddingService.getInstance().placeBid(bidReq);
 
       if (success) {
 
         String realUsername = "Unknown"; // Tên mặc định nếu không tìm thấy
 
         try {
-          org.example.core.models.users.User user = org.example.server.daos.UserDAO.getInstance().getUserByUserId(bidReq.getUserId());
+          User user = userDAO.getUserByUserId(bidReq.getUserId());
 
           if (user != null) {
-            realUsername = user.getUserName(); // Lấy tên thật (đảm bảo hàm get tên khớp với class User của bạn)
+            realUsername =
+                user.getUserName(); // Lấy tên thật (đảm bảo hàm get tên khớp với class User của
+            // bạn)
           }
         } catch (Exception e) {
           System.out.println("Lỗi truy vấn tên người dùng: " + e.getMessage());
@@ -304,25 +310,27 @@ public class ClientHandler implements Runnable {
         LocalDateTime currentEndTime = null;
 
         try {
-          org.example.core.models.entities.Auction updatedAuction = org.example.server.daos.AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
+          Auction updatedAuction =
+              AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
           if (updatedAuction != null) {
-            currentEndTime = updatedAuction.getEndTime(); // Lấy giờ mới (đã được BiddingService gia hạn nếu có)
+            currentEndTime =
+                updatedAuction.getEndTime(); // Lấy giờ mới (đã được BiddingService gia hạn nếu có)
           }
         } catch (Exception e) {
           System.out.println("Lỗi lấy thời gian kết thúc: " + e.getMessage());
         }
         // ==========================================
 
-        org.example.core.dto.BidBroadcastDTO broadcastDTO =
-                new org.example.core.dto.BidBroadcastDTO(
-                        bidReq.getAuctionId(),
-                        bidReq.getBidAmount().doubleValue(),
-                        realUsername,
-                        currentEndTime); // Lúc này currentEndTime đã ngậm giờ thật rồi!
+        BidBroadcastDTO broadcastDTO =
+            new BidBroadcastDTO(
+                bidReq.getAuctionId(),
+                bidReq.getBidAmount().doubleValue(),
+                realUsername,
+                currentEndTime); // Lúc này currentEndTime đã ngậm giờ thật rồi!
 
         // Bọc lại thành Response chuẩn và HÉT LÊN CHO CẢ PHÒNG!
         Response broadcastResponse =
-                new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
+            new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
         broadcastMessage(gson.toJson(broadcastResponse));
       } else {
         Response errorResponse = new Response("ERROR_BID", "Đặt giá không thành công.");
@@ -356,10 +364,34 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  private void handleDeposit(Request request) {
+    UserService userService = new UserService();
+    try {
+      String dataJson = gson.toJson(request.getData());
+      DepositRequestDTO depositRequest = gson.fromJson(dataJson, DepositRequestDTO.class);
+
+      boolean success = userService.balanceDeposit(depositRequest.getUserId(), depositRequest.getAmount());
+
+      Response response;
+      if (success) {
+        response = new Response("SUCCESS", "Nạp tiền thành công!");
+      } else {
+        response = new Response("ERROR", "Nạp tiền thất bại.");
+      }
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi nạp tiền: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
   private void handleGetActiveAuctions() {
     try {
       // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
-      List<Auction> activeItems = AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
+      List<Auction> activeItems =
+          AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
 
       // Khởi tạo phản hồi thành công
       Response response =
@@ -376,33 +408,42 @@ public class ClientHandler implements Runnable {
     }
   }
 
-//  private void handleGetPaidHistory(Request request) {
-//    try {
-//      // Giả sử Client gửi data chính là cái userId (kiểu int)
-//      String dataJson = gson.toJson(request.getData());
-//      Integer userId = gson.fromJson(dataJson, Integer.class);
-//
-//      // Gọi Service lấy danh sách lịch sử
-//      List<PaidHistoryDTO> paidHistoryDTO =  BiddingService.getInstance().getPaidHistory(userId);
-//
-//
-//      // Bọc lại thành Response gửi về cho Client
-//      Response response = new Response("SUCCESS", "Lấy lịch sử thanh toán thành công", paidHistoryDTO);
-//      sendMessage(gson.toJson(response));
-//
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//      Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử thanh toán: " + e.getMessage());
-//      sendMessage(gson.toJson(errorResponse));
-//    }
-//  }
+  //  private void handleGetPaidHistory(Request request) {
+  //    try {
+  //      // Giả sử Client gửi data chính là cái userId (kiểu int)
+  //      String dataJson = gson.toJson(request.getData());
+  //      Integer userId = gson.fromJson(dataJson, Integer.class);
+  //
+  //      // Gọi Service lấy danh sách lịch sử
+  //      List<PaidHistoryDTO> paidHistoryDTO =
+  // BiddingService.getInstance().getPaidHistory(userId);
+  //
+  //
+  //      // Bọc lại thành Response gửi về cho Client
+  //      Response response = new Response("SUCCESS", "Lấy lịch sử thanh toán thành công",
+  // paidHistoryDTO);
+  //      sendMessage(gson.toJson(response));
+  //
+  //    } catch (Exception e) {
+  //      e.printStackTrace();
+  //      Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử thanh toán: " +
+  // e.getMessage());
+  //      sendMessage(gson.toJson(errorResponse));
+  //    }
+  //  }
 
   public synchronized void sendMessage(String message) {
     out.println(message);
   }
 
+  // SỬA LẠI HÀM NÀY: Phải gạch tên khách khỏi sổ khi nó out!
   private void closeConnection() {
     try {
+      // BƯỚC QUAN TRỌNG NHẤT: Đuổi nó khỏi danh sách Broadcast!
+      connectedClients.remove(this);
+      System.out.println(
+          "[SERVER] Một Client vừa thoát. Tổng số người online: " + connectedClients.size());
+
       if (in != null) in.close();
       if (out != null) out.close();
       if (clientSocket != null) clientSocket.close();
@@ -411,10 +452,14 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  // Gửi tin nhắn cho tất cả Client
+  // SỬA LẠI HÀM NÀY: Bọc thêm try-catch để lỡ 1 thằng lỗi thì không chết lây thằng khác
   public static void broadcastMessage(String message) {
     for (ClientHandler client : connectedClients) {
-      client.sendMessage(message);
+      try {
+        client.sendMessage(message);
+      } catch (Exception e) {
+        System.err.println("Lỗi khi gửi Broadcast cho 1 client: " + e.getMessage());
+      }
     }
   }
 }
