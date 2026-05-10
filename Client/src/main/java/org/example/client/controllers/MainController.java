@@ -9,6 +9,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.net.Socket;
 import java.net.URL;
@@ -122,20 +123,25 @@ public class MainController extends BaseController implements Initializable {
     result.ifPresent(
         password -> {
           User currentUser = UserSession.getInstance().getCurrentUser();
-          if (password.trim().equals(currentUser.getPassword())) {
-            System.out.println("Gửi request nâng cấp với mật khẩu: " + password);
-            sendUpgradeRequestToServer(password);
+          int currentId = currentUser.getUserId();
+          if (!BCrypt.checkpw(password, currentUser.getPassword())) {
+            showAlert("Lỗi", "Sai mật khẩu!");
+            return;
           } else if (password.trim().isEmpty()) {
             showAlert("Cảnh báo", "Mật khẩu không được để trống!");
+            return;
           }
+
+          System.out.println("Gửi request nâng cấp với mật khẩu: " + password);
+          sendUpgradeRequestToServer(currentId);
         });
   }
 
-  private void sendUpgradeRequestToServer(String user) {
+  private void sendUpgradeRequestToServer(int userId) {
     // 1. Lấy thông tin user đang login
-    User currentUser = UserSession.getInstance().getCurrentUser();
+
     // 2. Gói vào DTO (ví dụ UpgradeRoleDTO gồm username và password)
-    UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(currentUser.getUserId());
+    UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
     // 3. Gửi Socket lên Server
     Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
     String jsonRequest = gson.toJson(request);

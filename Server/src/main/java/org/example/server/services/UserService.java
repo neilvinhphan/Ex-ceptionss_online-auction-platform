@@ -21,10 +21,11 @@ public class UserService {
   public UserService() {
     this.userDAO = UserDAO.getInstance();
   }
-//
-//  public static List<PaidHistoryDTO> getAllPaidHistory(int userId) throws Exception {
-//    return UserDAO.getAllPaidHistoryByUsername(userId);
-//  }
+
+  //
+  //  public static List<PaidHistoryDTO> getAllPaidHistory(int userId) throws Exception {
+  //    return UserDAO.getAllPaidHistoryByUsername(userId);
+  //  }
 
   // Xem thông tin
   public User viewProfile(String username) throws Exception {
@@ -40,7 +41,8 @@ public class UserService {
   }
 
   // Đổi mật khẩu
-  public void changePassword(String username, String currentPassword, String newPassword) throws Exception {
+  public void changePassword(String username, String currentPassword, String newPassword)
+      throws Exception {
     if (username == null || username.trim().isEmpty()) {
       throw new Exception("Username is required.");
     }
@@ -100,20 +102,13 @@ public class UserService {
 
   public boolean balanceDeposit(int userId, BigDecimal amount) throws Exception {
     BigDecimal currentBalance = userDAO.getUserByUserId(userId).getBalance();
-    if(amount.compareTo(BigDecimal.ZERO) < 0) {
+    if (amount.compareTo(BigDecimal.ZERO) < 0) {
       throw new Exception("Số tiền nạp phải lớn hơn 0");
     }
-    if(userId <= 0) {
+    if (userId <= 0) {
       throw new Exception("ID người dùng không hợp lệ");
     }
     BigDecimal newBalance = currentBalance.add(amount);
     return userDAO.updateBalanceInDB(userId, newBalance);
-  }
-
-  public boolean updateRole(int userId) throws Exception {
-    if(userId <= 0 ) {
-      throw new Exception("ID nguoi dung khong hop le");
-    }
-    return userDAO.updateRoleInDB(userId);
   }
 }
