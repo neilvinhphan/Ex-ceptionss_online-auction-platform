@@ -370,11 +370,18 @@ public class ClientHandler implements Runnable {
       String dataJson = gson.toJson(request.getData());
       DepositRequestDTO depositRequest = gson.fromJson(dataJson, DepositRequestDTO.class);
 
-      boolean success = userService.balanceDeposit(depositRequest.getUserId(), depositRequest.getAmount());
+      boolean success = userService.balanceDeposit(depositRequest.getUserId(), depositRequest.getAmount(),depositRequest.getPassword());
 
       Response response;
       if (success) {
-        response = new Response("SUCCESS", "Nạp tiền thành công!");
+        // 1. Phải gọi Database để lấy số dư mới nhất của User ra
+        java.math.BigDecimal newBalance = userDAO.getUserByUserId(depositRequest.getUserId()).getBalance();
+
+        // 2. NHÉT newBalance VÀO THAM SỐ THỨ 3 CỦA RESPONSE
+        response = new Response("SUCCESS", "Nạp tiền thành công!", newBalance);
+
+        // Gửi về Client
+        sendMessage(gson.toJson(response));
       } else {
         response = new Response("ERROR", "Nạp tiền thất bại.");
       }
