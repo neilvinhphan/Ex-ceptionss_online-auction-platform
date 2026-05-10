@@ -77,6 +77,12 @@ public class BiddingService {
         throw new Exception("Giá đặt phải >= " + minAcceptable);
       }
 
+
+      BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
+      if (request.getBidAmount().compareTo(availableBalance) > 0) {
+        throw new Exception("Sô dư khả dụng không đủ!");
+      }
+
       boolean inserted = bidDAO.updateNewBid(request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!inserted) {
         throw new Exception("Không thể ghi nhận lượt đặt giá.");
@@ -87,10 +93,6 @@ public class BiddingService {
         throw new Exception("Không thể cập nhật giá hiện tại.");
       }
 
-      BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
-      if (request.getBidAmount().compareTo(availableBalance) > 0) {
-        throw new Exception("Sô dư khả dụng không đủ!");
-      }
       handleAntiSniping(request.getAuctionId(), auction, now);
 
       return true;

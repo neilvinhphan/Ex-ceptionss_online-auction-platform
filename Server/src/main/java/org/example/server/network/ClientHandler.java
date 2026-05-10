@@ -44,7 +44,6 @@ public class ClientHandler implements Runnable {
   private BufferedReader in;
   private PrintWriter out;
 
-  // Kéo "bảo bối" TypeAdapter vào để dạy Gson cách đọc Abstract Class Item
   private final Gson gson =
       new GsonBuilder()
           .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
