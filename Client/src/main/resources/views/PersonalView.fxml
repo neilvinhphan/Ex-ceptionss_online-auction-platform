@@ -67,23 +67,25 @@
                               <Insets bottom="10.0" />
                            </VBox.margin>
                         </Label>
-                        <VBox>
+                        <VBox spacing="7.0">
                            <children>
                               <HBox spacing="1.0">
                                  <children>
                                     <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Vai trò:" />
-                                    <Label fx:id="lblRole" style="-fx-font-size: 15; -fx-text-fill: #333;" text="     Bidder" />
+                                    <Label fx:id="lblRole" style="-fx-font-size: 15; -fx-text-fill: #333; -fx-font-weight: bold;" text="     Bidder" />
                                  </children>
                               </HBox>
                               <Region maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                               <HBox>
                                  <children>
                                     <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số dư:" />
-                                    <Label fx:id="lbBalance" style="-fx-font-size: 15; -fx-text-fill: #333;" text=" ...." />
+                                    <Label fx:id="lbBalance" style="-fx-font-size: 15; -fx-text-fill: #333; -fx-font-weight: bold;" text=" ...." />
+                                    <Region prefHeight="200.0" prefWidth="200.0" />
                                  </children>
                               </HBox>
                            </children>
                         </VBox>
+                        <Button mnemonicParsing="false" onAction="#handleDeposit" style="-fx-cursor: hand; -fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-radius: 50; -fx-background-radius: 50;" text="Nạp tiền" />
 
                         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                            <children>
@@ -98,7 +100,6 @@
                               <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Số điện thoại:" />
                               <Label fx:id="lbPhoneNum" style="-fx-font-size: 15; -fx-text-fill: #333;" text="0987.xxx.xxx" />
                               <Region HBox.hgrow="ALWAYS" />
-                              <Button onAction="#handleEditPhone" style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
                            </children>
                         </HBox>
 
@@ -107,15 +108,6 @@
                               <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Email:" />
                               <Label fx:id="lbEmail" style="-fx-font-size: 15; -fx-text-fill: #333;" text="hm2447@gmail.com" />
                               <Region HBox.hgrow="ALWAYS" />
-                              <Button onAction="#handleEditEmail" style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
-                           </children>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" layoutX="50.0" layoutY="297.0" style="-fx-background-color: #F8F9FA; -fx-background-radius: 10; -fx-padding: 20; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
-                           <children>
-                              <Label prefWidth="150.0" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="Mật khẩu:" />
-                              <Label fx:id="lbPassWord" style="-fx-font-size: 15; -fx-text-fill: #333;" text="hm2447@gmail.com" />
-                              <Region HBox.hgrow="ALWAYS" />
-                              <Button onAction="#handleEditPassWord" style="-fx-background-color: transparent; -fx-text-fill: #28a745; -fx-cursor: hand; -fx-font-weight: bold;" text="Chỉnh sửa ✎" />
                            </children>
                         </HBox>
                      </children>
