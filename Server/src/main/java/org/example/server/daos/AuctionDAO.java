@@ -1,5 +1,6 @@
 package org.example.server.daos;
 
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
@@ -131,6 +132,8 @@ public class AuctionDAO {
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
         auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
+        List<BidTransaction> bidTransactions = BidDAO.getInstance().getBidTransactionByAuctionId(auction.getAuctionId());
+        auction.setBidHistory(bidTransactions);
 
         // 2. Bóc tách dữ liệu Item và khởi tạo object đa hình
         String itemType = rs.getString("item_type");
