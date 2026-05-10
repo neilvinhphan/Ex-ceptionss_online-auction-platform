@@ -1,5 +1,6 @@
 package org.example.server.daos;
 
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;

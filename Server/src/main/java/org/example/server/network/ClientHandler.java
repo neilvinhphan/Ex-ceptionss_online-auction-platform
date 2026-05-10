@@ -116,6 +116,9 @@ public class ClientHandler implements Runnable {
             case "DEPOSIT":
               handleDeposit(request);
               break;
+            case "UPDATE_ROLE":
+              handleUpdateRole(request);
+              break;
             case "GET_PAID_HISTORY":
               // t đến khúc chết não r :((
               break;
@@ -408,29 +411,44 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  //  private void handleGetPaidHistory(Request request) {
-  //    try {
-  //      // Giả sử Client gửi data chính là cái userId (kiểu int)
-  //      String dataJson = gson.toJson(request.getData());
-  //      Integer userId = gson.fromJson(dataJson, Integer.class);
-  //
-  //      // Gọi Service lấy danh sách lịch sử
-  //      List<PaidHistoryDTO> paidHistoryDTO =
-  // BiddingService.getInstance().getPaidHistory(userId);
-  //
-  //
-  //      // Bọc lại thành Response gửi về cho Client
-  //      Response response = new Response("SUCCESS", "Lấy lịch sử thanh toán thành công",
-  // paidHistoryDTO);
-  //      sendMessage(gson.toJson(response));
-  //
-  //    } catch (Exception e) {
-  //      e.printStackTrace();
-  //      Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử thanh toán: " +
-  // e.getMessage());
-  //      sendMessage(gson.toJson(errorResponse));
-  //    }
-  //  }
+  private void handleUpdateRole(Request request) {
+    UserService userService = new UserService();
+    try{
+      String dataJson = gson.toJson(request.getData());
+      UpdateRoleRequestDTO update = gson.fromJson(dataJson, UpdateRoleRequestDTO.class);
+
+      boolean success = userService.updateRole(update.getUserId());
+      if (success) {
+        Response response = new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!");
+        sendMessage(gson.toJson(response));
+      }
+    } catch (Exception e) {
+        e.printStackTrace();
+        Response errorResponse = new Response("ERROR", "Không thể nâng cấp lên Seller???");
+        sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+//    private void handleGetPaidHistory(Request request) {
+//      try {
+//        // Giả sử Client gửi data chính là cái userId (kiểu int)
+//        String dataJson = gson.toJson(request.getData());
+//        Integer userId = gson.fromJson(dataJson, Integer.class);
+//
+//        // Gọi Service lấy danh sách lịch sử
+//        List<PaidHistoryDTO> paidHistoryDTO = BiddingService.getInstance().getPaidHistory(userId);
+//
+//
+//        // Bọc lại thành Response gửi về cho Client
+//        Response response = new Response("SUCCESS", "Lấy lịch sử thanh toán thành công", paidHistoryDTO);
+//        sendMessage(gson.toJson(response));
+//
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//        Response errorResponse = new Response("ERROR", "Lỗi lấy lịch sử thanh toán: " + e.getMessage());
+//        sendMessage(gson.toJson(errorResponse));
+//      }
+//    }
 
   public synchronized void sendMessage(String message) {
     out.println(message);
