@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.BidRequestDTO;
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
