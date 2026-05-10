@@ -27,12 +27,13 @@ public class BidDAO {
   }
 
   public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {
-    String sql = "INSERT INTO bid (auction_id, bidder_id, bid_amount) VALUES (?, ?, ?)";
+    String sql = "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       ps.setInt(2, userId);
       ps.setBigDecimal(3, amount);
+      ps.setString(4, UserDAO.getInstance().getUserNameByUserId(userId));
       int rowsUpdated = ps.executeUpdate();
       return rowsUpdated > 0;
     } catch (SQLException | IOException e) {
@@ -109,9 +110,10 @@ public class BidDAO {
           BigDecimal amount = rs.getBigDecimal("bid_amount");
           Timestamp ts = rs.getTimestamp("created_at");
           int bidderId = rs.getInt("bidder_id");
+          String bidderName = UserDAO.getInstance().getUserNameByUserId(bidderId);
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
 
-          transactions.add(new BidTransaction(amount, time, bidderId));
+          transactions.add(new BidTransaction(amount, time, bidderId, bidderName));
         }
       }
       return transactions;
@@ -131,9 +133,10 @@ public class BidDAO {
           BigDecimal amount = rs.getBigDecimal("bid_amount");
           Timestamp ts = rs.getTimestamp("created_at");
           int bidderId = rs.getInt("bidder_id");
+          String bidderName = UserDAO.getInstance().getUserNameByUserId(bidderId);
           LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
 
-          transactions.add(new BidTransaction(amount, time, bidderId));
+          transactions.add(new BidTransaction(amount, time, bidderId, bidderName));
         }
       }
       return transactions;

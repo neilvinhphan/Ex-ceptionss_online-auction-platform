@@ -1,6 +1,8 @@
 package org.example.client.controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.bind.util.ISO8601Utils;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.ImageUtils;
@@ -77,7 +80,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         gson = ClientManager.getInstance().getGson();
 
         // Móc cái AuctionClient ra trước
-        org.example.client.network.AuctionClient clientSocket = ClientManager.getInstance().getClient();
+        AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
         // Rồi mới lấy ống in/out từ clientSocket
         outToServer = clientSocket.getOut();
@@ -87,7 +90,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         Auction sessionAuction = AuctionSession.getInstance().getCurrentAuction();
         Item sessionItem = AuctionSession.getInstance().getCurrentItem();
 
-        System.out.println("DEBUG: Auction có null ko? " + sessionAuction.getAuctionId() + (sessionAuction == null));
+        System.out.println("DEBUG: Auction có null ko? " + sessionAuction.getBidderId() + (sessionAuction == null));
         System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
 
         if (sessionAuction != null && sessionItem != null) {
@@ -105,7 +108,6 @@ public class AuctionRoomController extends BaseController implements Initializab
         this.currentAuction = auction;
         // [ĐÃ FIX]: Gán ID phòng ở đây sau khi auction đã có dữ liệu thật
         this.currentAuctionId = auction.getAuctionId();
-
         this.currentMaxPrice = auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
 
         lblItemName.setText(item.getItemName());
@@ -135,6 +137,9 @@ public class AuctionRoomController extends BaseController implements Initializab
             int lastIndex = auction.getBidHistory().size() - 1;
             topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
         }
+        System.out.println(auction.getBidHistory());
+        System.out.println(auction.getBidderId());
+        System.out.println(topBidder);
 
         // 3. Cập nhật lên Giao diện
         updatePriceUI(currentMaxPrice, topBidder);
@@ -184,34 +189,42 @@ public class AuctionRoomController extends BaseController implements Initializab
      * LUỒNG CHẠY NGẦM LẮNG NGHE REAL-TIME TỪ SERVER
      */
     private void listenFromServer() {
-        new Thread(() -> {
-            try {
+    new Thread(
+            () -> {
+              System.out.println("Đã vào luồng lắng nghe Server...");
+              try {
                 String messageFromServer;
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-                    try { // BỌC TRY-CATCH VÀO ĐÂY
-                        Response response = gson.fromJson(messageFromServer, Response.class);
+                  try { // BỌC TRY-CATCH VÀO ĐÂY
+                    Response response = gson.fromJson(messageFromServer, Response.class);
 
-                        if ("NEW_BID".equals(response.getStatus())) {
-                            String innerData = gson.toJson(response.getData());
-                            BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
+                    if ("NEW_BID".equals(response.getStatus())) {
+                      String innerData = gson.toJson(response.getData());
+                      BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
+                      System.out.println(data.getLeaderUsername());
 
-                            // Bổ sung lấy data.getNewEndTime()
-                            onNewBidBroadcastReceived(data.getAuctionId(), BigDecimal.valueOf(data.getNewPrice()), data.getLeaderUsername(), data.getNewEndTime());
-                        }
-                        else if ("ERROR_BID".equals(response.getStatus())) {
-                            Platform.runLater(() -> {
-                                lblBidError.setStyle("-fx-text-fill: red;");
-                                lblBidError.setText(response.getMessage());
-                            });
-                        }
-                    } catch (Exception parseEx) {
-                        System.err.println("Lỗi bóc tách gói tin: " + parseEx.getMessage());
+                      // Bổ sung lấy data.getNewEndTime()
+                      onNewBidBroadcastReceived(
+                          data.getAuctionId(),
+                          BigDecimal.valueOf(data.getNewPrice()),
+                          data.getLeaderUsername(),
+                          data.getNewEndTime());
+                    } else if ("ERROR_BID".equals(response.getStatus())) {
+                      Platform.runLater(
+                          () -> {
+                            lblBidError.setStyle("-fx-text-fill: red;");
+                            lblBidError.setText(response.getMessage());
+                          });
                     }
+                  } catch (Exception parseEx) {
+                    System.err.println("Lỗi bóc tách gói tin: " + parseEx.getMessage());
+                  }
                 }
-            } catch (Exception e) {
+              } catch (Exception e) {
                 if (isListening) System.out.println("Mất kết nối Server.");
-            }
-        }).start();
+              }
+            })
+        .start();
     }
 
     // Các hàm cập nhật UI được gọi từ luồng lắng nghe

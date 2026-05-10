@@ -192,6 +192,9 @@ public class AuctionCatalogController extends BaseController implements Initiali
     try {
       // 1. Nhét dữ liệu vào Trạm trung chuyển
       AuctionSession.getInstance().setCurrentAuction(auction);
+      System.out.println(auction.getBidderId());
+      System.out.println(auction.getAuctionId());
+      System.out.println(auction.getItem().getItemName());
       AuctionSession.getInstance().setCurrentItem(auction.getItem());
       switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá: " + auction.getItem().getItemName());
 

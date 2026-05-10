@@ -21,6 +21,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.server.daos.UserDAO;
 import org.example.server.services.AuctionService;
 import org.example.server.services.AuthService;
 
@@ -39,6 +40,7 @@ import org.example.server.services.ItemService;
 
 public class ClientHandler implements Runnable {
   public static final List<ClientHandler> connectedClients = new CopyOnWriteArrayList<>();
+  UserDAO userDAO = UserDAO.getInstance();
 
   private final Socket clientSocket;
   private BufferedReader in;
@@ -281,18 +283,17 @@ public class ClientHandler implements Runnable {
     try {
       // Ép kiểu dữ liệu Client gửi lên thành BidRequestDTO
       String dataJson = gson.toJson(request.getData());
-      org.example.core.dto.BidRequestDTO bidReq =
-              gson.fromJson(dataJson, org.example.core.dto.BidRequestDTO.class);
+      BidRequestDTO bidReq = gson.fromJson(dataJson, BidRequestDTO.class);
 
       // Ném xuống BiddingService để xử lý
-      boolean success = org.example.server.services.BiddingService.getInstance().placeBid(bidReq);
+      boolean success = BiddingService.getInstance().placeBid(bidReq);
 
       if (success) {
 
         String realUsername = "Unknown"; // Tên mặc định nếu không tìm thấy
 
         try {
-          org.example.core.models.users.User user = org.example.server.daos.UserDAO.getInstance().getUserByUserId(bidReq.getUserId());
+          User user = userDAO.getUserByUserId(bidReq.getUserId());
 
           if (user != null) {
             realUsername = user.getUserName(); // Lấy tên thật (đảm bảo hàm get tên khớp với class User của bạn)
@@ -303,7 +304,7 @@ public class ClientHandler implements Runnable {
         LocalDateTime currentEndTime = null;
 
         try {
-          org.example.core.models.entities.Auction updatedAuction = org.example.server.daos.AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
+          Auction updatedAuction = AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
           if (updatedAuction != null) {
             currentEndTime = updatedAuction.getEndTime(); // Lấy giờ mới (đã được BiddingService gia hạn nếu có)
           }
@@ -312,8 +313,8 @@ public class ClientHandler implements Runnable {
         }
         // ==========================================
 
-        org.example.core.dto.BidBroadcastDTO broadcastDTO =
-                new org.example.core.dto.BidBroadcastDTO(
+        BidBroadcastDTO broadcastDTO =
+                new BidBroadcastDTO(
                         bidReq.getAuctionId(),
                         bidReq.getBidAmount().doubleValue(),
                         realUsername,
