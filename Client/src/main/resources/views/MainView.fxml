@@ -22,7 +22,7 @@
 
                 <HBox alignment="CENTER" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: rgba(0, 0, 0, 0.4); -fx-padding: 10 30;" stylesheets="@style.css" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="75.0" AnchorPane.topAnchor="35.0">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#handleMain" prefHeight="32.0" prefWidth="191.0" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: rgba(0, 0, 0, 0.000); -fx-font-size: 16; -fx-text-fill: white;" text="Trang chủ" />
+                        <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: rgba(0, 0, 0, 0.000); -fx-font-size: 16; -fx-text-fill: white;" text="Trang chủ" />
                         <Button mnemonicParsing="false" onAction="#handleMenuItem" prefHeight="25.0" style="-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 50; -fx-background-color: #28a745; -fx-text-fill: white;" text="Danh sách phòng" />
                         <Region mouseTransparent="true" opacity="0.18" prefHeight="36.0" prefWidth="17.0" HBox.hgrow="ALWAYS" />
                         <MenuButton fx:id="menuUser" accessibleText="người dùng" alignment="CENTER" maxWidth="120.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: white; -fx-background-radius: 50; -fx-managed: true; -fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white;" styleClass="user-menu-btn" text="User">
