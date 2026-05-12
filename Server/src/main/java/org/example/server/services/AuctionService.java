@@ -1,6 +1,7 @@
 package org.example.server.services;
 
 import org.example.core.dto.CreateAuctionDTO;
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.dto.PendingPaymentsDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
@@ -228,5 +229,10 @@ public class AuctionService {
       throw new Exception("ID nguoi dung khong hop le " + userId);
     }
     return auctionDAO.getAllAuctionsFinished(userId);
+  }
+
+  public static List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
+    List<PaidHistoryDTO> paidHistoryDTOS = auctionDAO.getAllAuctionsPaid(userId);
+    return paidHistoryDTOS;
   }
 }
