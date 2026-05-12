@@ -281,11 +281,12 @@ public class CreateItemController extends BaseController implements Initializabl
   void handleMenuItem(ActionEvent event) {
     switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
   }
-@FXML
 
-public void handleHistoryAuction(ActionEvent event) {
+  @FXML
+  public void handleHistoryAuction(ActionEvent event) {
   switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-}
+  }
+
   @FXML
   void handleUserUi(ActionEvent event) {
     switchScene(event, "/views/PersonalView.fxml", "Ho so ca nhan");
@@ -315,6 +316,7 @@ public void handleHistoryAuction(ActionEvent event) {
       return null;
     }
   }
+
   @FXML
   public void handleWaitPayment(ActionEvent event) {
     switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");

@@ -10,6 +10,8 @@ public class PaidHistoryDTO implements Serializable {
     private BigDecimal finalPrice;
     private LocalDateTime paidDate;
 
+    public PaidHistoryDTO() {}
+
     public PaidHistoryDTO(String itemName, String category, BigDecimal finalPrice, LocalDateTime paidDate) {
         this.itemName = itemName;
         this.category = category;
@@ -21,4 +23,20 @@ public class PaidHistoryDTO implements Serializable {
     public String getCategory() { return category; }
     public BigDecimal getFinalPrice() { return finalPrice; }
     public LocalDateTime getPaidDate() { return paidDate; }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setFinalPrice(BigDecimal finalPrice) {
+        this.finalPrice = finalPrice;
+    }
+
+    public void setPaidDate(LocalDateTime paidDate) {
+        this.paidDate = paidDate;
+    }
 }

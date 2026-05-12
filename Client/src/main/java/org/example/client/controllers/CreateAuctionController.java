@@ -11,7 +11,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.CreateAuctionDTO;
-import org.example.core.dto.PendingRequestDTO;
+import org.example.core.dto.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
@@ -24,9 +24,7 @@ import org.example.core.models.users.User;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -91,7 +89,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     ArrayList<Item> allItem = new ArrayList<>();
     cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
 
-    PendingRequestDTO requestPayload = new PendingRequestDTO(sellerId);
+    PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
 
     requestPayload.setSellerId(sellerId);
     System.out.println("Tao luong");

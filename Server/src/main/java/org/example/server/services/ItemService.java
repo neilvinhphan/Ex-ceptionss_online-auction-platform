@@ -3,13 +3,9 @@ package org.example.server.services;
 import org.example.core.dto.CreateItemRequestDTO;
 import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.EditProductRequestDTO;
-import org.example.core.dto.PendingRequestDTO;
-import org.example.core.models.items.ArtItem;
-import org.example.core.models.items.ElectronicsItem;
+import org.example.core.dto.PendingItemsDTO;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
-import org.example.core.models.items.VehicleItem;
-import org.example.core.models.users.User;
 import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
 
@@ -49,34 +45,7 @@ public class ItemService {
     }
   }
 
-  public Item updateItemDescription(int itemId, String newDescription) throws Exception {
-    if (itemId <= 0) {
-      throw new Exception("Invalid item id.");
-    }
-    if (newDescription == null || newDescription.trim().isEmpty()) {
-      throw new Exception("Description cannot be empty.");
-    }
-
-    Item item = itemDAO.getItemById(itemId);
-    if (item == null) {
-      throw new Exception("Item not found.");
-    }
-
-    Integer ownerSellerId = itemDAO.getOwnerIdByItemId(itemId);
-    if (ownerSellerId == null) {
-      throw new Exception("You are not allowed to update this item.");
-    }
-
-    String normalizedDescription = newDescription.trim();
-    boolean success = itemDAO.updateItemDescriptionByItemId(itemId, normalizedDescription);
-    if (!success) {
-      throw new Exception("Cannot update item description.");
-    }
-    item.setDescription(normalizedDescription);
-    return item;
-  }
-
-  public static List<Item> getAllItem(PendingRequestDTO requestPayload) throws Exception {
+  public static List<Item> getAllItem(PendingItemsDTO requestPayload) throws Exception {
     int sellerId = requestPayload.getSellerId();
     if (sellerId <= 0) {
       throw new Exception("Invalid seller ID.");

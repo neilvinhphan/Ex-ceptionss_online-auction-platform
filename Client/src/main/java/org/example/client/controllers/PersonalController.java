@@ -75,10 +75,10 @@ public class PersonalController extends BaseController implements Initializable 
     private void handleMenuItem(ActionEvent event) {
         switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
     }
-@FXML
-public void handleHistoryAuction(ActionEvent event) {
+    @FXML
+    public void handleHistoryAuction(ActionEvent event) {
     switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-}
+    }
     @FXML
     void handleCreateAuction(ActionEvent event) {
         if (userRole.equals(RoleType.BIDDER)) {

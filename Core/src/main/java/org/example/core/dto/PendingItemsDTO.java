@@ -4,11 +4,11 @@ import org.example.core.models.items.Item;
 
 import java.util.List;
 
-public class PendingRequestDTO {
+public class PendingItemsDTO {
     private List<Item> items;
     private int sellerId;
 
-    public PendingRequestDTO(int sellerId) {this.sellerId = sellerId;}
+    public PendingItemsDTO(int sellerId) {this.sellerId = sellerId;}
 
     public void setItems(List<Item> items) {
         this.items = items;
