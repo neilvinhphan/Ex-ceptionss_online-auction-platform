@@ -41,8 +41,7 @@ public class UserService {
   }
 
   // Đổi mật khẩu
-  public void changePassword(String username, String currentPassword, String newPassword)
-      throws Exception {
+  public void changePassword(String username, String currentPassword, String newPassword) throws Exception {
     if (username == null || username.trim().isEmpty()) {
       throw new Exception("Username is required.");
     }

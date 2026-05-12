@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.PendingItemDTO;
-import org.example.core.dto.PendingRequestDTO;
+import org.example.core.dto.PendingPaymentsDTO;
+import org.example.core.dto.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.users.User;
@@ -35,15 +35,15 @@ import javafx.util.Callback;
 public class WaitPaymentController extends BaseController implements Initializable {
     // --- CÁC THÀNH PHẦN BẢNG ---
     @FXML
-    private TableView<PendingItemDTO> tvPendingItems;
+    private TableView<PendingPaymentsDTO> tvPendingItems;
     @FXML
-    private TableColumn<PendingItemDTO, String> colName;
+    private TableColumn<PendingPaymentsDTO, String> colName;
     @FXML
-    private TableColumn<PendingItemDTO, BigDecimal> colPrice;
+    private TableColumn<PendingPaymentsDTO, BigDecimal> colPrice;
     @FXML
-    private TableColumn<PendingItemDTO, String> colDate;
+    private TableColumn<PendingPaymentsDTO, String> colDate;
     @FXML
-    private TableColumn<PendingItemDTO, Void> colAction; // Cột chứa nút bấm dùng kiểu Void
+    private TableColumn<PendingPaymentsDTO, Void> colAction; // Cột chứa nút bấm dùng kiểu Void
 
     @FXML
     private MenuButton menuUser;
@@ -53,10 +53,11 @@ public class WaitPaymentController extends BaseController implements Initializab
     private Button btnPayAll;
     private Gson gson = ClientManager.getInstance().getGson();
     private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
-    private ObservableList<PendingItemDTO> observableList = FXCollections.observableArrayList();
+    private ObservableList<PendingPaymentsDTO> observableList = FXCollections.observableArrayList();
+    User currentUser = UserSession.getInstance().getCurrentUser();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
             menuUser.setText(currentUser.getUserName());
         }
@@ -86,9 +87,9 @@ public class WaitPaymentController extends BaseController implements Initializab
      * Hàm này tạo nút "Thanh toán" cho từng dòng trong bảng
      */
     private void setupActionColumn() {
-        Callback<TableColumn<PendingItemDTO, Void>, TableCell<PendingItemDTO, Void>> cellFactory = new Callback<>() {
+        Callback<TableColumn<PendingPaymentsDTO, Void>, TableCell<PendingPaymentsDTO, Void>> cellFactory = new Callback<>() {
             @Override
-            public TableCell<PendingItemDTO, Void> call(final TableColumn<PendingItemDTO, Void> param) {
+            public TableCell<PendingPaymentsDTO, Void> call(final TableColumn<PendingPaymentsDTO, Void> param) {
                 return new TableCell<>() {
                     private final Button btnPay = new Button("Thanh toán");
 
@@ -96,7 +97,8 @@ public class WaitPaymentController extends BaseController implements Initializab
                         btnPay.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 5; -fx-font-weight: bold;");
                         btnPay.setOnAction((ActionEvent event) -> {
                             // Lấy dữ liệu của dòng hiện tại đang được click
-                            PendingItemDTO data = getTableView().getItems().get(getIndex());
+                            PendingPaymentsDTO data = getTableView().getItems().get(getIndex());
+                            data.setUserId(currentUser.getUserId());
                             handleSinglePayment(data);
                         });
                     }
@@ -125,20 +127,23 @@ public class WaitPaymentController extends BaseController implements Initializab
                 return;
             }
             int userId = currentUser.getUserId();
-            PendingRequestDTO payload = new PendingRequestDTO(userId);
-            Request request = new Request("GET_PENDING_PAYMENTS", payload);
+            PendingItemsDTO payload = new PendingItemsDTO(userId);
+            System.out.println("Id nguoi dung la " + payload.getSellerId());
+            Request request = new Request("GET_PENDING_PAYMENTS", payload.getSellerId());
             String jsonRequest = gson.toJson(request);
 
             new Thread(() -> {
                 try {
+                    System.out.println("Tao request PendingItems WaitPayment");
                     String jsonResponse = clientSocket.sendRequest(jsonRequest);
                     Response response = gson.fromJson(jsonResponse, Response.class);
+                    System.out.println("Nhan response PendingItems WaitPayment");
 
                     Platform.runLater(() -> {
                         if ("SUCCESS".equals(response.getStatus())) {
                             String jsonData = gson.toJson(response.getData());
-                            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<PendingItemDTO>>(){}.getType();
-                            List<PendingItemDTO> fetchedItems = gson.fromJson(jsonData, listType);
+                            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<PendingPaymentsDTO>>(){}.getType();
+                            List<PendingPaymentsDTO> fetchedItems = gson.fromJson(jsonData, listType);
                             observableList.setAll(fetchedItems);
                             tvPendingItems.setItems(observableList);
                             System.out.println("Đã tải: " + fetchedItems.size() + " mục chờ thanh toán.");
@@ -153,12 +158,12 @@ public class WaitPaymentController extends BaseController implements Initializab
             }).start();
         }
 
-
-    private void handleSinglePayment(PendingItemDTO itemToPay) {
+    private void handleSinglePayment(PendingPaymentsDTO itemToPay) {
         // 1. Hiển thị bảng thông báo xác nhận
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Xác nhận thanh toán");
         confirmAlert.setHeaderText("Bạn có chắc chắn muốn thanh toán cho: " + itemToPay.getItemName() + "?");
+    System.out.println("Thong tin vat pham " + itemToPay.getAuctionId() + " " + itemToPay.getUserId());
         confirmAlert.setContentText("Số tiền sẽ trừ vào tài khoản: " + String.format("%,.0f VNĐ", itemToPay.getWinPrice()));
         // 2. Chờ người dùng phản hồi
         confirmAlert.showAndWait().ifPresent(response -> {
@@ -169,9 +174,9 @@ public class WaitPaymentController extends BaseController implements Initializab
         });
     }
 
-    private void sendPaymentRequest(PendingItemDTO itemToPay) {
+    private void sendPaymentRequest(PendingPaymentsDTO itemToPay) {
         // Tạo Request với Action "PAY_ITEM"
-        Request request = new Request("PAY_ITEM", itemToPay.getAuctionId());
+        Request request = new Request("PAY_ITEM", itemToPay);
         String jsonRequest = gson.toJson(request);
 
         new Thread(() -> {
@@ -202,7 +207,7 @@ public class WaitPaymentController extends BaseController implements Initializab
         }
         // 1. Tính tổng tiền để để thông báo cho người dùng
         BigDecimal totalAmount = observableList.stream()
-                .map(PendingItemDTO::getWinPrice)
+                .map(PendingPaymentsDTO::getWinPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 2. Hiện Alert xác nhận tổng quát
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -239,7 +244,6 @@ public class WaitPaymentController extends BaseController implements Initializab
             }
         }).start();
     }
-
 
     @FXML
     public void handleMain(ActionEvent event) {

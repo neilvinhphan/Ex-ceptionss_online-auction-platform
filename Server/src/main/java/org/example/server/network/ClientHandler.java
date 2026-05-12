@@ -98,6 +98,12 @@ public class ClientHandler implements Runnable {
             case "CREATE_ITEM":
               handleCreateItem(request);
               break;
+            case "UPDATE_ITEM_FULL":
+              handleEditProduct(request);
+              break;
+            case "DELETE_ITEM":
+              handleDeleteProduct(request);
+              break;
             case "GET_PENDING_ITEMS":
               handleGetPendingItems(request);
               break;
@@ -123,10 +129,13 @@ public class ClientHandler implements Runnable {
               // t đến khúc chết não r :((
               break;
             case "GET_PENDING_PAYMENTS":
+              handleGetPendingPayments(request);
               break;
             case "PAY_ITEM":
+              handlePayItem(request);
               break;
             case "PAY_ALL":
+              handlePayAllItems(request);
               break;
             case "LEAVE_ROOM":
               // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
@@ -224,7 +233,6 @@ public class ClientHandler implements Runnable {
       Item newItem = ItemService.createItem(finalDTO);
 
       if (newItem != null) {
-
         Response response = new Response("SUCCESS", "Item created successfully!", newItem);
         sendMessage(gson.toJson(response));
       } else {
@@ -240,14 +248,63 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleGetPendingItems(Request request) {
-    PendingRequestDTO pendingRequest;
+  private void handleDeleteProduct(Request request) {
+    DeleteRequestDTO deleteRequest;
+    try {
+      if (request.getData() instanceof DeleteRequestDTO) {
+        deleteRequest = (DeleteRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        deleteRequest = gson.fromJson(dataJson, DeleteRequestDTO.class);
+      }
+      boolean success = ItemService.deleteItem(deleteRequest);
+      Response response;
+      if (success) {
+        response = new Response("SUCCESS", "Item deleted successfully.");
+      } else {
+        response = new Response("ERROR", "Failed to delete item.");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
 
-    if (request.getData() instanceof PendingRequestDTO) {
-      pendingRequest = (PendingRequestDTO) request.getData();
+  private void handleEditProduct(Request request) {
+    EditProductRequestDTO editRequest;
+    try {
+      if (request.getData() instanceof EditProductRequestDTO) {
+        editRequest = (EditProductRequestDTO) request.getData();
+      } else {
+        String dataJson = gson.toJson(request.getData());
+        editRequest = gson.fromJson(dataJson, EditProductRequestDTO.class);
+      }
+      boolean success = ItemService.updateItemFull(editRequest);
+      Response response;
+      if (success) {
+        Item item = ItemDAO.getInstance().getItemById(editRequest.getItemId());
+        response = new Response("SUCCESS", "Item updated successfully!", item);
+      } else {
+        response = new Response("ERROR", "Failed to update item.");
+      }
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Server Error: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleGetPendingItems(Request request) {
+    PendingItemsDTO pendingRequest;
+
+    if (request.getData() instanceof PendingItemsDTO) {
+      pendingRequest = (PendingItemsDTO) request.getData();
     } else {
       String dataJson = gson.toJson(request.getData());
-      pendingRequest = gson.fromJson(dataJson, PendingRequestDTO.class);
+      pendingRequest = gson.fromJson(dataJson, PendingItemsDTO.class);
     }
     try {
       List<Item> items = ItemService.getAllItem(pendingRequest);
@@ -403,8 +460,7 @@ public class ClientHandler implements Runnable {
   private void handleGetActiveAuctions() {
     try {
       // Lấy danh sách các sản phẩm từ những phiên đấu giá đang chạy
-      List<Auction> activeItems =
-          AuctionDAO.getInstance().getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
+      List<Auction> activeItems = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
 
       // Khởi tạo phản hồi thành công
       Response response =
@@ -435,6 +491,60 @@ public class ClientHandler implements Runnable {
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Không thể nâng cấp lên Seller???");
       sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleGetPendingPayments(Request request) {
+    try{
+      String dataJson = gson.toJson(request.getData());
+      int userId = gson.fromJson(dataJson, Integer.class);
+      List<PendingPaymentsDTO> pendingPaymentsDTOS = AuctionService.getAllAuctionsFinished(userId);
+      Response response = new Response("SUCCESS", "Thanh cong!!!", pendingPaymentsDTOS);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Khong the gui du lieu");
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handlePayItem(Request request) {
+    try{
+      String dataJson = gson.toJson(request.getData());
+      PendingPaymentsDTO pendingPaymentsDTO = gson.fromJson(dataJson, PendingPaymentsDTO.class);
+      System.out.println("Thong tin pendingPaymentsDTO " + pendingPaymentsDTO.getAuctionId() + " " + pendingPaymentsDTO.getUserId());
+      int auctionId = pendingPaymentsDTO.getAuctionId();
+      int bidderId = pendingPaymentsDTO.getUserId();
+      boolean success = AuctionService.checkoutAuction(auctionId, bidderId);
+      Response response;
+      if (success) {
+        response = new Response("SUCCESS", "Thanh toan thanh cong!!!");
+        sendMessage(gson.toJson(response));
+      } else {
+        response = new Response("ERROR", "Khong the thanh toan!!!");
+        sendMessage(gson.toJson(response));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response response = new Response("ERROR", "Loi giao dich");
+      sendMessage(gson.toJson(response));
+    }
+  }
+
+  private void handlePayAllItems(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      int userId = gson.fromJson(dataJson, Integer.class);
+      List<Integer> auctionIds = AuctionDAO.getInstance().getAllAuctionIdFinishedByUserId(userId);
+      for (Integer x: auctionIds) {
+        AuctionService.checkoutAuction(x, userId);
+      }
+      Response response = new Response("SUCCESS", "Thanh toan toan bo thanh cong!!!");
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response response = new Response("ERROR", "Thanh toan khong thanh cong");
+      sendMessage(gson.toJson(response));
     }
   }
 

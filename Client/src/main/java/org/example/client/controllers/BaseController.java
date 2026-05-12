@@ -36,7 +36,12 @@ public class BaseController {
             Object source = event.getSource();
             if (source instanceof Node) {
                 currentScene = ((Node) source).getScene();
-                stage = (Stage) currentScene.getWindow();
+                if(currentScene != null) {
+                    stage = (Stage) currentScene.getWindow();
+                } else {
+                    System.err.println("Loi: Node source chua duoc gan vao Scene");
+                    return;
+                }
             } else if (source instanceof MenuItem) {
                 MenuItem menuItem = (MenuItem) source;
                 stage = (Stage) menuItem.getParentPopup().getOwnerWindow();

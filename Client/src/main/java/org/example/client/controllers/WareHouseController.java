@@ -19,11 +19,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 
@@ -32,7 +30,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.EditProductRequestDTO;
-import org.example.core.dto.PendingRequestDTO;
+import org.example.core.dto.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.items.ArtItem;
@@ -111,7 +109,7 @@ public class WareHouseController extends BaseController implements Initializable
     }
     int sellerId = currentUser.getUserId();
     // 2. Đóng gói vào cái hộp (DTO)
-    PendingRequestDTO requestPayload = new PendingRequestDTO(sellerId);
+    PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
     Request request = new Request("GET_PENDING_ITEMS", requestPayload);
     String jsonRequest = gson.toJson(request);
     new Thread(
