@@ -326,21 +326,26 @@ public void handleHistoryAuction(ActionEvent event) {
                               String jsonResponse = clientSocket.sendRequest(jsonRequest);
                               Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                              Platform.runLater(
-                                  () -> {
-                                    if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                      System.out.println(newName + newDesc + newPrice);
-                                      showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
+                              Platform.runLater(() -> {
+                                if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                  showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
 
-                                      // Cập nhật ngay trên bảng để người dùng thấy luôn
-                                      selectedItem.setItemName(newName);
-                                      selectedItem.setDescription(newDesc);
-                                      selectedItem.setStartingPrice(newPrice);
-                                      //    productTable.refresh();
-                                    } else {
-                                      showAlert("Lỗi", serverResponse.getMessage());
-                                    }
-                                  });
+                                  // 1. Cập nhật dữ liệu vào Object (Bạn đã làm rồi)
+                                  selectedItem.setItemName(newName);
+                                  selectedItem.setDescription(newDesc);
+                                  selectedItem.setStartingPrice(newPrice);
+
+                                  // 2. QUAN TRỌNG: Làm mới bảng để hiển thị giá trị mới
+                                  productTable.refresh();
+
+                                  // 3. (Tùy chọn) Để chắc chắn hơn, bạn có thể thay thế chính nó trong list:
+                                  int index = observableItemList.indexOf(selectedItem);
+                                  observableItemList.set(index, selectedItem);
+
+                                } else {
+                                  showAlert("Lỗi", serverResponse.getMessage());
+                                }
+                              });
                             } catch (Exception e) {
                               Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
                             }
