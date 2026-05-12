@@ -9,6 +9,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.net.Socket;
@@ -37,23 +38,36 @@ public class MainController extends BaseController implements Initializable {
   @FXML private MenuButton menuUser;
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
-
+@FXML VBox userBox,adminBox;
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser != null) {
-      menuUser.setText(currentUser.getUserName());
-    }
+//    if (currentUser != null) {
+//      menuUser.setText(currentUser.getUserName());
+      if (currentUser != null && currentUser.getRole() == RoleType.ADMIN) {
+
+          // Nếu là Admin -> Ẩn toàn bộ giao diện User
+          userBox.setVisible(false);
+          userBox.setManaged(false);
+
+          // Bật giao diện Admin lên
+          adminBox.setVisible(true);
+          adminBox.setManaged(true);
+
+      } else {
+          // Nếu là người thường/Seller -> Ẩn giao diện Admin
+          adminBox.setVisible(false);
+          adminBox.setManaged(false);
+
+          // Bật giao diện User lên
+          userBox.setVisible(true);
+          userBox.setManaged(true);
+      }
   }
 
   @FXML
   private void handleMenuItem(ActionEvent event) {
     switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
-  }
-
-  @FXML
-  void handleMain(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
   }
 
   @FXML
@@ -75,11 +89,6 @@ public class MainController extends BaseController implements Initializable {
   void handleLogout(ActionEvent event) {
     UserSession.getInstance().cleanUserSession();
     switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-  }
-
-  @FXML
-  void handleButtonItem(ActionEvent event) {
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm");
   }
 
   @FXML
@@ -169,4 +178,15 @@ public class MainController extends BaseController implements Initializable {
             })
         .start();
   }
+
+    public void handleManageUsers(ActionEvent event) {
+        switchScene(event, "/views/ManagerUserView.fxml", "Quản lý người dùng");
+
+    }
+
+    public void handleManageAuctions(ActionEvent event) {
+    }
+
+    public void handleApproveAccounts(ActionEvent event) {
+    }
 }
