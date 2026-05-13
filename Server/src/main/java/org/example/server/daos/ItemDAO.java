@@ -349,4 +349,50 @@ public class ItemDAO {
       throw new RuntimeException(e);
     }
   }
+  // Lấy danh sách tất cả Item dựa theo trạng thái (Dành cho Admin)
+  public List<Item> getItemsByStatus(ItemStatus status) {
+    String sql =
+            """
+        SELECT
+            i.*,
+            art.artist, art.creation_year,
+            ele.ele_brand, ele.warranty_months, ele.item_condition,
+            veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+        FROM items i
+        LEFT JOIN art_items art ON i.items_id = art.items_id
+        LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+        LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+        WHERE i.status = ?
+        """;
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      // Truyền trạng thái vào SQL (chuyển Enum thành String)
+      ps.setString(1, status.name());
+
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
