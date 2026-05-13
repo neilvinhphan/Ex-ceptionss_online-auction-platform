@@ -8,6 +8,8 @@ import com.google.gson.JsonParseException;
 
 import org.example.core.dto.*;
 
+import org.example.core.dto.admin.AdminBanUserDTO;
+import org.example.core.dto.admin.AdminCancelAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.shared.enums.AuctionStatus;
@@ -140,6 +142,18 @@ public class ClientHandler implements Runnable {
             case "CANCEL_AUCTION":
               break;
             case "GET_ALL_AUCTIONS":
+              break;
+            case "ADMIN_PROCESS_ITEM":
+              handleAdminProcessItem(request);
+              break;
+            case "ADMIN_GET_USERS":
+              handleAdminGetUsers(request);
+              break;
+            case "ADMIN_BAN_USER":
+              handleAdminBanUser(request);
+              break;
+            case "ADMIN_CANCEL_AUCTION":
+              handleAdminCancelAuction(request);
               break;
             case "LEAVE_ROOM":
               // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
@@ -600,6 +614,132 @@ public class ClientHandler implements Runnable {
       } catch (Exception e) {
         System.err.println("Lỗi khi gửi Broadcast cho 1 client: " + e.getMessage());
       }
+    }
+  }
+
+  // 1. XỬ LÝ DUYỆT / TỪ CHỐI TÀI SẢN
+  private void handleAdminProcessItem(Request request) {
+
+    try {
+      String dataJson = gson.toJson(request.getData());
+      org.example.core.dto.admin.AdminProcessItemDTO processReq = gson.fromJson(dataJson, org.example.core.dto.admin.AdminProcessItemDTO.class);
+
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(processReq.getAdminId());
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return; // Đuổi cổ ngay
+      }
+
+      org.example.core.models.items.Item checkItem = org.example.server.daos.ItemDAO.getInstance().getItemById(processReq.getItemId());
+      if (checkItem.getStatus() != org.example.core.shared.enums.ItemStatus.PENDING) {
+        Response errorResponse = new Response("ERROR", "Lỗi: Tài sản này không ở trạng thái Chờ Duyệt!");
+        sendMessage(gson.toJson(errorResponse));
+        return; // Dừng luôn, không cho duyệt nữa
+      }
+      ItemStatus newStatus = processReq.isApproved() ? ItemStatus.APPROVED : ItemStatus.REJECTED;
+      boolean success = ItemDAO.getInstance().updateItemStatus(processReq.getItemId(), newStatus);
+      if (success) {
+        String msg = processReq.isApproved() ? "Đã DUYỆT tài sản thành công!" : "Đã TỪ CHỐI tài sản!";
+        Response response = new Response("SUCCESS", msg);
+        sendMessage(gson.toJson(response));
+      } else {
+        Response errorResponse = new Response("ERROR", "Lỗi: Không thể cập nhật trạng thái tài sản trong DB.");
+        sendMessage(gson.toJson(errorResponse));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  // 2. LẤY DANH SÁCH USER
+  private void handleAdminGetUsers(Request request) {
+    try {
+      // 1. Lấy adminId từ request (Giả sử Client gửi thẳng số Integer)
+      String dataJson = gson.toJson(request.getData());
+      Integer adminId = gson.fromJson(dataJson, Integer.class);
+
+      // 2. CHECK QUYỀN TRƯỚC KHI LÀM:
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return;
+      }
+
+      // 3. Đúng Admin rồi mới cho kéo list
+      List<User> users = org.example.server.daos.UserDAO.getInstance().getAllUsers();
+      Response response = new Response("SUCCESS", "Lấy danh sách User thành công", users);
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi khi lấy danh sách User: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+  // 3. KHÓA / MỞ KHÓA TÀI KHOẢN
+  private void handleAdminBanUser(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      AdminBanUserDTO banReq = gson.fromJson(dataJson, AdminBanUserDTO.class);
+
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(banReq.getAdminId());
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return; // Đuổi cổ ngay
+      }
+
+      boolean success;
+
+      // Kiểm tra xem Admin muốn Khóa hay Mở khóa để gọi đúng hàm trong UserDAO
+      if (banReq.isBanned()) {
+        success = org.example.server.daos.UserDAO.getInstance().banStatus(banReq.getUserId());
+      } else {
+        success = org.example.server.daos.UserDAO.getInstance().unbanStatus(banReq.getUserId());
+      }
+
+      if (success) {
+        String msg = banReq.isBanned() ? "Đã KHÓA tài khoản user thành công!" : "Đã MỞ KHÓA tài khoản user!";
+        Response response = new Response("SUCCESS", msg);
+        sendMessage(gson.toJson(response));
+      } else {
+        Response errorResponse = new Response("ERROR", "Lỗi DB: Không thể cập nhật trạng thái tài khoản.");
+        sendMessage(gson.toJson(errorResponse));
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  // 3. HỦY KHẨN CẤP PHIÊN ĐẤU GIÁ (ADMIN)
+  private void handleAdminCancelAuction(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      AdminCancelAuctionDTO cancelReq = gson.fromJson(dataJson, AdminCancelAuctionDTO.class);
+
+      // CHECK QUYỀN TRƯỚC KHI LÀM:
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(cancelReq.getAdminId());
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return; // Đuổi cổ ngay
+      }
+
+      org.example.server.services.AuctionService.forceCancelAuction(cancelReq.getAuctionId(), "Admin hủy khẩn cấp");
+
+        Response response = new Response("SUCCESS", "Đã HỦY KHẨN CẤP phiên đấu giá!");
+        sendMessage(gson.toJson(response));
+
+        Response broadcast = new Response("AUCTION_END", "Phiên đấu giá bị Admin hủy bỏ khẩn cấp!", "ADMIN_CANCELLED");
+        broadcastMessage(gson.toJson(broadcast));
+
+    } catch (Exception e) {
+      // Nếu ID không tồn tại hoặc phiên đã bị hủy từ trước, Service sẽ ném lỗi ra đây
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
     }
   }
 }
