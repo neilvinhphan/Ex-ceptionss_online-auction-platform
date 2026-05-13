@@ -1,24 +1,17 @@
 package org.example.server.services;
 
-import org.example.core.dto.BidRequestDTO;
-import org.example.core.dto.PaidHistoryDTO;
-import org.example.core.dto.Request;
-import org.example.core.dto.Response;
+import org.example.core.dto.bidDTO.BidRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
-import org.example.core.shared.enums.WalletTransactionType;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.BidDAO;
 import org.example.server.daos.WalletDAO;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.example.server.network.ClientHandler.broadcastMessage;
 
 public class BiddingService {
 

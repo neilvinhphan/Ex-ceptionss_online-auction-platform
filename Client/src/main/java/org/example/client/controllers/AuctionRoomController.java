@@ -1,7 +1,6 @@
 package org.example.client.controllers;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.bind.util.ISO8601Utils;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -18,8 +17,8 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.BidBroadcastDTO;
-import org.example.core.dto.BidRequestDTO;
+import org.example.core.dto.bidDTO.BidBroadcastDTO;
+import org.example.core.dto.bidDTO.BidRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;

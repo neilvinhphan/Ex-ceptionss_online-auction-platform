@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
-import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.dto.userDTO.RegisterRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 

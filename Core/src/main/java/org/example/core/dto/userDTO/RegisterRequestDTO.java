@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.userDTO;
 
 public class RegisterRequestDTO {
   private String username;

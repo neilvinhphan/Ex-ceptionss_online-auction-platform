@@ -205,38 +205,6 @@ public class ItemDAO {
     return null;
   }
 
-  public String getItemTypeByItemId(int itemId) {
-    String sql = "SELECT type FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return rs.getString("type");
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  public ItemStatus getItemStatusById(int itemId) {
-    String sql = "SELECT status FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return ItemStatus.valueOf(rs.getString("status"));
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
   public String getItemNameByItemId(int itemId) {
     String sql = "SELECT items_name FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -277,30 +245,6 @@ public class ItemDAO {
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public boolean updateOwnerIdInDB(int itemId, int ownerId) {
-    String sql = "UPDATE items SET owner_id = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, ownerId);
-      ps.setInt(2, itemId);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
-    String sql = "UPDATE items SET final_price = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setBigDecimal(1, finalPrice);
-      ps.setInt(2, id);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-    }
-    return false;
   }
 
   public boolean updateItemDescriptionByItemId(int itemId, String description) {
@@ -349,7 +293,7 @@ public class ItemDAO {
       throw new RuntimeException(e);
     }
   }
-  // Lấy danh sách tất cả Item dựa theo trạng thái (Dành cho Admin)
+
   public List<Item> getItemsByStatus(ItemStatus status) {
     String sql =
             """
