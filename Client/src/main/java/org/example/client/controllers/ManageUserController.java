@@ -2,6 +2,8 @@ package org.example.client.controllers;
 
 import com.google.gson.Gson;
 
+import com.google.gson.reflect.TypeToken;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,12 +14,18 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
+import org.example.client.utils.UserSession;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
+import org.example.core.dto.admin.AdminBanUserDTO;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.RoleType;
 import org.example.core.shared.enums.UserStatus;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class ManageUserController extends BaseController implements Initializable {
@@ -49,7 +57,41 @@ public class ManageUserController extends BaseController implements Initializabl
         loadUsersFromServer();
     }
     private void loadUsersFromServer() {
-        // TODO: Gửi request lên Server lấy danh sách User
+        new Thread(() -> {
+            try {
+                // 1. Lấy ID của Admin đang đăng nhập
+                int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+
+                // 2. Đóng gói Request gửi lên Server
+                Request request = new Request("ADMIN_GET_ALL_USERS", adminId);
+                clientSocket.getOut().println(gson.toJson(request));
+
+                // 3. Đọc dữ liệu Server trả về
+                String responseStr = clientSocket.getIn().readLine();
+                if (responseStr != null) {
+                    Response response = gson.fromJson(responseStr, Response.class);
+
+                    if ("SUCCESS".equals(response.getStatus())) {
+                        // 4. Bóc tách mảng (List) User từ data của Response
+                        String dataJson = gson.toJson(response.getData());
+                        Type listType = new TypeToken<List<User>>(){}.getType();
+                        List<User> users = gson.fromJson(dataJson, listType);
+
+                        // 5. Cập nhật giao diện (Phải dùng Platform.runLater vì đang ở luồng ngầm)
+                        Platform.runLater(() -> {
+                            userList.setAll(users);
+                            userTable.setItems(userList);
+                            System.out.println("Đã tải xong danh sách người dùng!");
+                        });
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi", response.getMessage()));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi mạng", "Không thể kết nối đến Server!"));
+            }
+        }).start();
 
     }
 
@@ -109,7 +151,34 @@ public class ManageUserController extends BaseController implements Initializabl
         }
 
         System.out.println("Gửi lệnh BAN user ID: " + selectedUser.getUserId() + " lên server...");
-        // TODO: Gửi socket request lên server
+
+        new Thread(() -> {
+            try {
+                int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+
+                // true = Khóa tài khoản
+                AdminBanUserDTO banDto = new AdminBanUserDTO(adminId, selectedUser.getUserId(), true);
+                Request request = new Request("ADMIN_BAN_USER", banDto);
+
+                clientSocket.getOut().println(gson.toJson(request));
+
+                String responseStr = clientSocket.getIn().readLine();
+                if (responseStr != null) {
+                    Response response = gson.fromJson(responseStr, Response.class);
+
+                    Platform.runLater(() -> {
+                        if ("SUCCESS".equals(response.getStatus())) {
+                            showAlert("Thành công", response.getMessage());
+                            loadUsersFromServer(); // Tải lại bảng để cập nhật trạng thái mới
+                        } else {
+                            showAlert("Lỗi", response.getMessage());
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     @FXML
@@ -121,6 +190,33 @@ public class ManageUserController extends BaseController implements Initializabl
         }
 
         System.out.println("Gửi lệnh UNBAN user ID: " + selectedUser.getUserId() + " lên server...");
-        // TODO: Gửi socket request lên server
+
+        new Thread(() -> {
+            try {
+                int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+
+                // false = Mở khóa tài khoản
+                AdminBanUserDTO unbanDto = new AdminBanUserDTO(adminId, selectedUser.getUserId(), false);
+                Request request = new Request("ADMIN_BAN_USER", unbanDto);
+
+                clientSocket.getOut().println(gson.toJson(request));
+
+                String responseStr = clientSocket.getIn().readLine();
+                if (responseStr != null) {
+                    Response response = gson.fromJson(responseStr, Response.class);
+
+                    Platform.runLater(() -> {
+                        if ("SUCCESS".equals(response.getStatus())) {
+                            showAlert("Thành công", response.getMessage());
+                            loadUsersFromServer(); // Tải lại bảng để cập nhật trạng thái mới
+                        } else {
+                            showAlert("Lỗi", response.getMessage());
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
