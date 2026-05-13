@@ -279,8 +279,12 @@ public class CreateItemController extends BaseController implements Initializabl
 
   @FXML
   void handleMenuItem(ActionEvent event) {
-    MenuItem menuItem = (MenuItem) event.getSource();
     switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
+  }
+
+  @FXML
+  public void handleHistoryAuction(ActionEvent event) {
+  switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
   }
 
   @FXML
@@ -311,5 +315,11 @@ public class CreateItemController extends BaseController implements Initializabl
       e.printStackTrace();
       return null;
     }
+  }
+
+  @FXML
+  public void handleWaitPayment(ActionEvent event) {
+    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
+
   }
 }

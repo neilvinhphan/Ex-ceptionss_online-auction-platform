@@ -1,10 +1,12 @@
 package org.example.server.services;
 
 import org.example.core.dto.BidRequestDTO;
+import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
+import org.example.core.shared.enums.WalletTransactionType;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.BidDAO;
 import org.example.server.daos.WalletDAO;
@@ -45,7 +47,7 @@ public class BiddingService {
   }
 
   /**
-   * placeBid (cốt lõi): 1) lock theo auction 2) validate domain 3) validate amount >= current +
+   * z placeBid (cốt lõi): 1) lock theo auction 2) validate domain 3) validate amount >= current +
    * increment 4) ghi DB bid + cập nhật current price 5) anti sniping
    */
   public boolean placeBid(BidRequestDTO request) throws Exception {
@@ -58,7 +60,6 @@ public class BiddingService {
       if (auction == null) {
         throw new Exception("Không tìm thấy phiên đấu giá.");
       }
-
       // check trạng thái + thời gian (đang có sẵn trong domain Auction)
       auction.validateBid(now, request.getBidAmount());
 
@@ -77,22 +78,22 @@ public class BiddingService {
         throw new Exception("Giá đặt phải >= " + minAcceptable);
       }
 
+      BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
+      if (request.getBidAmount().compareTo(availableBalance) > 0) {
+        throw new Exception("Sô dư khả dụng không đủ!");
+      }
+
       boolean inserted =
-          bidDAO.updateNewBid(
-              request.getAuctionId(), request.getUserId(), request.getBidAmount());
+          bidDAO.updateNewBid(request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!inserted) {
         throw new Exception("Không thể ghi nhận lượt đặt giá.");
       }
 
       boolean updatedPrice =
-          bidDAO.updateCurrentPrice(request.getAuctionId(), request.getBidAmount());
+          bidDAO.updateCurrentPrice(
+              request.getAuctionId(), request.getUserId(), request.getBidAmount());
       if (!updatedPrice) {
         throw new Exception("Không thể cập nhật giá hiện tại.");
-      }
-
-      BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
-      if (request.getBidAmount().compareTo(availableBalance) > 0) {
-        throw new Exception("Sô dư khả dụng không đủ!");
       }
 
       handleAntiSniping(request.getAuctionId(), auction, now);
@@ -120,6 +121,6 @@ public class BiddingService {
 
   /** Lấy lịch sử để FE vẽ chart */
   public List<BidTransaction> getBidHistory(int auctionId) {
-    return bidDAO.getBidTransactionByAuctionId(auctionId);
+    return bidDAO.getBidHistoryByAuctionId(auctionId);
   }
 }

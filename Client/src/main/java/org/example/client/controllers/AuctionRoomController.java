@@ -108,17 +108,8 @@ public class AuctionRoomController extends BaseController implements Initializab
 
     lblItemName.setText(item.getItemName());
     taDescription.setText(item.getDescription());
-    //lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-    if (auction.getBidIncrement() != null) {
-      lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-    } else {
-      lblBid.setText("0 VND");
-    }
-    if (auction.getStatus() != null) {
-      lblStatus.setText(auction.getStatus().toString());
-    } else {
-      lblStatus.setText("UNKNOWN"); // Giá trị mặc định nếu null
-    }
+    lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+    lblStatus.setText(auction.getStatus().toString());
     lblWinner.setText("--");
 
     // 1. Mặc định ban đầu cứ cho là "Chưa có"

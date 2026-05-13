@@ -22,7 +22,7 @@ public class AuctionClient {
         }
     }
 
-    public String sendRequest(String requestJson) {
+    public synchronized String sendRequest(String requestJson) {
         try {
             out.println(requestJson);
             return in.readLine();
@@ -30,6 +30,7 @@ public class AuctionClient {
             throw new RuntimeException("Error sending request: " + e.getMessage(), e);
         }
     }
+
     public PrintWriter getOut() {
         return this.out; // Trả về biến out đã khai báo ở trên cùng của class
     }

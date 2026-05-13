@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateItemController">
+<ScrollPane fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateItemController">
     <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
@@ -27,18 +27,12 @@
                         <HBox alignment="CENTER" spacing="20.0" style="-fx-background-radius: 40; -fx-background-color: white; -fx-padding: 10 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
                             <children>
                                 <Button mnemonicParsing="false" onAction="#handleMain" style="-fx-background-radius: 30; -fx-font-weight: bold; -fx-background-color: transparent; -fx-font-size: 16; -fx-text-fill: #28a745; -fx-cursor: hand;" text="Trang chủ" />
-                                <MenuButton fx:id="menuDanhMuc" mnemonicParsing="false" style="-fx-background-radius: 30; -fx-background-color: transparent; -fx-font-size: 14; -fx-cursor: hand;" text="Danh sách phòng">
-                                    <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🏺 Đồ điện" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🎨 Tác phẩm nghệ thuật" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleMenuItem" text="🚗 Phương tiện" />
-                                    </items>
-                                </MenuButton>
+                        <Button mnemonicParsing="false" onAction="#handleMenuItem" prefHeight="25.0" style="-fx-font-weight: bold; -fx-background-radius: 50; -fx-text-fill: white; -fx-cursor: hand; -fx-background-color: #28a745;" text="Danh sách phòng" />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="User">
+                                <MenuButton fx:id="menuUser" alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-background-radius: 50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" styleClass="user-menu-btn" text="User">
                                     <items>
-                                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" text="👤 Hồ sơ cá nhân" />
-                                        <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="➜] Đăng xuất" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleUserUi" styleClass="user-menu-btn .menu-item" text="👤 Hồ sơ cá nhân" />
+                                        <MenuItem mnemonicParsing="false" onAction="#handleLogout" styleClass="user-menu-btn .menu-item" text="➜] Đăng xuất" />
                                     </items>
                                 </MenuButton>
                             </children>
@@ -52,9 +46,9 @@
                         <VBox maxHeight="-Infinity" prefWidth="280.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="TOP_LEFT">
                             <children>
                                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleUserUi" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="👤 Hồ sơ của tôi" />
-                                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="🛒 Sản phẩm chờ thanh toán" />
+                                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWaitPayment" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="🛒 Sản phẩm chờ thanh toán" />
                                 <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWareHouse" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="⏳ Kho hàng" />
-                                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="📜 Lịch sử đấu giá" />
+                                <Button alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHistoryAuction" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="📜 Lịch sử đấu giá" />
                         <Button alignment="BASELINE_LEFT" layoutX="25.0" layoutY="213.0" maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: #d4edda; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand; -fx-background-radius: 10;" text="➕ Tạo sản phẩm đấu giá" />
                                 <Button fx:id="createAuction" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateAuction" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 15 20; -fx-font-size: 15; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);" text="➕ Tạo cuộc đấu giá" />
                             </children>
@@ -74,7 +68,7 @@
                             </BorderPane.margin>
                             <children>
                                 <VBox spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
-                                    <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo sản phẩm đấu giá mới" />
+                                    <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo Sản Phẩm Đấu Giá Mới " />
 
                                     <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" />
                            <TextField fx:id="tfStartingPrice" layoutX="50.0" layoutY="108.0" promptText="Giá khởi điểm " style="-fx-padding: 10;" />
@@ -121,7 +115,7 @@
                                         </children>
                                     </VBox>
 
-                                    <Button fx:id="btnSubmit" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30;" text="LƯU SẢN PHẨM" />
+                                    <Button fx:id="btnSubmit" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30; -fx-font-weight: bold;" text="LƯU SẢN PHẨM" />
                                 </VBox>
                             </children>
                         </VBox>

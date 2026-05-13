@@ -19,11 +19,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 
@@ -32,7 +30,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.DeleteRequestDTO;
 import org.example.core.dto.EditProductRequestDTO;
-import org.example.core.dto.PendingRequestDTO;
+import org.example.core.dto.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.items.ArtItem;
@@ -111,7 +109,7 @@ public class WareHouseController extends BaseController implements Initializable
     }
     int sellerId = currentUser.getUserId();
     // 2. Đóng gói vào cái hộp (DTO)
-    PendingRequestDTO requestPayload = new PendingRequestDTO(sellerId);
+    PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
     Request request = new Request("GET_PENDING_ITEMS", requestPayload);
     String jsonRequest = gson.toJson(request);
     new Thread(
@@ -119,13 +117,16 @@ public class WareHouseController extends BaseController implements Initializable
               try {
                 System.out.println("Đang xin dữ liệu Kho hàng cho user: " + sellerId);
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                System.out.println("JSON từ Server ném về Kho hàng: " + jsonResponse);
+
+                System.out.println("DEBUG Dữ liệu gốc từ Server: " + jsonResponse); // Thêm dòng này
+
                 Response response = gson.fromJson(jsonResponse, Response.class);
                 Platform.runLater(
                     () -> {
                       if ("SUCCESS".equals(response.getStatus())) {
 
                         String jsonData = gson.toJson(response.getData());
+
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                         List<Item> fetchedItems = new ArrayList<>();
                         // Bóc tách từng món hàng ra khỏi hộp JSON
@@ -170,7 +171,10 @@ public class WareHouseController extends BaseController implements Initializable
   public void handleMain(ActionEvent event) {
     switchScene(event, "/views/MainView.fxml", "Trang chủ");
   }
-
+@FXML
+public void handleHistoryAuction(ActionEvent event) {
+  switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
+}
   @FXML
   public void handleUserUi(ActionEvent event) {
     switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
@@ -322,21 +326,26 @@ public class WareHouseController extends BaseController implements Initializable
                               String jsonResponse = clientSocket.sendRequest(jsonRequest);
                               Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                              Platform.runLater(
-                                  () -> {
-                                    if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                      System.out.println(newName + newDesc + newPrice);
-                                      showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
+                              Platform.runLater(() -> {
+                                if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                  showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
 
-                                      // Cập nhật ngay trên bảng để người dùng thấy luôn
-                                      selectedItem.setItemName(newName);
-                                      selectedItem.setDescription(newDesc);
-                                      selectedItem.setStartingPrice(newPrice);
-                                      //    productTable.refresh();
-                                    } else {
-                                      showAlert("Lỗi", serverResponse.getMessage());
-                                    }
-                                  });
+                                  // 1. Cập nhật dữ liệu vào Object (Bạn đã làm rồi)
+                                  selectedItem.setItemName(newName);
+                                  selectedItem.setDescription(newDesc);
+                                  selectedItem.setStartingPrice(newPrice);
+
+                                  // 2. QUAN TRỌNG: Làm mới bảng để hiển thị giá trị mới
+                                  productTable.refresh();
+
+                                  // 3. (Tùy chọn) Để chắc chắn hơn, bạn có thể thay thế chính nó trong list:
+                                  int index = observableItemList.indexOf(selectedItem);
+                                  observableItemList.set(index, selectedItem);
+
+                                } else {
+                                  showAlert("Lỗi", serverResponse.getMessage());
+                                }
+                              });
                             } catch (Exception e) {
                               Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
                             }
@@ -348,5 +357,9 @@ public class WareHouseController extends BaseController implements Initializable
                 }
               }
             });
+  }
+
+  public void handleWaitPayment(ActionEvent event) {
+    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
   }
 }

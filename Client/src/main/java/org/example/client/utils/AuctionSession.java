@@ -21,7 +21,7 @@ public class AuctionSession {
     return instance;
   }
 
-  public void setRoomData(Auction auction, Item item) {
+  public void setupRoomData(Auction auction, Item item) {
     this.currentAuction = auction;
     this.currentItem = item;
   }

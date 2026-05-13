@@ -1,6 +1,8 @@
 package org.example.server.services;
 
 import org.example.core.dto.CreateAuctionDTO;
+import org.example.core.dto.PaidHistoryDTO;
+import org.example.core.dto.PendingPaymentsDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -125,8 +127,17 @@ public class AuctionService {
           @Override
           public void run() {
             try {
-              System.out.println(
-                  "[Background Job] Quét trạng thái thanh toán: " + LocalDateTime.now());
+              List<Auction> runningAuction =
+                  auctionDAO.getAllAuctionsByStatus(AuctionStatus.RUNNING);
+              LocalDateTime now = LocalDateTime.now();
+
+              for (Auction a : runningAuction) {
+                if (now.isAfter(a.getEndTime())) {
+                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                    System.out.println(
+                        "Phiên: " + a.getAuctionId() + " đã kết thúc do hết thời gian!");
+                }
+              }
 
               // Lấy list các phiên FINISHED
               List<Auction> finishedAuctions =
@@ -137,7 +148,7 @@ public class AuctionService {
                 LocalDateTime deadlineToPay = a.getEndTime().plusHours(24);
 
                 if (LocalDateTime.now().isAfter(deadlineToPay)) {
-                  if (a.getId() > 0) {
+                  if (a.getAuctionId() > 0) {
                     auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.CANCELED);
                     System.out.println(
                         "Phiên: "
@@ -154,7 +165,7 @@ public class AuctionService {
         };
 
     // Đặt lịch chạy: Bắt đầu sau (initialDelay) PHÚT, lặp lại mỗi (period) PHÚT
-    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(autoCloseTask, 0, 1, TimeUnit.SECONDS);
     System.out.println("Đã kích hoạt hệ thống Auto-Close ngầm!");
   }
 
@@ -170,31 +181,34 @@ public class AuctionService {
   // 5. NHÓM XỬ LÝ THANH TOÁN
   // ==========================================
 
-  public static void checkoutAuction(int auctionId, int winnerId) throws Exception {
+  public static boolean checkoutAuction(int auctionId, int winnerId) throws Exception {
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
 
     int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
 
     User winner = userDAO.getUserByUserId(winnerId);
+    System.out.println(winnerId);
     User seller = userDAO.getUserByUserId(sellerId);
+    System.out.println(seller.getUserId());
 
-    if (!auctionDAO.getAuctionStatus(auctionId).equals(AuctionStatus.FINISHED)) {
-      throw new Exception("Phiên đấu giá đã được thanh toán!");
+    if (auctionDAO.getAuctionStatus(auctionId).equals(AuctionStatus.PAID)) {
+      System.out.println(auctionId);
+      throw new Exception("Phiên đấu giá đã được thanh toán! " + auctionId);
     }
     if (auction.getBidderId() != winnerId) {
-      throw new Exception("Xảy ra lỗi! Bạn không phải người thắng đấu giá!");
+      throw new Exception("Xảy ra lỗi! Bạn không phải người thắng đấu giá! " + auction.getBidderId());
     }
 
     if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
-      throw new Exception("Số dư khả dụng không đủ!");
+      throw new Exception("Số dư khả dụng không đủ! " + walletDAO.getAvailableBalance(winnerId));
     }
 
     BigDecimal bidPrice = auction.getHighestBid();
     // Trừ tiền người mua (Ghi đè số dư mới vào DB)
-    userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
+    boolean updateBalance1 = userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
 
     // Cộng tiền người bán
-    userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
+    boolean updateBalance2 = userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
 
     // Insert lịch sử (Truyền bidPrice, KHÔNG truyền số dư sau khi trừ)
     walletDAO.insertWalletTransaction(
@@ -207,5 +221,18 @@ public class AuctionService {
 
     // Cập nhật người sở hữu
     itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
+    return updateBalance1 && updateBalance2;
+  }
+
+  public static List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) throws Exception {
+    if(userId <= 0 ) {
+      throw new Exception("ID nguoi dung khong hop le " + userId);
+    }
+    return auctionDAO.getAllAuctionsFinished(userId);
+  }
+
+  public static List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
+    List<PaidHistoryDTO> paidHistoryDTOS = auctionDAO.getAllAuctionsPaid(userId);
+    return paidHistoryDTOS;
   }
 }

@@ -87,6 +87,20 @@ public class UserDAO {
     return null;
   }
 
+  public String getUserNameByUserId(int userId) {
+    String sql = "SELECT user_name FROM user WHERE user_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getString("user_name");
+  }}     } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
   public boolean updateBalanceInDB(int userId, BigDecimal balance) {
     if (balance.compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException();

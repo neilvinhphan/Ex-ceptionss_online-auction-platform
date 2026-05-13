@@ -55,14 +55,6 @@ public class Auction extends Entity {
 
   public Auction() {}
 
-  // Hết time --> Đóng phiên
-  public void close(LocalDateTime now) {
-    if (this.status == AuctionStatus.RUNNING
-        && (now.isEqual(this.endTime) || now.isAfter(this.endTime))) {
-      this.status = AuctionStatus.FINISHED;
-    }
-  }
-
   public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
     // Check trạng thái
     if (this.status != AuctionStatus.RUNNING) {

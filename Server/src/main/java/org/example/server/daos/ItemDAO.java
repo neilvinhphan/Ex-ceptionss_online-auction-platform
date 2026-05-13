@@ -55,11 +55,16 @@ public class ItemDAO {
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
           item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
           items.add(item);
         }
         return items;
@@ -232,14 +237,14 @@ public class ItemDAO {
     return null;
   }
 
-  public int getItemIdByItemName(String itemName) {
-    String sql = "SELECT items_id FROM items WHERE items_name = ?";
+  public String getItemNameByItemId(int itemId) {
+    String sql = "SELECT items_name FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setString(1, itemName);
+      ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getInt("items_id");
+          return rs.getString("items_name");
         }
       } catch (SQLException e) {
         throw new RuntimeException(e);
@@ -247,7 +252,7 @@ public class ItemDAO {
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
-    return -1;
+    return null;
   }
 
   public boolean updateOwnerIdByItemId(int itemId, int userId) {
