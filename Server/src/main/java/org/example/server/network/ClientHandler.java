@@ -175,6 +175,9 @@ public class ClientHandler implements Runnable {
             case "ADMIN_CANCEL_AUCTION":
               handleAdminCancelAuction(request);
               break;
+            case "ADMIN_GET_ALL_AUCTION":
+              handleAdminGetAllAuctions(request);
+              break;
             case "GET_PENDING_AUCTIONS":
               break;
             case "LEAVE_ROOM":
@@ -719,6 +722,38 @@ public class ClientHandler implements Runnable {
       e.printStackTrace();
       Response errorResponse =
           new Response("ERROR", "Lỗi Server khi lấy danh sách chờ duyệt: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleAdminGetAllAuctions(Request request) {
+    try {
+      // 1. Lấy adminId từ Client gửi lên (Dùng Double ép kiểu về int để chống lỗi parse Json)
+      String dataJson = gson.toJson(request.getData());
+      Double adminIdDouble = gson.fromJson(dataJson, Double.class);
+      int adminId = adminIdDouble.intValue();
+
+      // 2. CHECK QUYỀN TRƯỚC KHI LÀM:
+      org.example.core.models.users.User requester =
+          org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
+      if (requester == null
+          || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return; // Đuổi cổ ngay
+      }
+
+      // 3. Gọi DAO lấy TẤT CẢ các phiên đấu giá lên (không phân biệt trạng thái)
+      List<Auction> allAuctions = org.example.server.daos.AuctionDAO.getInstance().getAllAuctions();
+
+      // 4. Trả kết quả về cho Client
+      Response response =
+          new Response("SUCCESS", "Lấy danh sách tất cả phiên đấu giá thành công", allAuctions);
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse =
+          new Response("ERROR", "Lỗi Server khi lấy danh sách Auction: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
