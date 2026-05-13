@@ -20,13 +20,16 @@ public class Auction extends Entity {
   private List<BidTransaction> bidHistory;
   private BigDecimal highestBid;
   private BigDecimal bidIncrement;
-private double startPrice;
+  private int ownerId;
+  private String itemName;
+
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
+  public Auction(
+      Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
     this.item = item;
     this.status = AuctionStatus.RUNNING;
-    this.startTime = LocalDateTime.now();
+    this.startTime = startTime;
     this.durationMinutes = durationMinutes;
     this.bidIncrement = bidIncrement;
   }
@@ -67,8 +70,6 @@ private double startPrice;
     }
   }
 
-  //  public BidTransaction getHighestBid() {}
-
   // Anti-Sniping
   public void extendEndTime(long seconds) {
     if (this.endTime != null) {
@@ -87,6 +88,14 @@ private double startPrice;
             && (now.isBefore(this.endTime) || now.isEqual(this.endTime));
 
     return rangeCheck;
+  }
+
+  public long getDurationMinutes() {
+    return durationMinutes;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
   }
 
   public int getId() {
@@ -148,14 +157,6 @@ private double startPrice;
     this.startTime = startTime;
   }
 
-  public long getDurationMinutes() {
-    return durationMinutes;
-  }
-
-  public void setDurationMinutes(long durationMinutes) {
-    this.durationMinutes = durationMinutes;
-  }
-
   public LocalDateTime getEndTime() {
     return endTime;
   }
@@ -188,7 +189,11 @@ private double startPrice;
     this.bidIncrement = bidIncrement;
   }
 
-  public void setStartPrice(BigDecimal startingPrice) {
-    this.startPrice=startPrice;
-  }
+  public void setItemName(String itemName) {this.itemName = itemName;}
+
+  public String getItemName() {return itemName;}
+
+  public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
+
+  public int getOwnerId() {return ownerId;}
 }
