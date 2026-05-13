@@ -139,15 +139,17 @@ public class ClientHandler implements Runnable {
             case "PAY_ALL":
               handlePayAllItems(request);
               break;
-            case "CANCEL_AUCTION":
-              break;
-            case "GET_ALL_AUCTIONS":
+            case "ADMIN_GET_ALL_AUCTIONS":
+
               break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
-            case "ADMIN_GET_USERS":
-              handleAdminGetUsers(request);
+            case "ADMIN_GET_ALL_PENDING_ITEMS":
+              handleAdminGetPendingItems(request);
+              break;
+            case "ADMIN_GET_ALL_USERS":
+              handleAdminGetAllUsers(request);
               break;
             case "ADMIN_BAN_USER":
               handleAdminBanUser(request);
@@ -654,7 +656,7 @@ public class ClientHandler implements Runnable {
   }
 
   // 2. LẤY DANH SÁCH USER
-  private void handleAdminGetUsers(Request request) {
+  private void handleAdminGetAllUsers(Request request) {
     try {
       // 1. Lấy adminId từ request (Giả sử Client gửi thẳng số Integer)
       String dataJson = gson.toJson(request.getData());
@@ -739,6 +741,30 @@ public class ClientHandler implements Runnable {
       // Nếu ID không tồn tại hoặc phiên đã bị hủy từ trước, Service sẽ ném lỗi ra đây
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Lỗi Server: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  // LẤY DANH SÁCH TÀI SẢN CHỜ DUYỆT (ADMIN)
+  private void handleAdminGetPendingItems(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      Integer adminId = gson.fromJson(dataJson, Integer.class);
+
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return;
+      }
+
+      List<Item> pendingItems = org.example.server.daos.ItemDAO.getInstance().getItemsByStatus(ItemStatus.PENDING);
+
+      Response response = new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingItems);
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server khi lấy danh sách chờ duyệt: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
