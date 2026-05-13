@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.userDTO;
 
 import java.math.BigDecimal;
 

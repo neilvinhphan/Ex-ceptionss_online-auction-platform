@@ -1,8 +1,8 @@
 package org.example.server.services;
 
-import org.example.core.dto.CreateAuctionDTO;
-import org.example.core.dto.PaidHistoryDTO;
-import org.example.core.dto.PendingPaymentsDTO;
+import org.example.core.dto.auctionDTO.CreateAuctionDTO;
+import org.example.core.dto.paymentDTO.PaidHistoryDTO;
+import org.example.core.dto.paymentDTO.PendingPaymentsDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
@@ -33,7 +33,8 @@ public class AuctionService {
   //  1. NHÓM KHỞI TẠO (CHUẨN BỊ LÊN SÀN)
   // ==========================================
 
-  public static Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
+  public static Auction createAuction(
+      org.example.core.dto.auctionDTO.CreateAuctionDTO requestPayLoad) throws Exception {
 
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
@@ -133,9 +134,9 @@ public class AuctionService {
 
               for (Auction a : runningAuction) {
                 if (now.isAfter(a.getEndTime())) {
-                    auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
-                    System.out.println(
-                        "Phiên: " + a.getAuctionId() + " đã kết thúc do hết thời gian!");
+                  auctionDAO.setAuctionStatus(a.getAuctionId(), AuctionStatus.FINISHED);
+                  System.out.println(
+                      "Phiên: " + a.getAuctionId() + " đã kết thúc do hết thời gian!");
                 }
               }
 
@@ -196,7 +197,8 @@ public class AuctionService {
       throw new Exception("Phiên đấu giá đã được thanh toán! " + auctionId);
     }
     if (auction.getBidderId() != winnerId) {
-      throw new Exception("Xảy ra lỗi! Bạn không phải người thắng đấu giá! " + auction.getBidderId());
+      throw new Exception(
+          "Xảy ra lỗi! Bạn không phải người thắng đấu giá! " + auction.getBidderId());
     }
 
     if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
@@ -205,7 +207,8 @@ public class AuctionService {
 
     BigDecimal bidPrice = auction.getHighestBid();
     // Trừ tiền người mua (Ghi đè số dư mới vào DB)
-    boolean updateBalance1 = userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
+    boolean updateBalance1 =
+        userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
 
     // Cộng tiền người bán
     boolean updateBalance2 = userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
@@ -225,7 +228,7 @@ public class AuctionService {
   }
 
   public static List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) throws Exception {
-    if(userId <= 0 ) {
+    if (userId <= 0) {
       throw new Exception("ID nguoi dung khong hop le " + userId);
     }
     return auctionDAO.getAllAuctionsFinished(userId);

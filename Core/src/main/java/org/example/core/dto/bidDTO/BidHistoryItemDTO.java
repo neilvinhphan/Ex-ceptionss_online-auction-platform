@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.bidDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

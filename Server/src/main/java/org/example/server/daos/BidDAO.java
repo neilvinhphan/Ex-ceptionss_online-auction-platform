@@ -73,26 +73,6 @@ public class BidDAO {
     }
   }
 
-  public int getBidIdByItemsId(int itemId) {
-    String sql =
-        "SELECT b.bid_id "
-            + "FROM bid b "
-            + "JOIN auction ai ON b.auction_id = ai.auction_id "
-            + "WHERE ai.items_id = ? "
-            + "ORDER BY b.bid_id DESC "
-            + "LIMIT 1";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt("bid_id");
-        return 0;
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   /** Lịch sử bid theo auction để FE vẽ biểu đồ */
   public List<BidTransaction> getBidHistoryByAuctionId(int auctionId) {
     List<BidTransaction> transactions = new ArrayList<>();
@@ -101,30 +81,6 @@ public class BidDAO {
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
-      try (ResultSet rs = ps.executeQuery()) {
-        while (rs.next()) {
-          BigDecimal amount = rs.getBigDecimal("bid_amount");
-          Timestamp ts = rs.getTimestamp("created_at");
-          int bidderId = rs.getInt("bidder_id");
-          String bidderName = UserDAO.getInstance().getUserNameByUserId(bidderId);
-          LocalDateTime time = (ts != null) ? ts.toLocalDateTime() : LocalDateTime.now();
-
-          transactions.add(new BidTransaction(amount, time, bidderId, bidderName));
-        }
-      }
-      return transactions;
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public List<BidTransaction> getBidTransactionByUserId(int userId) {
-    List<BidTransaction> transactions = new ArrayList<>();
-    String sql =
-        "SELECT bid_amount, created_at, bidder_id FROM bid WHERE bidder = ? ORDER BY created_at DESC";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
           BigDecimal amount = rs.getBigDecimal("bid_amount");

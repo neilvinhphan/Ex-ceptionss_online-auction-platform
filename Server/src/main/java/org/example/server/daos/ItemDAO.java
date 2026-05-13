@@ -205,38 +205,6 @@ public class ItemDAO {
     return null;
   }
 
-  public String getItemTypeByItemId(int itemId) {
-    String sql = "SELECT type FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return rs.getString("type");
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  public ItemStatus getItemStatusById(int itemId) {
-    String sql = "SELECT status FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return ItemStatus.valueOf(rs.getString("status"));
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
   public String getItemNameByItemId(int itemId) {
     String sql = "SELECT items_name FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -277,30 +245,6 @@ public class ItemDAO {
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  public boolean updateOwnerIdInDB(int itemId, int ownerId) {
-    String sql = "UPDATE items SET owner_id = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, ownerId);
-      ps.setInt(2, itemId);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
-    String sql = "UPDATE items SET final_price = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setBigDecimal(1, finalPrice);
-      ps.setInt(2, id);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-    }
-    return false;
   }
 
   public boolean updateItemDescriptionByItemId(int itemId, String description) {
@@ -345,6 +289,52 @@ public class ItemDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<Item> getItemsByStatus(ItemStatus status) {
+    String sql =
+            """
+        SELECT
+            i.*,
+            art.artist, art.creation_year,
+            ele.ele_brand, ele.warranty_months, ele.item_condition,
+            veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+        FROM items i
+        LEFT JOIN art_items art ON i.items_id = art.items_id
+        LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+        LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+        WHERE i.status = ?
+        """;
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      // Truyền trạng thái vào SQL (chuyển Enum thành String)
+      ps.setString(1, status.name());
+
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
