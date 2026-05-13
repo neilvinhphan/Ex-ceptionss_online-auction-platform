@@ -107,7 +107,7 @@ public class ManageAuctionController extends BaseController implements Initializ
             return;
         }
         // Tạo gói tin yêu cầu lấy TOÀN BỘ phiên đấu giá (của Admin)
-        Request request = new Request("GET_ALL_AUCTIONS", null);
+        Request request = new Request("ADMIN_GET_ALL_AUCTIONS", null);
         String jsonRequest = gson.toJson(request);
 
         new Thread(() -> {
@@ -217,7 +217,7 @@ public class ManageAuctionController extends BaseController implements Initializ
         confirm.showAndWait().ifPresent(responseBtn -> {
             if (responseBtn == ButtonType.OK) {
                 System.out.println("Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getId());
-                Request request = new Request("CANCEL_AUCTION", selectedAuction.getId());
+                Request request = new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getId());
                 String jsonRequest = gson.toJson(request);
 
                 new Thread(() -> {

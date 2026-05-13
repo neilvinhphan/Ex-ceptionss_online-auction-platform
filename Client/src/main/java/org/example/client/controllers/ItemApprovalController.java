@@ -18,6 +18,7 @@ import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.dto.admin.AdminProcessItemDTO;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
@@ -113,71 +114,33 @@ public class ItemApprovalController extends BaseController implements Initializa
     }
 
     private void loadPendingItems() {
-        User currentUser = UserSession.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-
-        // Reset giao diện trước khi tải mới
-        clearDetailsPane();
-
-        // Request: Lấy danh sách sản phẩm đang ở trạng thái PENDING
-        Request request = new Request("GET_PENDING_ITEMS", null);
-        String jsonRequest = gson.toJson(request);
-
-        new Thread(() -> {
-            try {
-                System.out.println("Đang lấy danh sách hàng chờ duyệt từ Server...");
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
-
-                if ("SUCCESS".equals(response.getStatus())) {
-                    // Bóc tách JSON Đa hình (Tương tự file Auction)
-                    String jsonData = gson.toJson(response.getData());
-                    JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                    List<Item> fetchedItems = new ArrayList<>();
-
-                    for (JsonElement element : jsonArray) {
-                        JsonObject itemObj = element.getAsJsonObject();
-                        String type = itemObj.has("type") && !itemObj.get("type").isJsonNull()
-                                ? itemObj.get("type").getAsString() : "";
-
-                        Item parsedItem = switch (type.toUpperCase()) {
-                            case "ART" -> gson.fromJson(itemObj, ArtItem.class);
-                            case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
-                            case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
-                            default -> gson.fromJson(itemObj, Item.class); // Fallback
-                        };
-                        fetchedItems.add(parsedItem);
-                    }
-
-                    Platform.runLater(() -> {
-                        pendingItemsList.setAll(fetchedItems);
-                    });
-                } else {
-                    Platform.runLater(() -> showAlert( "Lỗi tải dữ liệu", response.getMessage()));
-                }
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
-                e.printStackTrace();
-            }
-        }).start();
+        // TODO: SOCKET -> LẤY LIST PENDING_ITEM VỚI TƯ CÁCH ADMIN
     }
 
     @FXML
     public void handleApprove(ActionEvent event) {
-        processItemAction("APPROVE_ITEM", "phê duyệt");
+        // Truyền tham số TRUE cho hành động Phê duyệt
+        processItemAction(true, "phê duyệt");
     }
 
     @FXML
     public void handleReject(ActionEvent event) {
-        processItemAction("REJECT_ITEM", "từ chối");
+        // Truyền tham số FALSE cho hành động Từ chối
+        processItemAction(false, "từ chối");
     }
-
     /**
      * Hàm chung để xử lý việc Duyệt hoặc Từ chối sản phẩm
      */
-    private void processItemAction(String actionCommand, String actionName) {
+    private void processItemAction(boolean isApproved, String actionName) {
         Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
         if (selectedItem == null) return;
+
+        // Lấy thông tin Admin đang đăng nhập
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showAlert("Lỗi", "Không tìm thấy phiên đăng nhập của Admin!");
+            return;
+        }
 
         // Hiển thị hộp thoại xác nhận cho Admin
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
@@ -187,8 +150,16 @@ public class ItemApprovalController extends BaseController implements Initializa
 
         confirm.showAndWait().ifPresent(responseBtn -> {
             if (responseBtn == ButtonType.YES) {
-                // Tạo Request gửi ID của Item lên server
-                Request request = new Request(actionCommand, selectedItem.getItemId());
+
+                // 1. TẠO PAYLOAD CHUẨN MÀ SERVER ĐANG CHỜ ĐỢI
+                AdminProcessItemDTO payload =
+                        new AdminProcessItemDTO(
+                                currentUser.getUserId(),
+                                isApproved, // true = duyệt, false = từ chối
+                                selectedItem.getItemId()
+                        );
+
+                Request request = new Request("ADMIN_PROCESS_ITEM", payload);
                 String jsonRequest = gson.toJson(request);
 
                 new Thread(() -> {
@@ -203,7 +174,7 @@ public class ItemApprovalController extends BaseController implements Initializa
                                 pendingItemsList.remove(selectedItem);
                                 clearDetailsPane();
                             } else {
-                                showAlert( "Lỗi", response.getMessage());
+                                showAlert( "Lỗi", response.getMessage()); // Hiển thị lỗi từ Server (VD: "Mày không phải Admin")
                             }
                         });
                     } catch (Exception e) {

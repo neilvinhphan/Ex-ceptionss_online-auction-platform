@@ -139,14 +139,12 @@ public class ClientHandler implements Runnable {
             case "PAY_ALL":
               handlePayAllItems(request);
               break;
-            case "CANCEL_AUCTION":
-              break;
             case "GET_ALL_AUCTIONS":
               break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
-            case "ADMIN_GET_USERS":
+            case "ADMIN_GET_ALL_USERS":
               handleAdminGetUsers(request);
               break;
             case "ADMIN_BAN_USER":
