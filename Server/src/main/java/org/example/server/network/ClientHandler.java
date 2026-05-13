@@ -140,7 +140,7 @@ public class ClientHandler implements Runnable {
               handlePayAllItems(request);
               break;
             case "ADMIN_GET_ALL_AUCTIONS":
-
+              handleAdminGetAllAuctions(request);
               break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
@@ -660,7 +660,8 @@ public class ClientHandler implements Runnable {
     try {
       // 1. Lấy adminId từ request (Giả sử Client gửi thẳng số Integer)
       String dataJson = gson.toJson(request.getData());
-      Integer adminId = gson.fromJson(dataJson, Integer.class);
+      Double adminIdDouble = gson.fromJson(dataJson, Double.class);
+      int adminId = adminIdDouble.intValue();
 
       // 2. CHECK QUYỀN TRƯỚC KHI LÀM:
       org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
@@ -749,7 +750,8 @@ public class ClientHandler implements Runnable {
   private void handleAdminGetPendingItems(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
-      Integer adminId = gson.fromJson(dataJson, Integer.class);
+      Double adminIdDouble = gson.fromJson(dataJson, Double.class);
+      int adminId = adminIdDouble.intValue();
 
       org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
       if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
@@ -765,6 +767,34 @@ public class ClientHandler implements Runnable {
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Lỗi Server khi lấy danh sách chờ duyệt: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+  // 5. LẤY TẤT CẢ DANH SÁCH PHIÊN ĐẤU GIÁ (DÀNH CHO ADMIN)
+  private void handleAdminGetAllAuctions(Request request) {
+    try {
+      // 1. Lấy adminId từ Client gửi lên (Dùng Double ép kiểu về int để chống lỗi parse Json)
+      String dataJson = gson.toJson(request.getData());
+      Double adminIdDouble = gson.fromJson(dataJson, Double.class);
+      int adminId = adminIdDouble.intValue();
+
+      // 2. CHECK QUYỀN TRƯỚC KHI LÀM:
+      org.example.core.models.users.User requester = org.example.server.daos.UserDAO.getInstance().getUserByUserId(adminId);
+      if (requester == null || requester.getRole() != org.example.core.shared.enums.RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return; // Đuổi cổ ngay
+      }
+
+      // 3. Gọi DAO lấy TẤT CẢ các phiên đấu giá lên (không phân biệt trạng thái)
+      List<Auction> allAuctions = org.example.server.daos.AuctionDAO.getInstance().getAllAuctions();
+
+      // 4. Trả kết quả về cho Client
+      Response response = new Response("SUCCESS", "Lấy danh sách tất cả phiên đấu giá thành công", allAuctions);
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server khi lấy danh sách Auction: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }

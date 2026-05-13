@@ -4,7 +4,7 @@ public class AdminCancelAuctionDTO {
     private int auctionId;
     private int adminId;
 
-    public AdminCancelAuctionDTO(int auctionId, int adminId,boolean isApproved) {
+    public AdminCancelAuctionDTO(int auctionId, int adminId) {
         this.auctionId = auctionId;
         this.adminId = adminId;
     }
