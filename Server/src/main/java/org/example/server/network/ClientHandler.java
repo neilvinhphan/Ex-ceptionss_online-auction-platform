@@ -141,6 +141,8 @@ public class ClientHandler implements Runnable {
               break;
             case "GET_ALL_AUCTIONS":
               break;
+            case "GET_PENDING_AUCTIONS":
+              break;
             case "LEAVE_ROOM":
               // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
               Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng thành công");
