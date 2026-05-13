@@ -1,12 +1,12 @@
 package org.example.server.validator;
 
-import org.example.core.dto.CreateElectronicsItemDTO;
-import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.CreateElectronicsItemDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 
 public class ElectronicsItemValidator implements ItemValidatorStrategy{
     @Override
-    public void validate(org.example.core.dto.itemsDTO.CreateItemRequestDTO dto) throws Exception {
-        org.example.core.dto.itemsDTO.CreateElectronicsItemDTO electronicsDto = (org.example.core.dto.itemsDTO.CreateElectronicsItemDTO) dto;
+    public void validate(CreateItemRequestDTO dto) throws Exception {
+        CreateElectronicsItemDTO electronicsDto = (CreateElectronicsItemDTO) dto;
 
         if (electronicsDto.getBrand() == null || electronicsDto.getBrand().trim().isEmpty()) {
             throw new Exception("Lỗi: Đồ điện tử phải có tên Thương hiệu!");
