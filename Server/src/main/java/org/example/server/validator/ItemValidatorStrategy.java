@@ -4,5 +4,5 @@ import org.example.core.dto.CreateItemRequestDTO;
 
 public interface ItemValidatorStrategy {
     // Nhận DTO cha vào, nhưng bên trong sẽ ép kiểu về DTO con để xử lý
-    void validate(CreateItemRequestDTO dto) throws Exception;
+    void validate(org.example.core.dto.itemsDTO.CreateItemRequestDTO dto) throws Exception;
 }

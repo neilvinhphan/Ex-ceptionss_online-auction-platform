@@ -18,11 +18,9 @@ public class ClientManager {
     private final AuctionClient client;
     private final Gson gson;
 
-// SỬA public THÀNH private ĐỂ CHUẨN SINGLETON
 private ClientManager() {
     this.client = new AuctionClient();
 
-    // DẠY CHO GSON Ở CLIENT CÁCH ĐỌC ABSTRACT CLASS ITEM
     this.gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .registerTypeAdapter(

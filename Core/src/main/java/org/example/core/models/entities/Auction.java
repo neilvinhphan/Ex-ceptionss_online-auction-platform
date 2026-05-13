@@ -67,8 +67,6 @@ public class Auction extends Entity {
     }
   }
 
-  //  public BidTransaction getHighestBid() {}
-
   // Anti-Sniping
   public void extendEndTime(long seconds) {
     if (this.endTime != null) {
@@ -146,14 +144,6 @@ public class Auction extends Entity {
 
   public void setStartTime(LocalDateTime startTime) {
     this.startTime = startTime;
-  }
-
-  public long getDurationMinutes() {
-    return durationMinutes;
-  }
-
-  public void setDurationMinutes(long durationMinutes) {
-    this.durationMinutes = durationMinutes;
   }
 
   public LocalDateTime getEndTime() {

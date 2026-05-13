@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.LoginRequestDTO;
+import org.example.core.dto.userDTO.LoginRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.users.User;

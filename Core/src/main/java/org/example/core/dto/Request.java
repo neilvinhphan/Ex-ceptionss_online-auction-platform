@@ -11,8 +11,7 @@ public class Request {
         this.data = data;
     }
 
-    public void setAction(String action) {this.action = action;}
     public String getAction() {return action;}
-    public void setData(Object data) {this.data = data;}
+
     public Object getData() {return data;}
 }

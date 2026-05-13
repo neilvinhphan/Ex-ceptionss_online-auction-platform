@@ -5,9 +5,9 @@ import org.example.core.dto.CreateItemRequestDTO;
 
 public class ArtItemValidator implements ItemValidatorStrategy{
     @Override
-    public void validate(CreateItemRequestDTO dto) throws Exception {
+    public void validate(org.example.core.dto.itemsDTO.CreateItemRequestDTO dto) throws Exception {
         // Ép kiểu về DTO con
-        CreateArtItemDTO artDto = (CreateArtItemDTO) dto;
+        org.example.core.dto.itemsDTO.CreateArtItemDTO artDto = (org.example.core.dto.itemsDTO.CreateArtItemDTO) dto;
 
         if (artDto.getArtist() == null || artDto.getArtist().trim().isEmpty()) {
             throw new Exception("Lỗi: Tác phẩm nghệ thuật phải có tên Tác giả!");

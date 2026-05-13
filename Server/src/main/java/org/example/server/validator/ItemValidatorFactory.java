@@ -16,7 +16,7 @@ public class ItemValidatorFactory {
         // Thêm các danh mục khác vào đây...
     }
 
-    public static void validateSpecifics(CreateItemRequestDTO dto) throws Exception {
+    public static void validateSpecifics(org.example.core.dto.itemsDTO.CreateItemRequestDTO dto) throws Exception {
         ItemValidatorStrategy validator = validators.get(dto.getType().toUpperCase());
         if (validator != null) {
             validator.validate(dto); // Tự động chạy đúng hàm validate của class con

@@ -11,11 +11,11 @@ import org.example.core.models.items.VehicleItem;
 
 public class ItemCreationFactory {
     // Thêm tham số sellerId vào đây
-    public static Item build(CreateItemRequestDTO dto, int sellerId) throws Exception {
+    public static Item build(org.example.core.dto.itemsDTO.CreateItemRequestDTO dto, int sellerId) throws Exception {
 
         // 1. Nếu Client gửi lên Đồ nghệ thuật (Art)
-        if (dto instanceof CreateArtItemDTO) {
-            CreateArtItemDTO artDto = (CreateArtItemDTO) dto;
+        if (dto instanceof org.example.core.dto.itemsDTO.CreateArtItemDTO) {
+            org.example.core.dto.itemsDTO.CreateArtItemDTO artDto = (org.example.core.dto.itemsDTO.CreateArtItemDTO) dto;
 
             // Truyền 3 tham số bắt buộc thẳng vào constructor
             return new ArtItem.Builder(sellerId, artDto.getItemName(), artDto.getStartingPrice())
@@ -26,8 +26,8 @@ public class ItemCreationFactory {
         }
 
         // 2. Nếu Client gửi lên Xe cộ (Vehicle)
-        else if (dto instanceof CreateVehicleItemDTO) {
-            CreateVehicleItemDTO vehicleDto = (CreateVehicleItemDTO) dto;
+        else if (dto instanceof org.example.core.dto.itemsDTO.CreateVehicleItemDTO) {
+            org.example.core.dto.itemsDTO.CreateVehicleItemDTO vehicleDto = (org.example.core.dto.itemsDTO.CreateVehicleItemDTO) dto;
 
             return new VehicleItem.Builder(sellerId, vehicleDto.getItemName(), vehicleDto.getStartingPrice())
                     .brand(vehicleDto.getBrand())
@@ -36,8 +36,8 @@ public class ItemCreationFactory {
         }
 
         // 3. Nếu Client gửi lên Đồ điện tử (Electronics)
-        else if (dto instanceof CreateElectronicsItemDTO) {
-            CreateElectronicsItemDTO electronicsDto = (CreateElectronicsItemDTO) dto;
+        else if (dto instanceof org.example.core.dto.itemsDTO.CreateElectronicsItemDTO) {
+            org.example.core.dto.itemsDTO.CreateElectronicsItemDTO electronicsDto = (org.example.core.dto.itemsDTO.CreateElectronicsItemDTO) dto;
 
             return new ElectronicsItem.Builder(sellerId, electronicsDto.getItemName(), electronicsDto.getStartingPrice())
                     .brand(electronicsDto.getBrand())

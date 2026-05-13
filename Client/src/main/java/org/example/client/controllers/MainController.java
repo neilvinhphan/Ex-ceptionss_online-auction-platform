@@ -7,7 +7,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
-import org.example.core.dto.UpdateRoleRequestDTO;
+import org.example.core.dto.userDTO.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
