@@ -5,4 +5,7 @@ public enum ItemStatus {
   LISTED,
   SOLD,
   REMOVED,
+  APPROVED,
+  REJECTED,
+  PENDING,
 }
