@@ -13,13 +13,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #1e1e1e;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionApprovalController">
+<AnchorPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #1e1e1e;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.ItemApprovalController">
     <children>
         <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
 
             <HBox alignment="CENTER_LEFT" spacing="20.0">
                 <Button mnemonicParsing="false" onAction="#handleBack" prefHeight="35.0" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="⬅ Quay lại" />
-                <Label text="Kiểm duyệt đấu giá" textFill="WHITE">
+                <Label text="Kiểm duyệt sản phẩm chờ" textFill="WHITE">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>
@@ -41,8 +41,8 @@
                         <columns>
                             <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
                             <TableColumn fx:id="colItemName" prefWidth="200.0" text="Tên sản phẩm" />
-                            <TableColumn fx:id="colBidIncrement" prefWidth="120.0" text="Bước giá" />
-                            <TableColumn fx:id="colDuration" prefWidth="120.0" text="Duration" />
+                            <TableColumn fx:id="colType" prefWidth="120.0" text="Phân loại" />
+                            <TableColumn fx:id="colPrice" prefWidth="120.0" text="Giá khởi điểm" />
                         </columns>
                         <columnResizePolicy>
                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
