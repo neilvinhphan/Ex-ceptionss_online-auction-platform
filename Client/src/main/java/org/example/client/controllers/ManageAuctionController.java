@@ -106,56 +106,61 @@ public class ManageAuctionController extends BaseController implements Initializ
             showAlert("Lỗi", "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn!");
             return;
         }
-        // Tạo gói tin yêu cầu lấy TOÀN BỘ phiên đấu giá (của Admin)
-        Request request = new Request("GET_ALL_AUCTIONS", null);
-        String jsonRequest = gson.toJson(request);
+
+        // 1. Lấy adminId và nhét vào Request
+        int adminId = currentUser.getUserId();
+        Request request = new Request("ADMIN_GET_ALL_AUCTIONS", adminId);
 
         new Thread(() -> {
             try {
                 System.out.println("Đang lấy danh sách tất cả phiên đấu giá từ Server...");
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
 
-                if ("SUCCESS".equals(response.getStatus())) {
+                // 2. Gửi lệnh qua ống Socket (Chuẩn y hệt Quản lý User)
+                clientSocket.getOut().println(gson.toJson(request));
+                String jsonResponse = clientSocket.getIn().readLine();
 
-                    // --- BƯỚC 1: XỬ LÝ DỮ LIỆU ĐA HÌNH (PARSING) Ở LUỒNG CHẠY NGẦM ---
-                    String jsonData = gson.toJson(response.getData());
-                    JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                    List<Auction> fetchedAuctions = new ArrayList<>();
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
 
-                    for (JsonElement element : jsonArray) {
-                        JsonObject auctionObj = element.getAsJsonObject();
-                        // 1.1 Dịch các trường cơ bản của Auction
-                        Auction auction = gson.fromJson(auctionObj, Auction.class);
+                    if ("SUCCESS".equals(response.getStatus())) {
 
-                        // 1.2 Bóc tách thủ công cục Item bên trong dựa vào biến "type"
-                        if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
-                            JsonObject itemObj = auctionObj.getAsJsonObject("item");
-                            String type = itemObj.get("type").getAsString();
+                        // --- BƯỚC 1: XỬ LÝ DỮ LIỆU ĐA HÌNH ---
+                        String jsonData = gson.toJson(response.getData());
+                        JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+                        List<Auction> fetchedAuctions = new ArrayList<>();
 
-                            Item parsedItem = switch (type.toUpperCase()) {
-                                case "ART" -> gson.fromJson(itemObj, ArtItem.class);
-                                case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
-                                case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
-                                default -> null;
-                            };
-                            auction.setItem(parsedItem);
+                        for (JsonElement element : jsonArray) {
+                            JsonObject auctionObj = element.getAsJsonObject();
+                            Auction auction = gson.fromJson(auctionObj, Auction.class);
+
+                            if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
+                                JsonObject itemObj = auctionObj.getAsJsonObject("item");
+                                String type = itemObj.get("type").getAsString();
+
+                                Item parsedItem = switch (type.toUpperCase()) {
+                                    case "ART" -> gson.fromJson(itemObj, ArtItem.class);
+                                    case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
+                                    case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
+                                    default -> null;
+                                };
+                                auction.setItem(parsedItem);
+                            }
+                            fetchedAuctions.add(auction);
                         }
-                        fetchedAuctions.add(auction);
+
+                        // --- BƯỚC 2: ĐẨY LÊN GIAO DIỆN ---
+                        Platform.runLater(() -> {
+                            auctionList.setAll(fetchedAuctions);
+                            System.out.println("Đã tải xong " + fetchedAuctions.size() + " phiên đấu giá vào bảng Quản lý.");
+                        });
+
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi tải dữ liệu", response.getMessage()));
                     }
-                    // --- BƯỚC 2: ĐẨY DANH SÁCH VỪA BÓC TÁCH VÀO GIAO DIỆN CHÍNH ---
-                    Platform.runLater(() -> {
-                        auctionList.setAll(fetchedAuctions);
-                        System.out.println("Đã tải xong " + fetchedAuctions.size() + " phiên đấu giá vào bảng Quản lý.");
-                    });
-
-                } else {
-                    Platform.runLater(() -> showAlert("Lỗi tải dữ liệu", response.getMessage()));
                 }
-
             } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể lấy dữ liệu: " + e.getMessage()));
                 e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể lấy dữ liệu: " + e.getMessage()));
             }
         }).start();
     }
@@ -172,7 +177,7 @@ public class ManageAuctionController extends BaseController implements Initializ
         ObservableList<Auction> filteredList = FXCollections.observableArrayList();
 
         for (Auction auction : auctionList) {
-            boolean matchId = String.valueOf(auction.getId()).contains(keyword);
+            boolean matchId = String.valueOf(auction.getAuctionId()).contains(keyword);
             boolean matchItemName = auction.getItem() != null
                     && auction.getItem().getItemName() != null
                     && auction.getItem().getItemName().toLowerCase().contains(keyword);
@@ -203,7 +208,6 @@ public class ManageAuctionController extends BaseController implements Initializ
             return;
         }
 
-        // Chỉ cho phép hủy nếu phiên đang RUNNING
         if (selectedAuction.getStatus() != AuctionStatus.RUNNING && selectedAuction.getStatus() != null) {
             showAlert("Từ chối", "Chỉ có thể hủy những phiên đang chạy (RUNNING).");
             return;
@@ -211,31 +215,41 @@ public class ManageAuctionController extends BaseController implements Initializ
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("CẢNH BÁO KHẨN CẤP");
-        confirm.setHeaderText("Hủy phiên ID: " + selectedAuction.getId() + " - " + selectedAuction.getItem().getItemName() + "?");
+        confirm.setHeaderText("Hủy phiên ID: " + selectedAuction.getAuctionId() + " - " + selectedAuction.getItem().getItemName() + "?");
         confirm.setContentText("Hành động này sẽ đóng phiên ngay lập tức. Không thể hoàn tác!");
 
         confirm.showAndWait().ifPresent(responseBtn -> {
             if (responseBtn == ButtonType.OK) {
-                System.out.println("Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getId());
-                Request request = new Request("CANCEL_AUCTION", selectedAuction.getId());
-                String jsonRequest = gson.toJson(request);
+                System.out.println("Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getAuctionId());
 
                 new Thread(() -> {
                     try {
-                        String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                        Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+                        // 1. Đóng gói DTO tử tế
+                        int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+                        org.example.core.dto.admin.AdminCancelAuctionDTO cancelDto =
+                                new org.example.core.dto.admin.AdminCancelAuctionDTO(adminId, selectedAuction.getAuctionId());
 
-                        Platform.runLater(() -> {
-                            if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                showAlert("Thành công", "Đã hủy phiên đấu giá thành công!");
-                                // Cập nhật lại UI:
-                               selectedAuction.setStatus(AuctionStatus.CANCELED);
-                                auctionTable.refresh(); // Làm mới giao diện bảng
-                            } else {
-                                showAlert("Lỗi khi hủy", serverResponse.getMessage());
-                            }
-                        });
+                        Request request = new Request("ADMIN_CANCEL_AUCTION", cancelDto);
+
+                        // 2. Gửi đi
+                        clientSocket.getOut().println(gson.toJson(request));
+                        String jsonResponse = clientSocket.getIn().readLine();
+
+                        if (jsonResponse != null) {
+                            Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+
+                            Platform.runLater(() -> {
+                                if ("SUCCESS".equals(serverResponse.getStatus())) {
+                                    showAlert("Thành công", "Đã hủy phiên đấu giá thành công!");
+                                    selectedAuction.setStatus(AuctionStatus.CANCELED);
+                                    auctionTable.refresh();
+                                } else {
+                                    showAlert("Lỗi khi hủy", serverResponse.getMessage());
+                                }
+                            });
+                        }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
                     }
                 }).start();

@@ -4,7 +4,6 @@ public class AdminCancelAuctionDTO {
     private int auctionId;
     private int adminId;
 
-
     public AdminCancelAuctionDTO(int auctionId, int adminId) {
         this.auctionId = auctionId;
         this.adminId = adminId;
@@ -25,4 +24,4 @@ public class AdminCancelAuctionDTO {
     public void setAdminId(int adminId) {
         this.adminId = adminId;
     }
-}
+   }

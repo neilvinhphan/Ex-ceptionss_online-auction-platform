@@ -1,6 +1,6 @@
 package org.example.server.validator;
 
-import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 
 import java.util.HashMap;
 import java.util.Map;
