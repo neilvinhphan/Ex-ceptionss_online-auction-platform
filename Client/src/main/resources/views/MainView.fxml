@@ -28,7 +28,7 @@
 
                                 <VBox fx:id="adminBox" alignment="CENTER" spacing="25.0">
                                     <children>
-                                        <Button mnemonicParsing="false" onAction="#handleApproveAccounts" prefHeight="50.0" prefWidth="300.0" style="-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 30; -fx-background-color: #28a745; -fx-font-size: 16; -fx-text-fill: white;" text="Kiểm duyệt tài khoản" />
+                                        <Button mnemonicParsing="false" onAction="#handleApproveItem" prefHeight="50.0" prefWidth="300.0" style="-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 30; -fx-background-color: #28a745; -fx-font-size: 16; -fx-text-fill: white;" text="Kiểm duyệt các cuộc đấu giá" />
 
                                         <Button mnemonicParsing="false" onAction="#handleManageUsers" prefHeight="50.0" prefWidth="300.0" style="-fx-cursor: hand; -fx-font-weight: bold; -fx-background-radius: 30; -fx-background-color: #28a745; -fx-font-size: 16; -fx-text-fill: white;" text="Quản lý người dùng" />
 
