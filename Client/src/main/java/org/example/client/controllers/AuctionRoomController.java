@@ -1,6 +1,8 @@
 package org.example.client.controllers;
 
 import com.google.gson.Gson;
+import com.google.gson.internal.bind.util.ISO8601Utils;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,14 +10,20 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
+import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.BidBroadcastDTO;
 import org.example.core.dto.BidRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
 
 import java.io.BufferedReader;
@@ -39,7 +47,7 @@ public class AuctionRoomController extends BaseController implements Initializab
   @FXML private ListView<String> lvBidHistory;
   @FXML private LineChart<Number, Number> lineChart;
   @FXML private Button btnPlaceBid;
-
+  @FXML private ImageView ivItemImage;
   private XYChart.Series<Number, Number> priceSeries;
   private ScheduledExecutorService timerService;
 
@@ -73,7 +81,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     gson = ClientManager.getInstance().getGson();
 
     // Móc cái AuctionClient ra trước
-    org.example.client.network.AuctionClient clientSocket = ClientManager.getInstance().getClient();
+    AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
     // Rồi mới lấy ống in/out từ clientSocket
     outToServer = clientSocket.getOut();
@@ -84,7 +92,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     Item sessionItem = AuctionSession.getInstance().getCurrentItem();
 
     System.out.println(
-        "DEBUG: Auction có null ko? " + sessionAuction.getAuctionId() + (sessionAuction == null));
+            "DEBUG: Auction có null ko? " + sessionAuction.getBidderId() + (sessionAuction == null));
     System.out.println("DEBUG: Item có null ko? " + (sessionItem == null));
 
     if (sessionAuction != null && sessionItem != null) {
@@ -102,27 +110,61 @@ public class AuctionRoomController extends BaseController implements Initializab
     this.currentAuction = auction;
     // [ĐÃ FIX]: Gán ID phòng ở đây sau khi auction đã có dữ liệu thật
     this.currentAuctionId = auction.getAuctionId();
-
     this.currentMaxPrice =
-        auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
+            auction.getHighestBid() != null ? auction.getHighestBid() : item.getStartingPrice();
 
     lblItemName.setText(item.getItemName());
     taDescription.setText(item.getDescription());
-    lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
-    lblStatus.setText(auction.getStatus().toString());
+    if (item.getImage() != null && !item.getImage().isEmpty()) {
+      try {
+        Image decodedImage = ImageUtils.decodeBase64ToImage(item.getImage());
+        if (decodedImage != null) {
+          ivItemImage.setImage(decodedImage);
+        }
+      } catch (Exception e) {
+        System.err.println("Lỗi hiển thị ảnh trong phòng: " + e.getMessage());
+      }
+    }
+    if (auction.getBidIncrement() != null) {
+      lblBid.setText(String.format("%,d VND", auction.getBidIncrement().longValue()));
+    } else {
+      lblBid.setText("K co du lieu");
+    }
+    lblStatus.setText(
+            auction.getStatus() != null ? auction.getStatus().toString() : "k co du lieu");
     lblWinner.setText("--");
 
-    // 1. Mặc định ban đầu cứ cho là "Chưa có"
-    String topBidder = "Chưa có";
-    // 2. Kiểm tra xem lịch sử đặt giá đã có cái nào chưa?
-    if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-      int lastIndex = auction.getBidHistory().size() - 1;
-      topBidder = auction.getBidHistory().get(lastIndex).getBidderName();
-    }
+    // --- ĐÂY LÀ KHÚC "HỒI MÃ THƯƠNG" ---
 
-    // 3. Cập nhật lên Giao diện
-    updatePriceUI(currentMaxPrice, topBidder);
-    updateChart(currentMaxPrice);
+    // 1. Xóa sạch dữ liệu cũ trên biểu đồ/list (nếu có)
+    priceSeries.getData().clear();
+    lvBidHistory.getItems().clear();
+    bidStepCount = 0;
+
+    // 2. Nếu có lịch sử, lặp qua để vẽ lại từ đầu
+    if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
+      for (BidTransaction bid : auction.getBidHistory()) {
+        // Vẽ lên biểu đồ
+        bidStepCount++;
+        priceSeries.getData().add(new XYChart.Data<>(bidStepCount, bid.getAmount().doubleValue()));
+
+        // Thêm vào ListView lịch sử
+        String time = bid.getTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String historyLine =
+                String.format(
+                        "[%s] %s đã đặt %,d VND", time, bid.getBidderName(), bid.getAmount().longValue());
+        lvBidHistory.getItems().add(0, historyLine); // Thằng mới nhất lên đầu
+      }
+
+      // Cập nhật người dẫn đầu hiện tại là thằng cuối cùng trong list
+      String topBidder =
+              auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
+      updatePriceUI(currentMaxPrice, topBidder);
+    } else {
+      // Nếu chưa có ai bid, vẽ điểm khởi đầu là giá sàn
+      priceSeries.getData().add(new XYChart.Data<>(0, item.getStartingPrice().doubleValue()));
+      updatePriceUI(currentMaxPrice, "Chưa có");
+    }
 
     startCountdown(auction.getEndTime());
   }
@@ -168,97 +210,115 @@ public class AuctionRoomController extends BaseController implements Initializab
   private void listenFromServer() {
     new Thread(
             () -> {
+              System.out.println("Đã vào luồng lắng nghe Server...");
               try {
                 String messageFromServer;
                 while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
-                  // THÊM DÒNG NÀY VÀO ĐẦU VÒNG LẶP:
-                  // Nếu cờ đã hạ (nghĩa là đang thoát phòng), đớp được cục xương xong thì THOÁT
-                  // LUÔN!
-                  if (!isListening) {
-                    System.out.println("[ZOMBIE] Đã đớp được cục xương và tự sát thành công!");
-                    break;
-                  }
 
-                  // ... Code xử lý NEW_BID, ERROR_BID cũ của bro giữ nguyên bên dưới ...
+                  // Thấy cờ ngắt là tự sát luôn, không đọc cố
+                  if (!isListening) break;
 
-                  Response response = gson.fromJson(messageFromServer, Response.class);
+                  try {
+                    Response response = gson.fromJson(messageFromServer, Response.class);
 
-                  // TH1: CÓ NGƯỜI ĐẶT GIÁ MỚI
-                  if ("NEW_BID".equals(response.getStatus())) {
-                    String innerData = gson.toJson(response.getData());
-                    BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
+                    // NHẬN BROADCAST CÓ NGƯỜI ĐẶT GIÁ THÀNH CÔNG
+                    if ("NEW_BID".equals(response.getStatus())) {
 
-                    // Gọi hàm xử lý UI (Đã có sẵn của ông)
-                    onNewBidBroadcastReceived(
-                        data.getAuctionId(),
-                        BigDecimal.valueOf(data.getNewPrice()),
-                        data.getLeaderUsername());
-                  }
-                  // TH2: LỖI KHI MÌNH ĐẶT GIÁ
-                  else if ("ERROR_BID".equals(response.getStatus())) {
-                    Platform.runLater(
-                        () -> {
-                          lblBidError.setStyle("-fx-text-fill: red;");
-                          lblBidError.setText(response.getMessage());
-                        });
-                  }
-                  // TH3: ĐẤU GIÁ KẾT THÚC (Nếu Server có gửi thông báo này)
-                  else if ("AUCTION_END".equals(response.getStatus())) {
-                    // Tùy cấu trúc DTO kết thúc của ông, tôi làm ví dụ:
-                    // onAuctionEndBroadcastReceived(...)
+                      // Bóc data bên trong
+                      String innerData = gson.toJson(response.getData());
+                      BidBroadcastDTO data = gson.fromJson(innerData, BidBroadcastDTO.class);
+
+                      int aId = data.getAuctionId();
+                      BigDecimal price = BigDecimal.valueOf(data.getNewPrice());
+                      String leader = data.getLeaderUsername();
+                      LocalDateTime endT = data.getNewEndTime();
+
+                      System.out.println(
+                              "[BROADCAST NHẬN ĐƯỢC] Giá: " + price + " | Leader: " + leader);
+
+                      // Ném cho UI xử lý
+                      onNewBidBroadcastReceived(aId, price, leader, endT);
+                    }
+                    // NHẬN THÔNG BÁO LỖI KHI MÌNH ĐẶT GIÁ SAI
+                    else if ("ERROR_BID".equals(response.getStatus())) {
+                      Platform.runLater(
+                              () -> {
+                                lblBidError.setStyle("-fx-text-fill: red;");
+                                lblBidError.setText(response.getMessage());
+                              });
+                    }
+                  } catch (Exception parseEx) {
+                    System.err.println("Lỗi bóc tách Gson: " + parseEx.getMessage());
                   }
                 }
               } catch (Exception e) {
-                if (isListening) {
-                  System.out.println("Mất kết nối với Server: " + e.getMessage());
-                }
+                if (isListening) System.out.println("Mất kết nối Server: " + e.getMessage());
               }
             })
-        .start();
+            .start();
   }
 
   // Các hàm cập nhật UI được gọi từ luồng lắng nghe
+  // Thêm tham số LocalDateTime newEndTime vào hàm này
   public void onNewBidBroadcastReceived(
-      int incomingAuctionId, BigDecimal newPrice, String bidderName) {
+          int incomingAuctionId, BigDecimal newPrice, String bidderName, LocalDateTime newEndTime) {
+
+    // Cú chốt chặn: Chỉ cập nhật nếu gói tin này thuộc về đúng phòng mình đang đứng
     if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
+
+      // BẮT BUỘC DÙNG RUN LATER KHI ĐỤNG VÀO GIAO DIỆN
       Platform.runLater(
-          () -> {
-            this.currentMaxPrice = newPrice;
-            updatePriceUI(newPrice, bidderName);
-            updateChart(newPrice);
+              () -> {
 
-            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            lvBidHistory
-                .getItems()
-                .add(
-                    0,
-                    String.format(
-                        "[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue()));
+                // 1. Cập nhật biến nhớ giá trị Max
+                this.currentMaxPrice = newPrice;
 
-            lblBidError.setText("");
-          });
+                // 2. [CẬP NHẬT GÓC PHẢI TRÊN] Label Người dẫn đầu & Giá
+                lblCurrentPrice.setText(String.format("%,d VND", newPrice.longValue()));
+                lblHighestBidder.setText(bidderName);
+
+                // 3. [CẬP NHẬT BIỂU ĐỒ] Vẽ thêm 1 điểm nốt ruồi mới
+                bidStepCount++;
+                priceSeries.getData().add(new XYChart.Data<>(bidStepCount, newPrice.doubleValue()));
+
+                // 4. [CẬP NHẬT LỊCH SỬ] Nhét 1 dòng text lên ĐẦU danh sách ListView
+                String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                String historyLine =
+                        String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue());
+                lvBidHistory
+                        .getItems()
+                        .add(0, historyLine); // add(0, ...) để thằng mới nhất bị đẩy lên trên cùng
+
+                // 5. Dọn dẹp câu báo lỗi cũ (nếu có) cho nó sạch mắt
+                lblBidError.setText("");
+
+                // 6. Cập nhật đồng hồ (Nếu có luật Anti-Sniping gia hạn thêm giờ)
+                if (newEndTime != null) {
+                  this.currentAuction.setEndTime(newEndTime);
+                  startCountdown(newEndTime); // Reset lại đồng hồ đếm ngược
+                }
+              });
     }
   }
 
-  // ... (Hàm onAuctionEndBroadcastReceived giữ nguyên của ông) ...
   public void onAuctionEndBroadcastReceived(
-      int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
+          int incomingAuctionId, String winnerName, BigDecimal finalPrice) {
     if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
       Platform.runLater(
-          () -> {
-            stopTimer();
-            lblTimer.setText("00:00:00");
-            lblStatus.setText("ĐÃ KẾT THÚC");
-            lblWinner.setText(winnerName);
-            btnPlaceBid.setDisable(true);
-            tfBidAmount.setDisable(true);
-            if (winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())) {
-              showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
-            } else {
-              showAlert(
-                  "Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
-            }
-          });
+              () -> {
+                stopTimer();
+                lblTimer.setText("00:00:00");
+                lblStatus.setText("FINISHED");
+                lblWinner.setText(winnerName);
+                btnPlaceBid.setDisable(true);
+                tfBidAmount.setDisable(true);
+                if (winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())) {
+                  showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
+                } else {
+                  showAlert(
+                          "Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+                }
+              });
     }
   }
 
@@ -278,33 +338,43 @@ public class AuctionRoomController extends BaseController implements Initializab
     stopTimer();
     timerService = Executors.newSingleThreadScheduledExecutor();
     timerService.scheduleAtFixedRate(
-        () -> {
-          Duration duration = Duration.between(LocalDateTime.now(), endTime);
-          Platform.runLater(
-              () -> {
-                if (duration.isNegative() || duration.isZero()) {
-                  stopTimer();
-                  lblTimer.setText("00:00:00");
-                  lblStatus.setText("ĐÃ KẾT THÚC");
-                  btnPlaceBid.setDisable(true);
-                  tfBidAmount.setDisable(true);
-                } else {
-                  long h = duration.toHours();
-                  long m = duration.toMinutesPart();
-                  long s = duration.toSecondsPart();
-                  lblTimer.setText(String.format("%02d:%02d:%02d", h, m, s));
-                }
-              });
-        },
-        0,
-        1,
-        TimeUnit.SECONDS);
+            () -> {
+              Duration duration = Duration.between(LocalDateTime.now(), endTime);
+              Platform.runLater(
+                      () -> {
+                        if (duration.isNegative() || duration.isZero()) {
+                          stopTimer();
+                          lblTimer.setText("00:00:00");
+                          lblStatus.setText("FINISHED");
+                          btnPlaceBid.setDisable(true);
+                          tfBidAmount.setDisable(true);
+                          // Hien thi nguoi chien thang
+                          String winner = lblHighestBidder.getText();
+                          lblWinner.setText(winner);
+
+                        } else {
+                          long h = duration.toHours();
+                          long m = duration.toMinutesPart();
+                          long s = duration.toSecondsPart();
+                          lblTimer.setText(String.format("%02d:%02d:%02d", h, m, s));
+                        }
+                      });
+            },
+            0,
+            1,
+            TimeUnit.SECONDS);
   }
 
   @FXML
   private void handleBackToCatalog(ActionEvent event) {
     cleanUpBeforeExit();
     switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+  }
+
+  @FXML
+  public void handleCheckout(ActionEvent event) {
+    cleanUpBeforeExit();
+    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
   }
 
   @FXML
@@ -337,9 +407,5 @@ public class AuctionRoomController extends BaseController implements Initializab
     if (timerService != null && !timerService.isShutdown()) {
       timerService.shutdown();
     }
-  }
-
-  public void handleCheckout(ActionEvent actionEvent) {
-    System.out.println("chuyen sang catalog");
   }
 }
