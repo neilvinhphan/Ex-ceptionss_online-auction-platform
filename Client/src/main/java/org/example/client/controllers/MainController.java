@@ -12,7 +12,6 @@ import org.example.core.models.users.User;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.net.Socket;
 import java.net.URL;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -21,13 +20,10 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.layout.VBox;
 
@@ -180,13 +176,15 @@ public class MainController extends BaseController implements Initializable {
   }
 
     public void handleManageUsers(ActionEvent event) {
-        switchScene(event, "/views/ManagerUserView.fxml", "Quản lý người dùng");
+        switchScene(event, "/views/ManageUserView.fxml", "Quản lý người dùng");
 
     }
 
     public void handleManageAuctions(ActionEvent event) {
+        switchScene(event, "/views/ManageAuctionView.fxml", "Quản lý phiên đấu giá");
     }
 
-    public void handleApproveAccounts(ActionEvent event) {
+    public void handleApproveItem(ActionEvent event) {
+        switchScene(event, "/views/AuctionApprovalView.fxml", "Kiểm duyệt sản phẩm");
     }
 }
