@@ -43,7 +43,6 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 public class CreateAuctionController extends BaseController implements Initializable {
-  @FXML private MenuButton menuUser;
   @FXML private Spinner<Integer> durationHourSpinner;
   @FXML private Spinner<Integer> durationMinuteSpinner;
   @FXML private ComboBox<Item> cbPendingItems;
@@ -85,9 +84,6 @@ public class CreateAuctionController extends BaseController implements Initializ
 
   private void initUser() {
     User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser != null) {
-      menuUser.setText(currentUser.getUserName());
-    }
   }
 
   private void initSpinners() {
@@ -357,41 +353,6 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
   }
 
-  public void handleMain(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
-
-  public void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-  }
-
-  public void handleLogout(ActionEvent event) {
-    UserSession.getInstance().cleanUserSession();
-    switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
-  }
-
-  public void handleCreateAuction(ActionEvent event) {
-    switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá");
-  }
-
-  @FXML
-  void handleWareHouse(ActionEvent event) {
-    switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-  }
-
-  @FXML
-  public void handleWaitPayment(ActionEvent event) {
-    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
-  }
-
-  @FXML
-  void handleCreateItem(ActionEvent event) {
-    switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
-  }
-
-  public void handleMenuItem(ActionEvent event) {
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
-  }
 
   // =========================================================
   // 🔹 HELPERS
@@ -402,7 +363,5 @@ public class CreateAuctionController extends BaseController implements Initializ
     return Duration.ofHours(hours).plusMinutes(minutes);
   }
 
-  public void handleHistoryAuction(ActionEvent event) {
-    switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-  }
+
 }

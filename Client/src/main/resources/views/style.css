@@ -53,4 +53,65 @@
 .chart-series-line {
     -fx-stroke-width: 2px;
 }
+/* Style mặc định cho nút Sidebar */
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555555;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s; /* Hiệu ứng chuyển màu mượt */
+}
 
+/* Hiệu ứng khi di chuột qua (Hover) */
+.sidebar-button:hover {
+    -fx-background-color: #f0f2f5;
+    -fx-text-fill: #28a745;
+}
+
+/* Style mặc định cho các nút menu Sidebar */
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555555;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px; /* Chuyển từ FXML sang */
+    -fx-padding: 15 20;  /* Chuyển từ FXML sang */
+    -fx-cursor: hand;
+    -fx-transition: 0.3s;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #f0f2f5;
+    -fx-text-fill: #28a745;
+}
+
+/* Tăng độ ưu tiên cho class active bằng cách ghép tên */
+.sidebar-button.sidebar-active {
+    -fx-background-color: #d4edda;
+    -fx-text-fill: #28a745;
+    -fx-background-radius: 10;
+}
+
+/* Nút Tạo đấu giá nổi bật (Màu xanh đậm) */
+.btn-create-auction {
+    -fx-font-weight: bold;
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-padding: 15 20;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);
+}
+
+.btn-create-auction:hover {
+    -fx-background-color: #218838;
+}
+
+/* --- PIE CHART COLORS --- / */
+.default-color0.chart-pie { -fx-pie-color: #3498db; }
+.default-color1.chart-pie { -fx-pie-color: #f39c12; }
+.default-color2.chart-pie { -fx-pie-color: #FF9999; }
+
+.chart-pie {
+    -fx-border-color: transparent;
+}

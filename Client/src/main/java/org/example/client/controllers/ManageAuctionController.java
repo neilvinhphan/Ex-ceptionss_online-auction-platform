@@ -179,24 +179,37 @@ public class ManageAuctionController extends BaseController implements Initializ
   @FXML
   public void handleSearch(ActionEvent event) {
     String keyword = searchField.getText().trim().toLowerCase();
-
+    // Nếu ô tìm kiếm trống, hiển thị lại toàn bộ danh sách gốc
     if (keyword.isEmpty()) {
       auctionTable.setItems(auctionList);
       return;
     }
-
     ObservableList<Auction> filteredList = FXCollections.observableArrayList();
-
     for (Auction auction : auctionList) {
-      boolean matchId = String.valueOf(auction.getId()).contains(keyword);
-      boolean matchItemName =
-          auction.getItem() != null
+      boolean matchId = false;
+      boolean matchItemName = false;
+      String idStr = String.valueOf(auction.getAuctionId());
+      if (idStr.contains(keyword) || String.valueOf(auction.getId()).contains(keyword)) {
+        matchId = true;
+      }
+
+      // Kiểm tra Tên sản phẩm: Lấy trực tiếp getItemName() giống PropertyValueFactory
+      if (auction.getItemName() != null && auction.getItemName().toLowerCase().contains(keyword)) {
+        matchItemName = true;
+      }
+      // Dự phòng trường hợp dữ liệu vẫn nằm sâu trong object Item
+      else if (auction.getItem() != null
               && auction.getItem().getItemName() != null
-              && auction.getItem().getItemName().toLowerCase().contains(keyword);
+              && auction.getItem().getItemName().toLowerCase().contains(keyword)) {
+        matchItemName = true;
+      }
+
+      // Nếu khớp ID hoặc Tên thì tóm cổ nó nhét vào list kết quả
       if (matchId || matchItemName) {
         filteredList.add(auction);
       }
     }
+    // Cập nhật lại bảng với danh sách đã lọc
     auctionTable.setItems(filteredList);
   }
 
@@ -206,10 +219,6 @@ public class ManageAuctionController extends BaseController implements Initializ
     loadAuctionsFromServer();
   }
 
-  @FXML
-  public void handleBack(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
 
   @FXML
   public void handleGoToApproval(ActionEvent event) {

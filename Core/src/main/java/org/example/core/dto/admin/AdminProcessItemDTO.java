@@ -1,22 +1,13 @@
 package org.example.core.dto.admin;
 
 public class AdminProcessItemDTO {
-    private int itemId;
-    private boolean isApproved; // true là Duyệt, false là Từ chối
     private int adminId;
+    private boolean isApproved;
+    private int itemId;
 
-
-    public AdminProcessItemDTO(int itemId, boolean isApproved, int adminId) {
-        this.itemId = itemId;
-        this.isApproved = isApproved;
+    public AdminProcessItemDTO(int adminId, boolean isApproved, int itemId) {
         this.adminId = adminId;
-    }
-
-    public int getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(int itemId) {
+        this.isApproved = isApproved;
         this.itemId = itemId;
     }
 
@@ -34,5 +25,13 @@ public class AdminProcessItemDTO {
 
     public void setApproved(boolean approved) {
         isApproved = approved;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
     }
 }

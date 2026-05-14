@@ -52,6 +52,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.example.core.network.LocalDateTimeAdapter;
@@ -166,8 +167,8 @@ public class ClientHandler implements Runnable {
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
-            case "ADMIN_GET_ALL_PENDING_ITEMS":
-              handleAdminGetPendingItems(request);
+            case "ADMIN_GET_ALL_DAFT_ITEMS":
+              handleAdminGetDaftItems(request);
               break;
             case "ADMIN_GET_ALL_USERS":
               handleAdminGetAllUsers(request);
@@ -182,13 +183,21 @@ public class ClientHandler implements Runnable {
               handleAdminGetAllAuctions(request);
               break;
             case "GET_PENDING_AUCTIONS":
-              handleGetPendingAuctions();
+              handleGetPendingAuctions(request);
               break;
             case "JOIN_ROOM":
               handleJoinRoom(request);
               break;
             case "APPROVE_AUCTION":
-              handleApproveAuction(request);
+             // handleApproveAuction(request);
+              break;
+            case "GET_PROMOTED_AUCTIONS":
+              // TRẢ VỀ DỮ LIỆU RỖNG ĐỂ CLIENT KHÔNG BỊ TREO
+              Response dummyResponse = new Response("SUCCESS", "Chưa có dữ liệu", null);
+              sendMessage(gson.toJson(dummyResponse));
+              break;
+            case "GET_ADMIN_DASHBOARD_STATS":
+              handleGetAdminDashboardStats(request);
               break;
             case "LEAVE_ROOM":
               handleLeaveRoom(request);
@@ -208,6 +217,24 @@ public class ClientHandler implements Runnable {
       throw new RuntimeException(e);
     } finally {
       closeConnection();
+    }
+  }
+
+  // LẤY DỮ LIỆU TỔNG HỢP CHO TRANG DASHBOARD ADMIN
+  private void handleGetAdminDashboardStats(Request request) {
+    try {
+      Map<String, String> kpis = org.example.server.daos.DashboardDAO.getInstance().getKPIs();
+      Map<String, Integer> categories = org.example.server.daos.DashboardDAO.getInstance().getCategoryDistribution();
+      Map<String, Integer> auctionStatus = org.example.server.daos.DashboardDAO.getInstance().getAuctionStatusDistribution();
+      org.example.core.dto.admin.AdminDashboardDTO dashboardDTO =
+              new org.example.core.dto.admin.AdminDashboardDTO(kpis, categories, auctionStatus);
+      Response response = new Response("SUCCESS", "Lấy dữ liệu Dashboard thành công", dashboardDTO);
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse = new Response("ERROR", "Lỗi Server khi lấy số liệu Dashboard: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
     }
   }
 
@@ -407,22 +434,28 @@ public class ClientHandler implements Runnable {
     sendMessage(gson.toJson(leaveRes));
   }
 
-  private void handleApproveAuction(Request request) {
-    try {
-      String dataJson = gson.toJson(request.getData());
-      JsonObject jsonObject = gson.fromJson(dataJson, JsonObject.class);
-      int auctionId = jsonObject.get("auctionId").getAsInt();
-
-      // Gọi logic đổi trạng thái thành OPEN và tự động lên lịch (Scheduler)
-      AuctionService.approveAuction(auctionId);
-
-      Response response = new Response("SUCCESS", "Đã duyệt và hẹn giờ mở cửa phiên " + auctionId);
-      sendMessage(gson.toJson(response));
-    } catch (Exception e) {
-      Response response = new Response("ERROR", "Lỗi khi duyệt phiên: " + e.getMessage());
-      sendMessage(gson.toJson(response));
-    }
-  }
+//  private void handleApproveAuction(Request request) {
+//    try {
+//      String dataJson = gson.toJson(request.getData());
+//      org.example.core.dto.admin.AdminApproveAuctionDTO approveReq =
+//              gson.fromJson(dataJson, org.example.core.dto.admin.AdminApproveAuctionDTO.class);
+//
+//      User requester = userDAO.getUserByUserId(approveReq.getAdminId());
+//      if (requester == null || requester.getRole() != RoleType.ADMIN) {
+//        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+//        return;
+//      }
+//
+//      AuctionService.approveAuction(approveReq.getAuctionId());
+//
+//      Response response = new Response("SUCCESS", "Đã duyệt và hẹn giờ mở cửa phiên " + approveReq.getAuctionId());
+//      sendMessage(gson.toJson(response));
+//    } catch (Exception e) {
+//      e.printStackTrace(); // In lỗi ra console Server để dễ debug nếu có
+//      Response response = new Response("ERROR", "Lỗi khi duyệt phiên: " + e.getMessage());
+//      sendMessage(gson.toJson(response));
+//    }
+//  }
 
   private void handlePlaceBid(Request request) {
     try {
@@ -552,6 +585,11 @@ public class ClientHandler implements Runnable {
       if (success) {
         Response response = new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!");
         sendMessage(gson.toJson(response));
+      }else {
+        // PHẢI CÓ DÒNG NÀY ĐỂ CỨU CLIENT KHỎI BỊ TREO
+        System.out.println("=> NÂNG CẤP THẤT BẠI TRONG DB (trả về false)");
+        Response response = new Response("ERROR", "Nâng cấp thất bại! (Lỗi từ Database: Không có bản ghi nào được cập nhật)");
+        sendMessage(gson.toJson(response));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -638,34 +676,32 @@ public class ClientHandler implements Runnable {
   }
 
   private void handleAdminProcessItem(Request request) {
-
     try {
       String dataJson = gson.toJson(request.getData());
       AdminProcessItemDTO processReq = gson.fromJson(dataJson, AdminProcessItemDTO.class);
-
       User requester = userDAO.getUserByUserId(processReq.getAdminId());
       if (requester == null || requester.getRole() != RoleType.ADMIN) {
         sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
         return;
       }
-
       Item checkItem = itemDAO.getItemById(processReq.getItemId());
-      if (checkItem.getStatus() != ItemStatus.PENDING) {
-        Response errorResponse =
-            new Response("ERROR", "Lỗi: Tài sản này không ở trạng thái Chờ Duyệt!");
+      if (checkItem == null) {
+        sendMessage(gson.toJson(new Response("ERROR", "Lỗi: Không tìm thấy tài sản ID = " + processReq.getItemId() + ". Vui lòng kiểm tra lại!")));
+        return;
+      }
+      if (checkItem.getStatus() != ItemStatus.DRAFT) {
+        Response errorResponse = new Response("ERROR", "Lỗi: Tài sản này không ở trạng thái Bản Nháp (DRAFT)!");
         sendMessage(gson.toJson(errorResponse));
         return;
       }
       ItemStatus newStatus = processReq.isApproved() ? ItemStatus.APPROVED : ItemStatus.REJECTED;
       boolean success = ItemDAO.getInstance().updateItemStatus(processReq.getItemId(), newStatus);
       if (success) {
-        String msg =
-            processReq.isApproved() ? "Đã DUYỆT tài sản thành công!" : "Đã TỪ CHỐI tài sản!";
+        String msg = processReq.isApproved() ? "Đã DUYỆT tài sản thành công!" : "Đã TỪ CHỐI tài sản!";
         Response response = new Response("SUCCESS", msg);
         sendMessage(gson.toJson(response));
       } else {
-        Response errorResponse =
-            new Response("ERROR", "Lỗi: Không thể cập nhật trạng thái tài sản trong DB.");
+        Response errorResponse = new Response("ERROR", "Lỗi DB: Không thể cập nhật trạng thái.");
         sendMessage(gson.toJson(errorResponse));
       }
     } catch (Exception e) {
@@ -746,19 +782,22 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleGetPendingAuctions() {
+  private void handleGetPendingAuctions(Request request) {
     try {
-      // Gọi hàm lấy danh sách theo trạng thái (đã viết sẵn trong AuctionService)
+      String dataJson = gson.toJson(request.getData());
+      Integer adminId = gson.fromJson(dataJson, Integer.class);
+      User requester = userDAO.getUserByUserId(adminId);
+      if (requester == null || requester.getRole() != RoleType.ADMIN) {
+        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+        return;
+      }
       List<Auction> pendingAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
-
-      Response response =
-          new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingAuctions);
-      System.out.println("Da gui response getpendingauctions");
+      Response response = new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingAuctions);
       sendMessage(gson.toJson(response));
+
     } catch (Exception e) {
       e.printStackTrace();
-      Response errorResponse =
-          new Response("ERROR", "Lỗi lấy danh sách PENDING: " + e.getMessage());
+      Response errorResponse = new Response("ERROR", "Lỗi lấy danh sách PENDING: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
@@ -790,7 +829,7 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleAdminGetPendingItems(Request request) {
+  private void handleAdminGetDaftItems(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
       Integer adminId = gson.fromJson(dataJson, Integer.class);
@@ -801,10 +840,10 @@ public class ClientHandler implements Runnable {
         return;
       }
 
-      List<Item> pendingItems = itemDAO.getItemsByStatus(ItemStatus.PENDING);
+      List<Item> daftItems = itemDAO.getItemsByStatus(ItemStatus.DRAFT);
 
       Response response =
-          new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingItems);
+          new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", daftItems);
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {

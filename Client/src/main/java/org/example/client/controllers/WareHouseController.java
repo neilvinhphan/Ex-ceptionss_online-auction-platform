@@ -54,7 +54,6 @@ public class WareHouseController extends BaseController implements Initializable
   @FXML private TableColumn<Item, String> colDescription;
   @FXML private TableColumn<Item, BigDecimal> colStartingPrice;
   @FXML private TableColumn<Item, String> colStatus;
-  @FXML private MenuButton menuUser;
   // Công cụ gọi Server
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
@@ -65,9 +64,6 @@ public class WareHouseController extends BaseController implements Initializable
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser != null) {
-      menuUser.setText(currentUser.getUserName());
-    }
     // 1. Việc đầu tiên khi mở màn hình là thiết lập các cột cho cái bảng
     setupTableColumns();
     // 2. Việc thứ hai là gọi điện lên Server xin hàng
@@ -168,42 +164,10 @@ public class WareHouseController extends BaseController implements Initializable
   }
 
   @FXML
-  public void handleMain(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
-@FXML
-public void handleHistoryAuction(ActionEvent event) {
-  switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-}
-  @FXML
-  public void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-  }
-
-  @FXML
-  public void handleCreateItem(ActionEvent event) {
-    switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
-  }
-
-  @FXML
-  public void handleLogout(ActionEvent event) {
-    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống ");
-  }
-
-  @FXML
   public void handleAddProduct(ActionEvent event) {
     switchScene(event, "/views/CreateItemView.fxml", "Thêm sản phẩm đấu giá");
   }
 
-  @FXML
-  public void handleCreateAuction(ActionEvent event) {
-    switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
-  }
-
-  @FXML
-  public void handleMenuItem(ActionEvent event) {
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
-  }
 
   @FXML
   public void handleDeleteProduct(ActionEvent event) {
@@ -359,7 +323,4 @@ public void handleHistoryAuction(ActionEvent event) {
             });
   }
 
-  public void handleWaitPayment(ActionEvent event) {
-    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
-  }
 }

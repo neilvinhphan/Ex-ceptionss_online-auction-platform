@@ -178,6 +178,7 @@ public class ItemDAO {
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setImage(rs.getString("image"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
           return item;
         }
       } catch (Exception e) {
