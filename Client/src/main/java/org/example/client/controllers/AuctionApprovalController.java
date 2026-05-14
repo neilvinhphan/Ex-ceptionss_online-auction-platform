@@ -149,6 +149,7 @@ public class AuctionApprovalController extends BaseController implements Initial
             () -> {
               try {
                 String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+                System.out.println("DEBUG SERVER TRẢ VỀ: " + jsonResponse);
                 Response response = gson.fromJson(jsonResponse, Response.class);
 
                 if ("SUCCESS".equals(response.getStatus())) {

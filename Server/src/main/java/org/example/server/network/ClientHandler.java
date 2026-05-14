@@ -178,7 +178,7 @@ public class ClientHandler implements Runnable {
               handleAdminCancelAuction(request);
               break;
             case "GET_PENDING_AUCTIONS":
-              handleGetPendingAuctions(request);
+              handleGetPendingAuctions();
               break;
             case "JOIN_ROOM":
               handleJoinRoom(request);
@@ -730,7 +730,7 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleGetPendingAuctions(Request request) {
+  private void handleGetPendingAuctions() {
     try {
       // Gọi hàm lấy danh sách theo trạng thái (đã viết sẵn trong AuctionService)
       List<Auction> pendingAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
