@@ -161,6 +161,7 @@ public class ClientHandler implements Runnable {
               handlePayAllItems(request);
               break;
             case "ADMIN_GET_ALL_AUCTIONS":
+              handleAdminGetAllAuctions();
               break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
@@ -694,6 +695,18 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  private void handleAdminGetAllAuctions() {
+    try{
+      List<Auction> pendingAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
+      Response response = new Response("SUCCESS", "Lay danh sach auctions thanh cong",pendingAuctions);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errResponse = new Response("ERROR", "Loi khong the lay duoc danh sach auctions");
+      sendMessage(gson.toJson(errResponse));
+    }
+  }
+
   private void handleAdminBanUser(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
@@ -737,6 +750,7 @@ public class ClientHandler implements Runnable {
 
       Response response =
           new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingAuctions);
+      System.out.println("Da gui response getpendingauctions");
       sendMessage(gson.toJson(response));
     } catch (Exception e) {
       e.printStackTrace();

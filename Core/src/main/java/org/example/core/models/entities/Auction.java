@@ -20,6 +20,8 @@ public class Auction extends Entity {
   private List<BidTransaction> bidHistory;
   private BigDecimal highestBid;
   private BigDecimal bidIncrement;
+  private int ownerId;
+  private String itemName;
 
   // Constructor tạo mới đấu giá
   public Auction(
@@ -186,4 +188,12 @@ public class Auction extends Entity {
   public void setBidIncrement(BigDecimal bidIncrement) {
     this.bidIncrement = bidIncrement;
   }
+
+  public void setItemName(String itemName) {this.itemName = itemName;}
+
+  public String getItemName() {return itemName;}
+
+  public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
+
+  public int getOwnerId() {return ownerId;}
 }

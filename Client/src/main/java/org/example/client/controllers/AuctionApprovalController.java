@@ -145,12 +145,15 @@ public class AuctionApprovalController extends BaseController implements Initial
 
   private void loadPendingAuctions() {
     Request request = new Request("GET_PENDING_AUCTIONS", null);
+    System.out.println("Tao luong");
     new Thread(
             () -> {
               try {
+                System.out.println("Gui request");
                 String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
                 System.out.println("DEBUG SERVER TRẢ VỀ: " + jsonResponse);
                 Response response = gson.fromJson(jsonResponse, Response.class);
+                System.out.println("Nhan response");
 
                 if ("SUCCESS".equals(response.getStatus())) {
                   String jsonData = gson.toJson(response.getData());
