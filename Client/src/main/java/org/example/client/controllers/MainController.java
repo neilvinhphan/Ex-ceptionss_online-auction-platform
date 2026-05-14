@@ -1,12 +1,13 @@
 package org.example.client.controllers;
 
 import com.google.gson.Gson;
+
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
-import org.example.core.dto.UpdateRoleRequestDTO;
+import org.example.core.dto.userDTO.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
@@ -22,130 +23,168 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.PasswordField;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class MainController extends BaseController implements Initializable {
-    @FXML private HBox upgradeBanner;
-    @FXML private FlowPane promotedAuctionsContainer;
+  @FXML private MenuButton menuDanhMuc;
+  @FXML private MenuButton menuPhongDauGia;
+  @FXML private MenuButton menuSearch;
+  @FXML private MenuButton menuUser;
+  private Gson gson = ClientManager.getInstance().getGson();
+  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+  @FXML VBox userBox, adminBox;
 
-    // Các thành phần network
-    private Gson gson = ClientManager.getInstance().getGson();
-    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+  @Override
+  public void initialize(URL location, ResourceBundle resources) {
+    User currentUser = UserSession.getInstance().getCurrentUser();
+    //    if (currentUser != null) {
+    //      menuUser.setText(currentUser.getUserName());
+    if (currentUser != null && currentUser.getRole() == RoleType.ADMIN) {
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        User currentUser = UserSession.getInstance().getCurrentUser();
+      // Nếu là Admin -> Ẩn toàn bộ giao diện User
+      userBox.setVisible(false);
+      userBox.setManaged(false);
 
-        if (currentUser != null) {
-            if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.SELLER) {
-                upgradeBanner.setVisible(false);
-                upgradeBanner.setManaged(false);
-            } else {
-                upgradeBanner.setVisible(true);
-                upgradeBanner.setManaged(true);
-            }
-        }
-        loadPromotedAuctionsFromServer();
+      // Bật giao diện Admin lên
+      adminBox.setVisible(true);
+      adminBox.setManaged(true);
+
+    } else {
+      // Nếu là người thường/Seller -> Ẩn giao diện Admin
+      adminBox.setVisible(false);
+      adminBox.setManaged(false);
+
+      // Bật giao diện User lên
+      userBox.setVisible(true);
+      userBox.setManaged(true);
     }
+  }
 
-    @FXML
-    private void handleUpgrade(ActionEvent event) {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Xác nhận nâng cấp");
-        dialog.setHeaderText("Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
+  @FXML
+  private void handleMenuItem(ActionEvent event) {
+    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
+  }
 
-        ButtonType confirmButtonType = new ButtonType("Nâng cấp", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+  @FXML
+  void handleLogin(ActionEvent event) {
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+  }
 
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Nhập mật khẩu hiện tại của bạn...");
+  @FXML
+  void handleRegister(ActionEvent event) {
+    switchScene(event, "/views/RegisterView.fxml", "Đăng ký tài khoản");
+  }
 
-        VBox vbox = new VBox();
-        vbox.setSpacing(10);
-        vbox.getChildren().add(passwordField);
-        dialog.getDialogPane().setContent(vbox);
+  @FXML
+  void handleUserUi(ActionEvent event) {
+    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+  }
 
-        Platform.runLater(passwordField::requestFocus);
+  @FXML
+  void handleLogout(ActionEvent event) {
+    UserSession.getInstance().cleanUserSession();
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+  }
 
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == confirmButtonType) {
-                return passwordField.getText();
-            }
-            return null;
+  @FXML
+  private void handleUpgrade(javafx.event.ActionEvent event) {
+    // 1. Tạo hộp thoại Custom
+    Dialog<String> dialog = new Dialog<>();
+    dialog.setTitle("Xác nhận nâng cấp");
+    dialog.setHeaderText(
+        "Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
+
+    // 2. Tạo các nút bấm (Xác nhận / Hủy)
+    ButtonType confirmButtonType = new ButtonType("Nâng cấp", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+
+    // 3. Tạo trường nhập mật khẩu (PasswordField ẩn ký tự)
+    PasswordField passwordField = new PasswordField();
+    passwordField.setPromptText("Nhập mật khẩu hiện tại của bạn...");
+
+    // 4. Đưa trường nhập vào Giao diện hộp thoại
+    VBox vbox = new VBox();
+    vbox.setSpacing(10);
+    vbox.getChildren().add(passwordField);
+    dialog.getDialogPane().setContent(vbox);
+
+    // Xử lý focus mặc định vào trường mật khẩu khi mở popup
+    javafx.application.Platform.runLater(passwordField::requestFocus);
+
+    // 5. Bắt sự kiện khi bấm nút "Nâng cấp"
+    dialog.setResultConverter(
+        dialogButton -> {
+          if (dialogButton == confirmButtonType) {
+            return passwordField.getText();
+          }
+          return null;
         });
 
-        Optional<String> result = dialog.showAndWait();
+    // 6. Hiển thị hộp thoại và chờ người dùng nhập
+    Optional<String> result = dialog.showAndWait();
 
-        result.ifPresent(password -> {
-            User currentUser = UserSession.getInstance().getCurrentUser();
-            int currentId = currentUser.getUserId();
+    // 7. Xử lý kết quả sau khi nhập
+    result.ifPresent(
+        password -> {
+          User currentUser = UserSession.getInstance().getCurrentUser();
+          int currentId = currentUser.getUserId();
+          if (!BCrypt.checkpw(password, currentUser.getPassword())) {
+            showAlert("Lỗi", "Sai mật khẩu!");
+            return;
+          } else if (password.trim().isEmpty()) {
+            showAlert("Cảnh báo", "Mật khẩu không được để trống!");
+            return;
+          }
 
-            if (!BCrypt.checkpw(password, currentUser.getPassword())) {
-                showAlert("Lỗi", "Sai mật khẩu!");
-                return;
-            } else if (password.trim().isEmpty()) {
-                showAlert("Cảnh báo", "Mật khẩu không được để trống!");
-                return;
-            }
-
-            System.out.println("Gửi request nâng cấp với mật khẩu: " + password);
-            sendUpgradeRequestToServer(currentId);
+          System.out.println("Gửi request nâng cấp với mật khẩu: " + password);
+          sendUpgradeRequestToServer(currentId);
         });
-    }
+  }
 
-    private void sendUpgradeRequestToServer(int userId) {
-        UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
-        Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
-        String jsonRequest = gson.toJson(request);
+  private void sendUpgradeRequestToServer(int userId) {
+    // 1. Lấy thông tin user đang login
 
-        new Thread(() -> {
-            try {
+    // 2. Gói vào DTO (ví dụ UpgradeRoleDTO gồm username và password)
+    UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
+    // 3. Gửi Socket lên Server
+    Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
+    String jsonRequest = gson.toJson(request);
+    // 4. Nhận phản hồi:
+    //    - Nếu Server báo "SUCCESS" -> Chúc mừng, báo đăng nhập lại để cập nhật menu.
+    //    - Nếu Server báo "ERROR" (sai pass) -> In ra Alert lỗi.
+    new Thread(
+            () -> {
+              try {
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
                 Response response = gson.fromJson(jsonResponse, Response.class);
-                Platform.runLater(() -> {
-                    if ("SUCCESS".equals(response.getStatus())) {
-                        showAlert("Chúc mừng", "Đăng ký thành công! Vui lòng đăng nhập lại để hệ thống cập nhật phiên làm việc.");
-                        // Force logout để user đăng nhập lại lấy Role mới
-                        UserSession.getInstance().cleanUserSession();
-                        switchScene(new ActionEvent(), "/views/LoginView.fxml", "Đăng nhập hệ thống");
-                    } else {
-                        showAlert("Đã xảy ra lỗi", "Không thể nâng cấp lúc này, vui lòng thử lại sau.");
-                    }
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
+                Platform.runLater(
+                    () -> {
+                      if ("SUCCESS".equals(response.getStatus())) {
+                        showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
+                      } else {
+                        showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
+                      }
+                    });
+              } catch (Exception e) {
+                Platform.runLater(
+                    () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
                 e.printStackTrace();
-            }
-        }).start();
-    }
+              }
+            })
+        .start();
+  }
 
-    // ================== HÀM LẤY DATA CHO TRANG CHỦ ==================
+  public void handleManageUsers(ActionEvent event) {
+    switchScene(event, "/views/ManageUserView.fxml", "Quản lý người dùng");
+  }
 
-    private void loadPromotedAuctionsFromServer() {
-        // Gửi request lấy list đấu giá đề cử
-        Request request = new Request("GET_PROMOTED_AUCTIONS", null);
-        String jsonRequest = gson.toJson(request);
+  public void handleManageAuctions(ActionEvent event) {
+    switchScene(event, "/views/ManageAuctionView.fxml", "Quản lý phiên đấu giá");
+  }
 
-        new Thread(() -> {
-            try {
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
-
-                Platform.runLater(() -> {
-                    if ("SUCCESS".equals(response.getStatus())) {
-                        // TODO: Parse response.getPayload() thành List<Auction> và nhét vào promotedAuctionsContainer
-                        System.out.println("Lấy danh sách đề cử thành công!");
-                        // buildPromotedCards(list);
-                    }
-                });
-            } catch (Exception e) {
-                System.out.println("Lỗi khi tải danh sách đề cử: " + e.getMessage());
-            }
-        }).start();
-    }
+  public void handleApproveItem(ActionEvent event) {
+    switchScene(event, "/views/ItemApprovalView.fxml", "Kiểm duyệt sản phẩm");
+  }
 }

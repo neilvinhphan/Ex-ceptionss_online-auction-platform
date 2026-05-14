@@ -1,13 +1,11 @@
 package org.example.server.services;
 
-import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.models.users.SellerProfile;
 import org.example.core.models.users.User;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class UserService {
   private final UserDAO userDAO;
@@ -21,11 +19,6 @@ public class UserService {
   public UserService() {
     this.userDAO = UserDAO.getInstance();
   }
-
-  //
-  //  public static List<PaidHistoryDTO> getAllPaidHistory(int userId) throws Exception {
-  //    return UserDAO.getAllPaidHistoryByUsername(userId);
-  //  }
 
   // Xem thông tin
   public User viewProfile(String username) throws Exception {
@@ -109,7 +102,7 @@ public class UserService {
     }
     BigDecimal newBalance = currentBalance.add(amount);
     User user = userDAO.getUserByUserId(userId);
-    //return userDAO.updateBalanceInDB(userId, newBalance);
+
     if (password == null || password.trim().isEmpty()) {
       throw new Exception("Vui lòng nhập mật khẩu xác nhận.");
     }

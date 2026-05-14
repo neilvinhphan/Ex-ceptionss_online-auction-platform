@@ -1,24 +1,17 @@
 package org.example.server.services;
 
-import org.example.core.dto.BidRequestDTO;
-import org.example.core.dto.PaidHistoryDTO;
-import org.example.core.dto.Request;
-import org.example.core.dto.Response;
+import org.example.core.dto.bidDTO.BidRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
-import org.example.core.shared.enums.WalletTransactionType;
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.BidDAO;
 import org.example.server.daos.WalletDAO;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.example.server.network.ClientHandler.broadcastMessage;
 
 public class BiddingService {
 
@@ -51,9 +44,21 @@ public class BiddingService {
    * increment 4) ghi DB bid + cập nhật current price 5) anti sniping
    */
   public boolean placeBid(BidRequestDTO request) throws Exception {
+    // TEST---
+    String threadName = Thread.currentThread().getName();
+    // ----
+
     ReentrantLock lock = getLock(request.getAuctionId());
     lock.lock();
     try {
+      // TEST---
+      System.out.println(
+          "["
+              + threadName
+              + "] 🟢 Đã cầm chìa khóa (Lock)! Đang xử lý giá cho User "
+              + request.getUserId());
+      // ----
+
       LocalDateTime now = LocalDateTime.now();
 
       Auction auction = auctionDAO.getAuctionByAuctionId(request.getAuctionId());
@@ -98,8 +103,20 @@ public class BiddingService {
 
       handleAntiSniping(request.getAuctionId(), auction, now);
 
+      // TEST
+      System.out.println(
+          "[" + threadName + "] 💾 Ghi DB thành công cho User " + request.getUserId());
+      // ----
+
       return true;
+    } catch (Exception e) {
+      // TEST
+      System.out.println("[" + threadName + "] ❌ Bị lỗi: " + e.getMessage());
+      throw e;
     } finally {
+      // TEST
+      System.out.println("[" + threadName + "] 🔓 Trả lại chìa khóa (Unlock)!");
+      // ----
       lock.unlock();
     }
   }

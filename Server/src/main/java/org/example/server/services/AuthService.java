@@ -1,8 +1,9 @@
 package org.example.server.services;
 
-import org.example.core.dto.LoginRequestDTO;
-import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.dto.userDTO.LoginRequestDTO;
+import org.example.core.dto.userDTO.RegisterRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.UserStatus;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -73,13 +74,14 @@ public class AuthService {
 
     // Check username
     User userDB = userDAO.getUserByUsername(nameInCheck);
+    System.out.println(userDB.getStatus());
     if (userDB == null) {
       throw new Exception("Wrong username or password.");
     }
 
     // Check status
-    if (userDB.getStatus().equals("BANNED")) {
-      throw new Exception("Your accound has banned.");
+    if (UserStatus.BANNED.equals(userDB.getStatus())) {
+      throw new Exception("Your account has banned.");
     }
 
     // Check password

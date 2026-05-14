@@ -1,7 +1,7 @@
 package org.example.server.validator;
 
-import org.example.core.dto.CreateItemRequestDTO;
-import org.example.core.dto.CreateVehicleItemDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.CreateVehicleItemDTO;
 
 public class VehicleItemValidator implements ItemValidatorStrategy{
     @Override

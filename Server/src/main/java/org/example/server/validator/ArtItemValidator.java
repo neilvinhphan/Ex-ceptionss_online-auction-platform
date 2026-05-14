@@ -1,7 +1,7 @@
 package org.example.server.validator;
 
-import org.example.core.dto.CreateArtItemDTO;
-import org.example.core.dto.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.CreateArtItemDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 
 public class ArtItemValidator implements ItemValidatorStrategy{
     @Override

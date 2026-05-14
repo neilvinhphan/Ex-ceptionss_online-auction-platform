@@ -1,9 +1,9 @@
 package org.example.core.models.items;
 
-import org.example.core.dto.CreateArtItemDTO;
-import org.example.core.dto.CreateElectronicsItemDTO;
-import org.example.core.dto.CreateItemRequestDTO;
-import org.example.core.dto.CreateVehicleItemDTO;
+import org.example.core.dto.itemsDTO.CreateArtItemDTO;
+import org.example.core.dto.itemsDTO.CreateElectronicsItemDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.CreateVehicleItemDTO;
 
 import java.sql.ResultSet;
 
@@ -74,7 +74,7 @@ public class ItemFactory {
       }
       default -> throw new Exception("Unknown item type: " + itemDTO.getType());
     }
-    // Map các trường chung từ DTO sang Model
+
     trueItem.setType(type);
     trueItem.setItemName(itemDTO.getItemName());
     trueItem.setDescription(itemDTO.getDescription());

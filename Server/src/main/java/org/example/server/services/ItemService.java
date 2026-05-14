@@ -1,20 +1,18 @@
 package org.example.server.services;
 
-import org.example.core.dto.CreateItemRequestDTO;
-import org.example.core.dto.DeleteRequestDTO;
-import org.example.core.dto.EditProductRequestDTO;
-import org.example.core.dto.PendingItemsDTO;
+import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
+import org.example.core.dto.itemsDTO.DeleteRequestDTO;
+import org.example.core.dto.itemsDTO.EditProductRequestDTO;
+import org.example.core.dto.itemsDTO.PendingItemsDTO;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
 import org.example.server.daos.ItemDAO;
-import org.example.server.daos.UserDAO;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public class ItemService {
   private static final ItemDAO itemDAO = ItemDAO.getInstance();
-  private static final UserDAO userDAO = UserDAO.getInstance();
 
   public static Item createItem(CreateItemRequestDTO requestPayload) throws Exception {
 
