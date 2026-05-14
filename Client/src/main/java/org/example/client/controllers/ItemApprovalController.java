@@ -75,16 +75,13 @@ public class ItemApprovalController extends BaseController implements Initializa
     private void setupTableSelectionListener() {
         itemTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                // Cập nhật text
                 lblName.setText(newSelection.getItemName());
                 lblType.setText(newSelection.getType());
                 lblPrice.setText(String.format("%,.0f đ", newSelection.getStartingPrice().doubleValue()));
 
-                // Nếu mô tả trống, hiển thị chữ mặc định
                 String desc = newSelection.getDescription();
                 txtDescription.setText((desc != null && !desc.trim().isEmpty()) ? desc : "Không có mô tả chi tiết.");
 
-                // Cập nhật Ảnh
                 String base64Image = newSelection.getImage();
                 if (base64Image != null && !base64Image.isEmpty()) {
                     new Thread(() -> {
@@ -104,7 +101,6 @@ public class ItemApprovalController extends BaseController implements Initializa
                     lblNoImage.setVisible(true);
                 }
 
-                // Mở khóa các nút
                 btnApprove.setDisable(false);
                 btnReject.setDisable(false);
             } else {
@@ -114,7 +110,6 @@ public class ItemApprovalController extends BaseController implements Initializa
     }
 
     private void loadPendingItems() {
-        // 1. Lấy thông tin Admin đang đăng nhập
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser == null) {
             showAlert("Lỗi", "Không tìm thấy thông tin Admin. Vui lòng đăng nhập lại!");
@@ -123,7 +118,6 @@ public class ItemApprovalController extends BaseController implements Initializa
 
         int adminId = currentUser.getUserId();
 
-        // 2. Đóng gói Request gửi lên Server
         Request request = new Request("ADMIN_GET_ALL_PENDING_ITEMS", adminId);
         String jsonRequest = gson.toJson(request);
 
@@ -131,7 +125,6 @@ public class ItemApprovalController extends BaseController implements Initializa
             try {
                 System.out.println("Đang lấy danh sách tài sản chờ duyệt từ Server...");
 
-                // Gửi request qua Socket
                 clientSocket.getOut().println(jsonRequest);
                 String jsonResponse = clientSocket.getIn().readLine();
 
@@ -140,7 +133,6 @@ public class ItemApprovalController extends BaseController implements Initializa
 
                     if ("SUCCESS".equals(response.getStatus())) {
 
-                        // --- BƯỚC 3: XỬ LÝ DỮ LIỆU ĐA HÌNH ITEM ---
                         String jsonData = gson.toJson(response.getData());
                         JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                         List<Item> fetchedItems = new ArrayList<>();
@@ -148,7 +140,6 @@ public class ItemApprovalController extends BaseController implements Initializa
                         for (JsonElement element : jsonArray) {
                             JsonObject itemObj = element.getAsJsonObject();
 
-                            // Kiểm tra biến "type" để ép kiểu chuẩn xác
                             if (itemObj.has("type") && !itemObj.get("type").isJsonNull()) {
                                 String type = itemObj.get("type").getAsString();
 
@@ -160,12 +151,10 @@ public class ItemApprovalController extends BaseController implements Initializa
                                 };
                                 fetchedItems.add(parsedItem);
                             } else {
-                                // Nếu không có type, dùng Item mặc định
                                 fetchedItems.add(gson.fromJson(itemObj, Item.class));
                             }
                         }
 
-                        // --- BƯỚC 4: ĐẨY LÊN GIAO DIỆN ---
                         Platform.runLater(() -> {
                             pendingItemsList.setAll(fetchedItems);
                             clearDetailsPane(); // Reset lại panel chi tiết khi vừa load xong
@@ -185,13 +174,11 @@ public class ItemApprovalController extends BaseController implements Initializa
 
     @FXML
     public void handleApprove(ActionEvent event) {
-        // Truyền tham số TRUE cho hành động Phê duyệt
         processItemAction(true, "phê duyệt");
     }
 
     @FXML
     public void handleReject(ActionEvent event) {
-        // Truyền tham số FALSE cho hành động Từ chối
         processItemAction(false, "từ chối");
     }
     /**
@@ -201,14 +188,12 @@ public class ItemApprovalController extends BaseController implements Initializa
         Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
         if (selectedItem == null) return;
 
-        // Lấy thông tin Admin đang đăng nhập
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser == null) {
             showAlert("Lỗi", "Không tìm thấy phiên đăng nhập của Admin!");
             return;
         }
 
-        // Hiển thị hộp thoại xác nhận cho Admin
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Bạn có chắc chắn muốn " + actionName + " sản phẩm: " + selectedItem.getItemName() + "?",
                 ButtonType.YES, ButtonType.NO);
@@ -217,11 +202,10 @@ public class ItemApprovalController extends BaseController implements Initializa
         confirm.showAndWait().ifPresent(responseBtn -> {
             if (responseBtn == ButtonType.YES) {
 
-                // 1. TẠO PAYLOAD CHUẨN MÀ SERVER ĐANG CHỜ ĐỢI
                 AdminProcessItemDTO payload =
                         new AdminProcessItemDTO(
                                 currentUser.getUserId(),
-                                isApproved, // true = duyệt, false = từ chối
+                                isApproved,
                                 selectedItem.getItemId()
                         );
 
