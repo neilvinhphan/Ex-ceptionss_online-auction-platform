@@ -30,7 +30,6 @@ public class AuctionHistoryController extends BaseController implements Initiali
     @FXML private TableColumn<PaidHistoryDTO, String> colCategory;
     @FXML private TableColumn<PaidHistoryDTO, BigDecimal> colFinalPrice;
     @FXML private TableColumn<PaidHistoryDTO, LocalDateTime> colDate;
-    @FXML private MenuButton menuUser;
 
     private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
     private final Gson gson = ClientManager.getInstance().getGson();
@@ -38,9 +37,6 @@ public class AuctionHistoryController extends BaseController implements Initiali
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (UserSession.getInstance().getCurrentUser() != null) {
-            menuUser.setText(UserSession.getInstance().getCurrentUser().getUserName());
-        }
         setupColumns();
         loadHistory();
     }
@@ -84,13 +80,9 @@ public class AuctionHistoryController extends BaseController implements Initiali
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
-
-    @FXML void handleMain(ActionEvent e) { switchScene(e, "/views/MainView.fxml", "Trang chủ"); }
     @FXML void handleWaitPayment(ActionEvent e) { switchScene(e, "/views/WaitPaymentView.fxml", "Thanh toán"); }
     @FXML void handleWareHouse(ActionEvent e) { switchScene(e, "/views/WareHouseView.fxml", "Kho hàng"); }
     @FXML void handleCreateItem(ActionEvent e) { switchScene(e, "/views/CreateItemView.fxml", "Tạo vật phẩm"); }
     @FXML void handleCreateAuction(ActionEvent e) { switchScene(e, "/views/CreateAuctionView.fxml", "Tạo đấu giá"); }
     @FXML void handleUserUi(ActionEvent e) { switchScene(e, "/views/PersonalView.fxml", "Hồ sơ"); }
-    @FXML void handleMenuItem(ActionEvent e) { switchScene(e, "/views/AuctionCatalogView.fxml", "Đấu giá"); }
-    @FXML void handleLogout(ActionEvent e) { switchScene(e, "/views/LoginView.fxml", "Đăng nhập"); }
-}
+   }

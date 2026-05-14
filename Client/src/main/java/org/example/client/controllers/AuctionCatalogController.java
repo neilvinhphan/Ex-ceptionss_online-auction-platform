@@ -43,7 +43,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
   @FXML private FlowPane auctionFlowPane;
 
-  @FXML private MenuButton menuUser;
   // Khai báo List lưu dữ liệu gốc từ Server
   private List<Auction> allAuctionsList = new ArrayList<>();
 
@@ -54,11 +53,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser != null) {
-      menuUser.setText(currentUser.getUserName());
-    }
-
     loadActiveAuctions();
   }
   // Hàm này chuyên dùng để vẽ giao diện từ 1 danh sách cho trước
@@ -214,24 +208,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
     }
   }
 
-  @FXML
-  public void handleMain(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
 
-  @FXML
-  public void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-  }
-
-  @FXML
-  public void handleLogout(ActionEvent event) {
-    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống ");
-  }
-
-  @FXML
-  public void handleMenuItem(ActionEvent event) {
-  }
 
   @FXML
   public void handleFilter(ActionEvent event) {
