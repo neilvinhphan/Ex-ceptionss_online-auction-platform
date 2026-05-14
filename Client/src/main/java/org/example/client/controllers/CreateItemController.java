@@ -32,8 +32,6 @@ import java.util.Base64;
 import java.util.ResourceBundle;
 
 public class CreateItemController extends BaseController implements Initializable {
-  @FXML private MenuButton menuDanhMuc;
-  @FXML private MenuButton menuUser;
   @FXML private Button createAuction;
   @FXML private TextField tfItemName;
   @FXML private ComboBox<String> cbCategory;
@@ -74,10 +72,6 @@ public class CreateItemController extends BaseController implements Initializabl
             (observable, oldValue, newValue) -> {
               updateDynamicFields(newValue);
             });
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser != null) {
-      menuUser.setText(currentUser.getUserName());
-    }
   }
 
   /** Hàm này có nhiệm vụ ẨN/HIỆN các VBox tương ứng với danh mục được chọn */
@@ -273,16 +267,6 @@ public class CreateItemController extends BaseController implements Initializabl
   }
 
   @FXML
-  void handleMain(ActionEvent event) {
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
-
-  @FXML
-  void handleMenuItem(ActionEvent event) {
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach phong dau gia");
-  }
-
-  @FXML
   public void handleHistoryAuction(ActionEvent event) {
   switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
   }
@@ -292,10 +276,6 @@ public class CreateItemController extends BaseController implements Initializabl
     switchScene(event, "/views/PersonalView.fxml", "Ho so ca nhan");
   }
 
-  @FXML
-  void handleLogout(ActionEvent event) {
-    switchScene(event, "/views/LoginView.fxml", "Dang nhap he thong");
-  }
 
   @FXML
   void handleCreateAuction(ActionEvent event) {

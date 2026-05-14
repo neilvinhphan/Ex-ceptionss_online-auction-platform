@@ -187,6 +187,11 @@ public class ClientHandler implements Runnable {
             case "APPROVE_AUCTION":
               handleApproveAuction(request);
               break;
+            case "GET_PROMOTED_AUCTIONS":
+              // TRẢ VỀ DỮ LIỆU RỖNG ĐỂ CLIENT KHÔNG BỊ TREO
+              Response dummyResponse = new Response("SUCCESS", "Chưa có dữ liệu", null);
+              sendMessage(gson.toJson(dummyResponse));
+              break;
             case "LEAVE_ROOM":
               handleLeaveRoom(request);
               break;
@@ -548,6 +553,11 @@ public class ClientHandler implements Runnable {
       boolean success = userDAO.updateRoleInDB(update.getUserId());
       if (success) {
         Response response = new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!");
+        sendMessage(gson.toJson(response));
+      }else {
+        // PHẢI CÓ DÒNG NÀY ĐỂ CỨU CLIENT KHỎI BỊ TREO
+        System.out.println("=> NÂNG CẤP THẤT BẠI TRONG DB (trả về false)");
+        Response response = new Response("ERROR", "Nâng cấp thất bại! (Lỗi từ Database: Không có bản ghi nào được cập nhật)");
         sendMessage(gson.toJson(response));
       }
     } catch (Exception e) {

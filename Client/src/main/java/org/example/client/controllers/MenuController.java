@@ -18,11 +18,21 @@ public class MenuController extends BaseController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Chỉ xử lý logic hiển thị tên và Role ở đây, code 1 lần dùng mãi mãi
         User currentUser = UserSession.getInstance().getCurrentUser();
+
         if (currentUser != null) {
             menuUser.setText(currentUser.getUserName());
-            // ... set Text cho roleLabel giống y như bạn đã làm ...
+
+            if (currentUser.getRole() == RoleType.ADMIN) {
+                roleLabel.setText("Admin ");
+                roleLabel.setStyle("-fx-text-fill: #e63946; -fx-font-size: 11; -fx-font-weight: bold;");
+            } else if (currentUser.getRole() == RoleType.SELLER) {
+                roleLabel.setText("Seller");
+                roleLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 11; -fx-font-weight: bold;");
+            } else {
+                roleLabel.setText("Bidder");
+                roleLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11; -fx-font-style: italic;");
+            }
         }
     }
 

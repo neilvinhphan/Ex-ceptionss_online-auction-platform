@@ -25,125 +25,111 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.PasswordField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class MainController extends BaseController implements Initializable {
-  @FXML private MenuButton menuDanhMuc;
-  @FXML private MenuButton menuPhongDauGia;
-  @FXML private MenuButton menuSearch;
-  @FXML private MenuButton menuUser;
+  @FXML private HBox upgradeBanner;
+  @FXML private FlowPane promotedAuctionsContainer;
+
+  // Các thành phần network
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
-  @FXML VBox userBox, adminBox;
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     User currentUser = UserSession.getInstance().getCurrentUser();
-    //    if (currentUser != null) {
-    //      menuUser.setText(currentUser.getUserName());
-    if (currentUser != null && currentUser.getRole() == RoleType.ADMIN) {
 
-      // Nếu là Admin -> Ẩn toàn bộ giao diện User
-      userBox.setVisible(false);
-      userBox.setManaged(false);
-
-      // Bật giao diện Admin lên
-      adminBox.setVisible(true);
-      adminBox.setManaged(true);
-
-    } else {
-      // Nếu là người thường/Seller -> Ẩn giao diện Admin
-      adminBox.setVisible(false);
-      adminBox.setManaged(false);
-
-      // Bật giao diện User lên
-      userBox.setVisible(true);
-      userBox.setManaged(true);
+    if (currentUser != null) {
+      // --- KIỂM TRA ROLE ĐỂ ẨN/HIỆN BANNER NÂNG CẤP ---
+      // (Không còn xử lý text của Menu ở đây nữa vì MenuController đã lo)
+      if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.SELLER) {
+        // Admin và Seller thì ẩn Banner nâng cấp
+        upgradeBanner.setVisible(false);
+        upgradeBanner.setManaged(false);
+      } else {
+        // Mặc định là BIDDER (Người mua) thì hiện Banner nâng cấp
+        upgradeBanner.setVisible(true);
+        upgradeBanner.setManaged(true);
+      }
     }
+
+    // --- GỌI SOCKET LẤY DANH SÁCH ĐỀ CỬ ---
+    loadPromotedAuctionsFromServer();
   }
+    @FXML
+    private void handleUpgrade(javafx.event.ActionEvent event) {
+        // 1. Tạo hộp thoại Custom
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Xác nhận nâng cấp");
+        dialog.setHeaderText(
+                "Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
 
-  @FXML
-  private void handleMenuItem(ActionEvent event) {
-    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
-  }
+        // 2. Tạo các nút bấm (Xác nhận / Hủy)
+        ButtonType confirmButtonType = new ButtonType("Nâng cấp", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
 
-  @FXML
-  void handleLogin(ActionEvent event) {
-    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-  }
+        // 3. Tạo trường nhập mật khẩu (PasswordField ẩn ký tự)
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Nhập mật khẩu hiện tại của bạn...");
 
-  @FXML
-  void handleRegister(ActionEvent event) {
-    switchScene(event, "/views/RegisterView.fxml", "Đăng ký tài khoản");
-  }
+        // 4. Đưa trường nhập vào Giao diện hộp thoại
+        VBox vbox = new VBox();
+        vbox.setSpacing(10);
+        vbox.getChildren().add(passwordField);
+        dialog.getDialogPane().setContent(vbox);
 
-  @FXML
-  void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-  }
+        // Xử lý focus mặc định vào trường mật khẩu khi mở popup
+        javafx.application.Platform.runLater(passwordField::requestFocus);
 
-  @FXML
-  void handleLogout(ActionEvent event) {
-    UserSession.getInstance().cleanUserSession();
-    switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-  }
+        // 5. Bắt sự kiện khi bấm nút "Nâng cấp"
+        dialog.setResultConverter(
+                dialogButton -> {
+                    if (dialogButton == confirmButtonType) {
+                        return passwordField.getText();
+                    }
+                    return null;
+                });
 
-  @FXML
-  private void handleUpgrade(javafx.event.ActionEvent event) {
-    // 1. Tạo hộp thoại Custom
-    Dialog<String> dialog = new Dialog<>();
-    dialog.setTitle("Xác nhận nâng cấp");
-    dialog.setHeaderText(
-        "Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
+        // 6. Hiển thị hộp thoại và chờ người dùng nhập
+        Optional<String> result = dialog.showAndWait();
 
-    // 2. Tạo các nút bấm (Xác nhận / Hủy)
-    ButtonType confirmButtonType = new ButtonType("Nâng cấp", ButtonBar.ButtonData.OK_DONE);
-    dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+        // 7. Xử lý kết quả sau khi nhập
+        // 7. Xử lý kết quả sau khi nhập
+        result.ifPresent(
+                password -> {
+                    try {
+                        User currentUser = UserSession.getInstance().getCurrentUser();
+                        int currentId = currentUser.getUserId();
 
-    // 3. Tạo trường nhập mật khẩu (PasswordField ẩn ký tự)
-    PasswordField passwordField = new PasswordField();
-    passwordField.setPromptText("Nhập mật khẩu hiện tại của bạn...");
+                        System.out.println("--- BẮT ĐẦU KIỂM TRA MẬT KHẨU ---");
+                        System.out.println("Pass nhập vào: " + password);
+                        System.out.println("Pass trong Session (Hash): " + currentUser.getPassword());
 
-    // 4. Đưa trường nhập vào Giao diện hộp thoại
-    VBox vbox = new VBox();
-    vbox.setSpacing(10);
-    vbox.getChildren().add(passwordField);
-    dialog.getDialogPane().setContent(vbox);
+                        // Chặn lỗi nếu Session không lưu password
+                        if (currentUser.getPassword() == null || currentUser.getPassword().isEmpty()) {
+                            showAlert("Lỗi hệ thống", "Dữ liệu User trong Session không chứa mật khẩu mã hóa. Vui lòng kiểm tra lại API Login phía Server!");
+                            return;
+                        }
 
-    // Xử lý focus mặc định vào trường mật khẩu khi mở popup
-    javafx.application.Platform.runLater(passwordField::requestFocus);
+                        if (!BCrypt.checkpw(password, currentUser.getPassword())) {
+                            showAlert("Lỗi", "Sai mật khẩu!");
+                            return;
+                        }
 
-    // 5. Bắt sự kiện khi bấm nút "Nâng cấp"
-    dialog.setResultConverter(
-        dialogButton -> {
-          if (dialogButton == confirmButtonType) {
-            return passwordField.getText();
-          }
-          return null;
-        });
+                        System.out.println("=> CHECK BCRYPT THÀNH CÔNG. Chuẩn bị gửi Server...");
+                        sendUpgradeRequestToServer(currentId, event);
 
-    // 6. Hiển thị hộp thoại và chờ người dùng nhập
-    Optional<String> result = dialog.showAndWait();
+                    } catch (Exception e) {
+                        System.out.println("=> VĂNG LỖI NGẦM TRONG LÚC CHECK BCRYPT:");
+                        e.printStackTrace();
+                        showAlert("Lỗi vặt", "Có lỗi xảy ra khi kiểm tra mật khẩu: " + e.getMessage());
+                    }
+                });
+    }
 
-    // 7. Xử lý kết quả sau khi nhập
-    result.ifPresent(
-        password -> {
-          User currentUser = UserSession.getInstance().getCurrentUser();
-          int currentId = currentUser.getUserId();
-          if (!BCrypt.checkpw(password, currentUser.getPassword())) {
-            showAlert("Lỗi", "Sai mật khẩu!");
-            return;
-          } else if (password.trim().isEmpty()) {
-            showAlert("Cảnh báo", "Mật khẩu không được để trống!");
-            return;
-          }
-
-          System.out.println("Gửi request nâng cấp với mật khẩu: " + password);
-          sendUpgradeRequestToServer(currentId);
-        });
-  }
-
-  private void sendUpgradeRequestToServer(int userId) {
+  private void sendUpgradeRequestToServer(int userId,ActionEvent event) {
     // 1. Lấy thông tin user đang login
 
     // 2. Gói vào DTO (ví dụ UpgradeRoleDTO gồm username và password)
@@ -163,7 +149,8 @@ public class MainController extends BaseController implements Initializable {
                     () -> {
                       if ("SUCCESS".equals(response.getStatus())) {
                         showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
-                      } else {
+                        UserSession.getInstance().cleanUserSession();
+                        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");} else {
                         showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
                       }
                     });
@@ -176,15 +163,26 @@ public class MainController extends BaseController implements Initializable {
         .start();
   }
 
-  public void handleManageUsers(ActionEvent event) {
-    switchScene(event, "/views/ManageUserView.fxml", "Quản lý người dùng");
-  }
+  // ================== HÀM LẤY DATA CHO TRANG CHỦ  ==================
 
-  public void handleManageAuctions(ActionEvent event) {
-    switchScene(event, "/views/ManageAuctionView.fxml", "Quản lý phiên đấu giá");
-  }
+  private void loadPromotedAuctionsFromServer() {
+    Request request = new Request("GET_PROMOTED_AUCTIONS", null);
+    String jsonRequest = gson.toJson(request);
 
-  public void handleApproveItem(ActionEvent event) {
-    switchScene(event, "/views/ItemApprovalView.fxml", "Kiểm duyệt sản phẩm");
+    new Thread(() -> {
+      try {
+        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+        Response response = gson.fromJson(jsonResponse, Response.class);
+
+        Platform.runLater(() -> {
+          if ("SUCCESS".equals(response.getStatus())) {
+            System.out.println("Lấy danh sách đề cử thành công!");
+            // buildPromotedCards(list);
+          }
+        });
+      } catch (Exception e) {
+        System.out.println("Lỗi khi tải danh sách đề cử: " + e.getMessage());
+      }
+    }).start();
   }
 }
