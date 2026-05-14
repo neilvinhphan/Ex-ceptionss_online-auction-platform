@@ -22,11 +22,12 @@ public class Auction extends Entity {
   private BigDecimal bidIncrement;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
+  public Auction(
+      Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
     this.item = item;
     this.status = AuctionStatus.RUNNING;
-    this.startTime = LocalDateTime.now();
+    this.startTime = startTime;
     this.durationMinutes = durationMinutes;
     this.bidIncrement = bidIncrement;
   }
@@ -85,6 +86,14 @@ public class Auction extends Entity {
             && (now.isBefore(this.endTime) || now.isEqual(this.endTime));
 
     return rangeCheck;
+  }
+
+  public long getDurationMinutes() {
+    return durationMinutes;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
   }
 
   public int getId() {

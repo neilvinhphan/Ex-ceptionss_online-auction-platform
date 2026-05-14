@@ -68,6 +68,8 @@ public class ClientHandler implements Runnable {
   private BufferedReader in;
   private PrintWriter out;
 
+  private int currentRoomId = -1;
+
   private final Gson gson =
       new GsonBuilder()
           .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
@@ -176,12 +178,23 @@ public class ClientHandler implements Runnable {
               handleAdminCancelAuction(request);
               break;
             case "GET_PENDING_AUCTIONS":
+              handleGetPendingAuctions(request);
+              break;
+            case "JOIN_ROOM":
+              handleJoinRoom(request);
+              break;
+            case "APPROVE_AUCTION":
+              handleApproveAuction(request);
               break;
             case "LEAVE_ROOM":
-              // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
-              Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng thành công");
-              sendMessage(gson.toJson(leaveRes));
+              handleLeaveRoom(request);
               break;
+            //            case "LEAVE_ROOM":
+            //              // Gửi cho con Zombie 1 cục xương để nó nhả hàm readLine() ra
+            //              Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng
+            // thành công");
+            //              sendMessage(gson.toJson(leaveRes));
+            //              break;
             default:
               System.out.println("Unknown action: " + request.getAction());
           }
@@ -358,6 +371,52 @@ public class ClientHandler implements Runnable {
       e.printStackTrace();
       Response errorResponse = new Response("ERROR", "Lỗi tạo đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleJoinRoom(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      JsonObject jsonObject = gson.fromJson(dataJson, JsonObject.class);
+      int auctionId = jsonObject.get("auctionId").getAsInt();
+
+      // Ghi nhận phòng hiện tại và đăng ký với Server để nhận Broadcast
+      this.currentRoomId = auctionId;
+      AuctionServer.addClientToRoom(auctionId, this);
+
+      Response response = new Response("SUCCESS", "Đã tham gia phòng " + auctionId);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      Response response = new Response("ERROR", "Lỗi khi join phòng: " + e.getMessage());
+      sendMessage(gson.toJson(response));
+    }
+  }
+
+  private void handleLeaveRoom(Request request) {
+    // Xóa client khỏi danh sách nhận Broadcast của phòng đó
+    if (this.currentRoomId != -1) {
+      AuctionServer.removeClientFromRoom(this.currentRoomId, this);
+      this.currentRoomId = -1;
+    }
+
+    Response leaveRes = new Response("LEAVE_SUCCESS", "Giải phóng luồng thành công");
+    sendMessage(gson.toJson(leaveRes));
+  }
+
+  private void handleApproveAuction(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      JsonObject jsonObject = gson.fromJson(dataJson, JsonObject.class);
+      int auctionId = jsonObject.get("auctionId").getAsInt();
+
+      // Gọi logic đổi trạng thái thành OPEN và tự động lên lịch (Scheduler)
+      AuctionService.approveAuction(auctionId);
+
+      Response response = new Response("SUCCESS", "Đã duyệt và hẹn giờ mở cửa phiên " + auctionId);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      Response response = new Response("ERROR", "Lỗi khi duyệt phiên: " + e.getMessage());
+      sendMessage(gson.toJson(response));
     }
   }
 
@@ -671,6 +730,22 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  private void handleGetPendingAuctions(Request request) {
+    try {
+      // Gọi hàm lấy danh sách theo trạng thái (đã viết sẵn trong AuctionService)
+      List<Auction> pendingAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
+
+      Response response =
+          new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingAuctions);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse =
+          new Response("ERROR", "Lỗi lấy danh sách PENDING: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
   private void handleAdminCancelAuction(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
@@ -730,6 +805,12 @@ public class ClientHandler implements Runnable {
   private void closeConnection() {
     try {
       connectedClients.remove(this);
+
+      if (this.currentRoomId != -1) {
+        AuctionServer.removeClientFromRoom(this.currentRoomId, this);
+        this.currentRoomId = -1;
+      }
+
       System.out.println(
           "[SERVER] Một Client vừa thoát. Tổng số người online: " + connectedClients.size());
 
