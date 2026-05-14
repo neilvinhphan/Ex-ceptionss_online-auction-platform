@@ -75,16 +75,13 @@ public class ItemApprovalController extends BaseController implements Initializa
     private void setupTableSelectionListener() {
         itemTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (newSelection != null) {
-                // Cập nhật text
                 lblName.setText(newSelection.getItemName());
                 lblType.setText(newSelection.getType());
                 lblPrice.setText(String.format("%,.0f đ", newSelection.getStartingPrice().doubleValue()));
 
-                // Nếu mô tả trống, hiển thị chữ mặc định
                 String desc = newSelection.getDescription();
                 txtDescription.setText((desc != null && !desc.trim().isEmpty()) ? desc : "Không có mô tả chi tiết.");
 
-                // Cập nhật Ảnh
                 String base64Image = newSelection.getImage();
                 if (base64Image != null && !base64Image.isEmpty()) {
                     new Thread(() -> {
@@ -104,7 +101,6 @@ public class ItemApprovalController extends BaseController implements Initializa
                     lblNoImage.setVisible(true);
                 }
 
-                // Mở khóa các nút
                 btnApprove.setDisable(false);
                 btnReject.setDisable(false);
             } else {
@@ -114,18 +110,75 @@ public class ItemApprovalController extends BaseController implements Initializa
     }
 
     private void loadPendingItems() {
-        // TODO: SOCKET -> LẤY LIST PENDING_ITEM VỚI TƯ CÁCH ADMIN
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showAlert("Lỗi", "Không tìm thấy thông tin Admin. Vui lòng đăng nhập lại!");
+            return;
+        }
+
+        int adminId = currentUser.getUserId();
+
+        Request request = new Request("ADMIN_GET_ALL_PENDING_ITEMS", adminId);
+        String jsonRequest = gson.toJson(request);
+
+        new Thread(() -> {
+            try {
+                System.out.println("Đang lấy danh sách tài sản chờ duyệt từ Server...");
+
+                clientSocket.getOut().println(jsonRequest);
+                String jsonResponse = clientSocket.getIn().readLine();
+
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
+
+                    if ("SUCCESS".equals(response.getStatus())) {
+
+                        String jsonData = gson.toJson(response.getData());
+                        JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+                        List<Item> fetchedItems = new ArrayList<>();
+
+                        for (JsonElement element : jsonArray) {
+                            JsonObject itemObj = element.getAsJsonObject();
+
+                            if (itemObj.has("type") && !itemObj.get("type").isJsonNull()) {
+                                String type = itemObj.get("type").getAsString();
+
+                                Item parsedItem = switch (type.toUpperCase()) {
+                                    case "ART" -> gson.fromJson(itemObj, ArtItem.class);
+                                    case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
+                                    case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
+                                    default -> gson.fromJson(itemObj, Item.class); // fallback
+                                };
+                                fetchedItems.add(parsedItem);
+                            } else {
+                                fetchedItems.add(gson.fromJson(itemObj, Item.class));
+                            }
+                        }
+
+                        Platform.runLater(() -> {
+                            pendingItemsList.setAll(fetchedItems);
+                            clearDetailsPane(); // Reset lại panel chi tiết khi vừa load xong
+                            System.out.println("Đã tải xong " + fetchedItems.size() + " tài sản chờ duyệt.");
+                        });
+
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi tải dữ liệu", response.getMessage()));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi mạng", "Không thể lấy dữ liệu: " + e.getMessage()));
+            }
+        }).start();
     }
 
     @FXML
     public void handleApprove(ActionEvent event) {
-        // Truyền tham số TRUE cho hành động Phê duyệt
         processItemAction(true, "phê duyệt");
     }
 
     @FXML
     public void handleReject(ActionEvent event) {
-        // Truyền tham số FALSE cho hành động Từ chối
         processItemAction(false, "từ chối");
     }
     /**
@@ -135,14 +188,12 @@ public class ItemApprovalController extends BaseController implements Initializa
         Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
         if (selectedItem == null) return;
 
-        // Lấy thông tin Admin đang đăng nhập
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser == null) {
             showAlert("Lỗi", "Không tìm thấy phiên đăng nhập của Admin!");
             return;
         }
 
-        // Hiển thị hộp thoại xác nhận cho Admin
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
                 "Bạn có chắc chắn muốn " + actionName + " sản phẩm: " + selectedItem.getItemName() + "?",
                 ButtonType.YES, ButtonType.NO);
@@ -151,11 +202,10 @@ public class ItemApprovalController extends BaseController implements Initializa
         confirm.showAndWait().ifPresent(responseBtn -> {
             if (responseBtn == ButtonType.YES) {
 
-                // 1. TẠO PAYLOAD CHUẨN MÀ SERVER ĐANG CHỜ ĐỢI
                 AdminProcessItemDTO payload =
                         new AdminProcessItemDTO(
                                 currentUser.getUserId(),
-                                isApproved, // true = duyệt, false = từ chối
+                                isApproved,
                                 selectedItem.getItemId()
                         );
 

@@ -20,13 +20,16 @@ public class Auction extends Entity {
   private List<BidTransaction> bidHistory;
   private BigDecimal highestBid;
   private BigDecimal bidIncrement;
+  private int ownerId;
+  private String itemName;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes, BigDecimal bidIncrement) {
+  public Auction(
+      Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
     this.item = item;
     this.status = AuctionStatus.RUNNING;
-    this.startTime = LocalDateTime.now();
+    this.startTime = startTime;
     this.durationMinutes = durationMinutes;
     this.bidIncrement = bidIncrement;
   }
@@ -85,6 +88,14 @@ public class Auction extends Entity {
             && (now.isBefore(this.endTime) || now.isEqual(this.endTime));
 
     return rangeCheck;
+  }
+
+  public long getDurationMinutes() {
+    return durationMinutes;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
   }
 
   public int getId() {
@@ -177,4 +188,12 @@ public class Auction extends Entity {
   public void setBidIncrement(BigDecimal bidIncrement) {
     this.bidIncrement = bidIncrement;
   }
+
+  public void setItemName(String itemName) {this.itemName = itemName;}
+
+  public String getItemName() {return itemName;}
+
+  public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
+
+  public int getOwnerId() {return ownerId;}
 }

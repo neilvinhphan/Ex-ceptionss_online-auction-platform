@@ -44,9 +44,21 @@ public class BiddingService {
    * increment 4) ghi DB bid + cập nhật current price 5) anti sniping
    */
   public boolean placeBid(BidRequestDTO request) throws Exception {
+    // TEST---
+    String threadName = Thread.currentThread().getName();
+    // ----
+
     ReentrantLock lock = getLock(request.getAuctionId());
     lock.lock();
     try {
+      // TEST---
+      System.out.println(
+          "["
+              + threadName
+              + "] 🟢 Đã cầm chìa khóa (Lock)! Đang xử lý giá cho User "
+              + request.getUserId());
+      // ----
+
       LocalDateTime now = LocalDateTime.now();
 
       Auction auction = auctionDAO.getAuctionByAuctionId(request.getAuctionId());
@@ -91,8 +103,20 @@ public class BiddingService {
 
       handleAntiSniping(request.getAuctionId(), auction, now);
 
+      // TEST
+      System.out.println(
+          "[" + threadName + "] 💾 Ghi DB thành công cho User " + request.getUserId());
+      // ----
+
       return true;
+    } catch (Exception e) {
+      // TEST
+      System.out.println("[" + threadName + "] ❌ Bị lỗi: " + e.getMessage());
+      throw e;
     } finally {
+      // TEST
+      System.out.println("[" + threadName + "] 🔓 Trả lại chìa khóa (Unlock)!");
+      // ----
       lock.unlock();
     }
   }
