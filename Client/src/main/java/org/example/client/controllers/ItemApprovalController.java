@@ -114,7 +114,73 @@ public class ItemApprovalController extends BaseController implements Initializa
     }
 
     private void loadPendingItems() {
-        // TODO: SOCKET -> LẤY LIST PENDING_ITEM VỚI TƯ CÁCH ADMIN
+        // 1. Lấy thông tin Admin đang đăng nhập
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showAlert("Lỗi", "Không tìm thấy thông tin Admin. Vui lòng đăng nhập lại!");
+            return;
+        }
+
+        int adminId = currentUser.getUserId();
+
+        // 2. Đóng gói Request gửi lên Server
+        Request request = new Request("ADMIN_GET_ALL_PENDING_ITEMS", adminId);
+        String jsonRequest = gson.toJson(request);
+
+        new Thread(() -> {
+            try {
+                System.out.println("Đang lấy danh sách tài sản chờ duyệt từ Server...");
+
+                // Gửi request qua Socket
+                clientSocket.getOut().println(jsonRequest);
+                String jsonResponse = clientSocket.getIn().readLine();
+
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
+
+                    if ("SUCCESS".equals(response.getStatus())) {
+
+                        // --- BƯỚC 3: XỬ LÝ DỮ LIỆU ĐA HÌNH ITEM ---
+                        String jsonData = gson.toJson(response.getData());
+                        JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+                        List<Item> fetchedItems = new ArrayList<>();
+
+                        for (JsonElement element : jsonArray) {
+                            JsonObject itemObj = element.getAsJsonObject();
+
+                            // Kiểm tra biến "type" để ép kiểu chuẩn xác
+                            if (itemObj.has("type") && !itemObj.get("type").isJsonNull()) {
+                                String type = itemObj.get("type").getAsString();
+
+                                Item parsedItem = switch (type.toUpperCase()) {
+                                    case "ART" -> gson.fromJson(itemObj, ArtItem.class);
+                                    case "ELECTRONICS" -> gson.fromJson(itemObj, ElectronicsItem.class);
+                                    case "VEHICLE" -> gson.fromJson(itemObj, VehicleItem.class);
+                                    default -> gson.fromJson(itemObj, Item.class); // fallback
+                                };
+                                fetchedItems.add(parsedItem);
+                            } else {
+                                // Nếu không có type, dùng Item mặc định
+                                fetchedItems.add(gson.fromJson(itemObj, Item.class));
+                            }
+                        }
+
+                        // --- BƯỚC 4: ĐẨY LÊN GIAO DIỆN ---
+                        Platform.runLater(() -> {
+                            pendingItemsList.setAll(fetchedItems);
+                            clearDetailsPane(); // Reset lại panel chi tiết khi vừa load xong
+                            System.out.println("Đã tải xong " + fetchedItems.size() + " tài sản chờ duyệt.");
+                        });
+
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi tải dữ liệu", response.getMessage()));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi mạng", "Không thể lấy dữ liệu: " + e.getMessage()));
+            }
+        }).start();
     }
 
     @FXML
