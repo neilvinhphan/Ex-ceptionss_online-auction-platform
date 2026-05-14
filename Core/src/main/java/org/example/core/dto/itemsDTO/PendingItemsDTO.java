@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.itemsDTO;
 
 import org.example.core.models.items.Item;
 

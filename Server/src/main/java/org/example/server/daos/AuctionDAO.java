@@ -1,12 +1,11 @@
 package org.example.server.daos;
 
-import org.example.core.dto.PaidHistoryDTO;
-import org.example.core.dto.PendingPaymentsDTO;
+import org.example.core.dto.paymentDTO.PaidHistoryDTO;
+import org.example.core.dto.paymentDTO.PendingPaymentsDTO;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
-import org.example.core.models.items.ItemFactory;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.config.DBConnection;
@@ -91,7 +90,7 @@ public class AuctionDAO {
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
     String sql =
-        "SELECT a.*, "
+        "SELECT a.*, i.items_name, i.owner_id, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
@@ -106,6 +105,8 @@ public class AuctionDAO {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
         auction.setItemId(rs.getInt("items_id"));
+        auction.setItemName(rs.getString("items_name"));
+        auction.setOwnerId(rs.getInt("owner_id"));
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));
@@ -193,14 +194,17 @@ public class AuctionDAO {
   }
 
   public List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) {
-    List<PendingPaymentsDTO> pendingPaymentsDTOs = new ArrayList<>();
-    String sql = "SELECT auction_id, items_id, highest_price, end_time FROM auction WHERE status = 'FINISHED' AND bidder_id = ?";
-    try(Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+    List<org.example.core.dto.paymentDTO.PendingPaymentsDTO> pendingPaymentsDTOs =
+        new ArrayList<>();
+    String sql =
+        "SELECT auction_id, items_id, highest_price, end_time FROM auction WHERE status = 'FINISHED' AND bidder_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
-        PendingPaymentsDTO pendingPaymentsDTO = new PendingPaymentsDTO();
+        org.example.core.dto.paymentDTO.PendingPaymentsDTO pendingPaymentsDTO =
+            new org.example.core.dto.paymentDTO.PendingPaymentsDTO();
         pendingPaymentsDTO.setAuctionId(rs.getInt("auction_id"));
         pendingPaymentsDTO.setItemName(itemDAO.getItemNameByItemId(rs.getInt("items_id")));
         pendingPaymentsDTO.setWinPrice(rs.getBigDecimal("highest_price"));
@@ -209,12 +213,14 @@ public class AuctionDAO {
       }
     } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
-    } return pendingPaymentsDTOs;
+    }
+    return pendingPaymentsDTOs;
   }
 
   public List<PaidHistoryDTO> getAllAuctionsPaid(int userId) {
     List<PaidHistoryDTO> paidHistoryDTOs = new ArrayList<>();
-    String sql = """
+    String sql =
+        """
     SELECT i.items_name, i.type AS category,
            a.highest_price AS final_price,
            w.created_at AS paid_date
@@ -225,7 +231,7 @@ public class AuctionDAO {
     AND a.bidder_id = ?
     AND w.transaction_type = 'PAY_AUCTION'""";
     try (Connection connection = DBConnection.getConnection();
-    PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       ResultSet rs = ps.executeQuery();
       while (rs.next()) {
@@ -235,20 +241,20 @@ public class AuctionDAO {
         paidHistoryDTO.setFinalPrice(rs.getBigDecimal("final_price"));
         paidHistoryDTO.setItemName(rs.getString("items_name"));
         paidHistoryDTOs.add(paidHistoryDTO);
-      } return paidHistoryDTOs;
+      }
+      return paidHistoryDTOs;
     } catch (SQLException | IOException e) {
       e.printStackTrace();
-    } return null;
+    }
+    return null;
   }
 
   public List<Integer> getAllAuctionIdFinishedByUserId(int userId) {
     List<Integer> auctionIds = new ArrayList<>();
-    // Câu query giả định: Lấy auction_id từ bảng auctions nơi người dùng thắng cuộc và trạng thái đã kết thúc
-    // Bạn hãy điều chỉnh tên bảng và cột cho khớp với DB của bạn
     String sql = "SELECT auction_id FROM auction WHERE bidder_id = ? AND status = 'FINISHED'";
 
     try (Connection conn = DBConnection.getConnection(); // Sử dụng class kết nối DB của bạn
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
 
       ps.setInt(1, userId);
 
@@ -265,32 +271,18 @@ public class AuctionDAO {
     return auctionIds;
   }
 
-  public int getAuctionIdByItemId(int itemId) {
-    String sql = "SELECT auction_id FROM auction WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return rs.getInt("auction_id");
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return -1;
-  }
-
-  public int createNewAuctionItem(Item item, long time, BigDecimal bidIncrement) {
+  public int createNewAuctionItem(
+      Item item, long time, BigDecimal bidIncrement, LocalDateTime startTime) {
     String sql =
-        "INSERT INTO auction (items_id, start_price, bid_increment, end_time) VALUES (?,?,?,?)";
+        "INSERT INTO auction (items_id, start_price, bid_increment, end_time, start_time) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getItemId());
       ps.setBigDecimal(2, item.getStartingPrice());
       ps.setBigDecimal(3, bidIncrement);
-      LocalDateTime endtime = LocalDateTime.now().plusMinutes(time);
+      LocalDateTime endtime = startTime.plusMinutes(time);
       ps.setTimestamp(4, Timestamp.valueOf(endtime));
+      ps.setTimestamp(5, Timestamp.valueOf(startTime));
       try (ResultSet rs = ps.executeUpdate() > 0 ? ps.getGeneratedKeys() : null) {
         if (rs.next()) {
           return rs.getInt(1);
@@ -325,8 +317,17 @@ public class AuctionDAO {
           auction.setAuctionId(rs.getInt("auction_id"));
           auction.setItemId(rs.getInt("items_id"));
           auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+          // --- BẮT ĐẦU ĐOẠN SỬA ---
+          Timestamp startTs = rs.getTimestamp("start_time");
+          if (startTs != null) {
+            auction.setStartTime(startTs.toLocalDateTime());
+          }
+
+          Timestamp endTs = rs.getTimestamp("end_time");
+          if (endTs != null) {
+            auction.setEndTime(endTs.toLocalDateTime());
+          }
+          // --- KẾT THÚC ĐOẠN SỬA ---
           auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
           auction.setHighestBid(rs.getBigDecimal("highest_price"));
           auction.setBidderId(rs.getInt("bidder_id"));

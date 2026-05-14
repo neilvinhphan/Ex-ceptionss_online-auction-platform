@@ -9,15 +9,7 @@ public abstract class Entity {
     createdAt = LocalDateTime.now();
   }
 
-  // Create User
   public Entity(LocalDateTime createdAt) {
     this.createdAt = createdAt;
   }
-
-  // Setter & Getter
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(LocalDateTime createdAt) {this.createdAt = createdAt;}
 }

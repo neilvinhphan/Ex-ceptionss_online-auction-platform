@@ -37,7 +37,7 @@ public class User extends Entity {
       int userId,
       RoleType role,
       BigDecimal balance,
-  UserStatus status) {
+      UserStatus status) {
     this.createdAt = createdAt;
     this.userName = userName;
     this.phone = phone;

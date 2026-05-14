@@ -1,4 +1,4 @@
-package org.example.core.dto;
+package org.example.core.dto.paymentDTO;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

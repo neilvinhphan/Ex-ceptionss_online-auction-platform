@@ -11,45 +11,66 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #1e1e1e;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.ManageAuctionController">
+<AnchorPane prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #1e1e1e;"
+            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.client.controllers.ManageAuctionController">
     <children>
-        <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+        <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
             <children>
 
                 <HBox alignment="CENTER_LEFT" spacing="20.0">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#handleBack" prefHeight="35.0" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="⬅ Quay lại" />
+                        <Button mnemonicParsing="false" onAction="#handleBack" prefHeight="35.0"
+                                style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                                text="⬅ Quay lại"/>
                         <Label text="Quản lý phiên đấu giá" textFill="WHITE">
                             <font>
-                                <Font name="System Bold" size="24.0" />
+                                <Font name="System Bold" size="24.0"/>
                             </font>
                         </Label>
                     </children>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #2d2d2d; -fx-padding: 15; -fx-background-radius: 10;">
+                <HBox alignment="CENTER_LEFT" spacing="15.0"
+                      style="-fx-background-color: #2d2d2d; -fx-padding: 15; -fx-background-radius: 10;">
                     <children>
-                        <TextField fx:id="searchField" prefHeight="35.0" prefWidth="250.0" promptText="Tìm theo ID, Tên sản phẩm..." style="-fx-background-radius: 5;" />
-                        <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="35.0" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="🔍 Tìm kiếm" />
+                        <TextField fx:id="searchField" prefHeight="35.0" prefWidth="250.0"
+                                   promptText="Tìm theo ID, Tên sản phẩm..."
+                                   style="-fx-background-radius: 5;"/>
+                        <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="35.0"
+                                style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                                text="🔍 Tìm kiếm"/>
 
-                        <Region HBox.hgrow="ALWAYS" />
-
-                        <Button mnemonicParsing="false" onAction="#handleRefresh" prefHeight="35.0" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="🔄 Làm mới" />
-                        <Button mnemonicParsing="false" onAction="#handleCancelAuction" prefHeight="35.0" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="🚫 Hủy phiên khẩn cấp" />
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button mnemonicParsing="false" onAction="#handleGoToApproval"
+                                prefHeight="35.0"
+                                style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                                text="⏳ KIỂM DUYỆT PHÒNG CHỜ"/>
+                        <Button mnemonicParsing="false" onAction="#handleRefresh" prefHeight="35.0"
+                                style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                                text="🔄 Làm mới"/>
+                        <Button mnemonicParsing="false" onAction="#handleCancelAuction"
+                                prefHeight="35.0"
+                                style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                                text="🚫 Hủy phiên khẩn cấp"/>
                     </children>
                 </HBox>
 
-                <TableView fx:id="auctionTable" style="-fx-background-radius: 5; -fx-font-size: 14px;" VBox.vgrow="ALWAYS">
+                <TableView fx:id="auctionTable"
+                           style="-fx-background-radius: 5; -fx-font-size: 14px;"
+                           VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="colId" prefWidth="70.0" text="ID Phiên" />
-                        <TableColumn fx:id="colItemName" prefWidth="200.0" text="Tên sản phẩm" />
-                        <TableColumn fx:id="colSeller" prefWidth="120.0" text="Người bán" />
-                        <TableColumn fx:id="colStartTime" prefWidth="150.0" text="Giờ bắt đầu" />
-                        <TableColumn fx:id="colCurrentPrice" prefWidth="120.0" text="Giá hiện tại" />
-                        <TableColumn fx:id="colStatus" prefWidth="120.0" text="Trạng thái" />
+                        <TableColumn fx:id="colId" prefWidth="70.0" text="ID Phiên"/>
+                        <TableColumn fx:id="colItemName" prefWidth="200.0" text="Tên sản phẩm"/>
+                        <TableColumn fx:id="colSeller" prefWidth="120.0" text="Người bán"/>
+                        <TableColumn fx:id="colStartTime" prefWidth="150.0" text="Giờ bắt đầu"/>
+                        <TableColumn fx:id="colCurrentPrice" prefWidth="120.0" text="Giá hiện tại"/>
+                        <TableColumn fx:id="colStatus" prefWidth="120.0" text="Trạng thái"/>
                     </columns>
                     <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                     </columnResizePolicy>
                 </TableView>
 

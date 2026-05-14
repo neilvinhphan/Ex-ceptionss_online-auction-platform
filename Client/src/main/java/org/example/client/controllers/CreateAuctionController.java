@@ -10,8 +10,8 @@ import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.CreateAuctionDTO;
-import org.example.core.dto.PendingItemsDTO;
+import org.example.core.dto.auctionDTO.CreateAuctionDTO;
+import org.example.core.dto.itemsDTO.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
@@ -37,16 +37,22 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
+import javafx.scene.control.DatePicker;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public class CreateAuctionController extends BaseController implements Initializable {
   @FXML private MenuButton menuUser;
   @FXML private Spinner<Integer> durationHourSpinner;
   @FXML private Spinner<Integer> durationMinuteSpinner;
-  @FXML private DatePicker dpStartDate;
   @FXML private ComboBox<Item> cbPendingItems;
   @FXML private ComboBox<String> cbCategory;
   @FXML private TextField tfStartingPrice;
   @FXML private TextField tfBidIncrement;
+  @FXML private DatePicker dpStartDate;
+  @FXML private Spinner<Integer> startHourSpinner;
+  @FXML private Spinner<Integer> startMinuteSpinner;
   // Danh sách lưu toàn bộ item chưa đấu giá kéo từ server về
   private List<Item> allPendingItems = new ArrayList<>();
   // Cờ chống lặp vô hạn giữa 2 cái Listener
@@ -61,6 +67,20 @@ public class CreateAuctionController extends BaseController implements Initializ
     setupItemDisplayFormat(); // Định dạng cách hiển thị tên Item trong ComboBox
     loadPendingItems(); // 1. Lấy dữ liệu giả lập (hoặc từ Server)
     setupListeners(); // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
+
+    // Setup spinner cho Start Time (Mặc định lấy giờ hiện tại)
+    SpinnerValueFactory<Integer> startHourFactory =
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, LocalDateTime.now().getHour());
+    startHourSpinner.setValueFactory(startHourFactory);
+    startHourSpinner.setEditable(true);
+
+    SpinnerValueFactory<Integer> startMinuteFactory =
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 59, LocalDateTime.now().getMinute());
+    startMinuteSpinner.setValueFactory(startMinuteFactory);
+    startMinuteSpinner.setEditable(true);
+
+    // Set ngày mặc định là hôm nay
+    dpStartDate.setValue(LocalDate.now());
   }
 
   private void initUser() {
@@ -238,6 +258,26 @@ public class CreateAuctionController extends BaseController implements Initializ
       showAlert("Lỗi", "Vui lòng nhập bước giá!");
       return; // Dừng lại không chạy tiếp
     }
+
+    // --- BỔ SUNG LẤY VÀ KIỂM TRA START TIME ---
+    LocalDate startDate = dpStartDate.getValue();
+    if (startDate == null) {
+      showAlert("Lỗi", "Vui lòng chọn ngày mở phiên đấu giá!");
+      return;
+    }
+    int startHour = startHourSpinner.getValue();
+    int startMinute = startMinuteSpinner.getValue();
+    LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.of(startHour, startMinute));
+
+    if (startTime.isBefore(LocalDateTime.now())) {
+      showAlert("Lỗi", "Thời gian mở phòng dự kiến phải lớn hơn thời gian hiện tại!");
+      return;
+    }
+
+    if (getDuration().toMinutes() <= 0) {
+      showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
+      return;
+    }
     if (getDuration().toMinutes() <= 0) {
       showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
       return;
@@ -249,7 +289,7 @@ public class CreateAuctionController extends BaseController implements Initializ
 
       // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
       CreateAuctionDTO requestDTO =
-          new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement);
+          new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement, startTime);
       // 5. Gửi lên Server
       Request request =
           new Request(
@@ -279,16 +319,21 @@ public class CreateAuctionController extends BaseController implements Initializ
                               .setCurrentItem(
                                   selectedItem); // selectedItem là cái đã getComboBox ở đầu hàm
 
-                          // 3. Giờ Session đã input, tiến hành Chuyển cảnh!
+                          // 3. Không vào phòng ngay nữa, mà báo chờ duyệt và đá về Sảnh Catalog
+                          // (hoặc kho)
                           Platform.runLater(
                               () -> {
-                                showAlert("Thành công", "Đã tạo cuộc đấu giá thành công!");
-                                // Trong handleSubmit của CreateAuctionController
-                                System.out.println(
-                                    "DEBUG Ảnh trước khi vào phòng: " + selectedItem.getImage());
-                                // Nếu nó in ra null hoặc "" thì lỗi là do lúc loadPendingItems chưa
-                                // lấy ảnh về.
-                                switchScene(event, "/views/AuctionRoomView.fxml", "Phòng đấu giá");
+                                showAlert(
+                                    "Thành công",
+                                    "Tạo phòng thành công! Vui lòng chờ Admin kiểm duyệt để lên sàn.");
+
+                                // Xóa Session đi cho sạch vì mình không vào phòng nữa
+                                AuctionSession.getInstance().clearSession();
+
+                                // Chuyển hướng người dùng về Sảnh chờ (Catalog) để họ xem các phòng
+                                // khác
+                                switchScene(
+                                    event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
                               });
 
                         } else {

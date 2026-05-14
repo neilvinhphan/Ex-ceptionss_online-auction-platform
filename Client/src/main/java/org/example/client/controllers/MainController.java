@@ -7,7 +7,7 @@ import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
-import org.example.core.dto.UpdateRoleRequestDTO;
+import org.example.core.dto.userDTO.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
@@ -34,31 +34,32 @@ public class MainController extends BaseController implements Initializable {
   @FXML private MenuButton menuUser;
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
-@FXML VBox userBox,adminBox;
+  @FXML VBox userBox, adminBox;
+
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     User currentUser = UserSession.getInstance().getCurrentUser();
-//    if (currentUser != null) {
-//      menuUser.setText(currentUser.getUserName());
-      if (currentUser != null && currentUser.getRole() == RoleType.ADMIN) {
+    //    if (currentUser != null) {
+    //      menuUser.setText(currentUser.getUserName());
+    if (currentUser != null && currentUser.getRole() == RoleType.ADMIN) {
 
-          // Nếu là Admin -> Ẩn toàn bộ giao diện User
-          userBox.setVisible(false);
-          userBox.setManaged(false);
+      // Nếu là Admin -> Ẩn toàn bộ giao diện User
+      userBox.setVisible(false);
+      userBox.setManaged(false);
 
-          // Bật giao diện Admin lên
-          adminBox.setVisible(true);
-          adminBox.setManaged(true);
+      // Bật giao diện Admin lên
+      adminBox.setVisible(true);
+      adminBox.setManaged(true);
 
-      } else {
-          // Nếu là người thường/Seller -> Ẩn giao diện Admin
-          adminBox.setVisible(false);
-          adminBox.setManaged(false);
+    } else {
+      // Nếu là người thường/Seller -> Ẩn giao diện Admin
+      adminBox.setVisible(false);
+      adminBox.setManaged(false);
 
-          // Bật giao diện User lên
-          userBox.setVisible(true);
-          userBox.setManaged(true);
-      }
+      // Bật giao diện User lên
+      userBox.setVisible(true);
+      userBox.setManaged(true);
+    }
   }
 
   @FXML
@@ -175,16 +176,15 @@ public class MainController extends BaseController implements Initializable {
         .start();
   }
 
-    public void handleManageUsers(ActionEvent event) {
-        switchScene(event, "/views/ManageUserView.fxml", "Quản lý người dùng");
+  public void handleManageUsers(ActionEvent event) {
+    switchScene(event, "/views/ManageUserView.fxml", "Quản lý người dùng");
+  }
 
-    }
+  public void handleManageAuctions(ActionEvent event) {
+    switchScene(event, "/views/ManageAuctionView.fxml", "Quản lý phiên đấu giá");
+  }
 
-    public void handleManageAuctions(ActionEvent event) {
-        switchScene(event, "/views/ManageAuctionView.fxml", "Quản lý phiên đấu giá");
-    }
-
-    public void handleApproveItem(ActionEvent event) {
-        switchScene(event, "/views/AuctionApprovalView.fxml", "Kiểm duyệt sản phẩm");
-    }
+  public void handleApproveItem(ActionEvent event) {
+    switchScene(event, "/views/ItemApprovalView.fxml", "Kiểm duyệt sản phẩm");
+  }
 }
