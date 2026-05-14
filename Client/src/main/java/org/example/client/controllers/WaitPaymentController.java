@@ -240,28 +240,5 @@ public class WaitPaymentController extends BaseController implements Initializab
     }
 
 
-    @FXML
-    public void handleHistoryAuction(ActionEvent event) {
-        switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-    }
 
-    @FXML
-    public void handleUserUi(ActionEvent event) {
-        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-    }
-
-    @FXML
-    public void handleWareHouse(ActionEvent event) {
-        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-    }
-
-    @FXML
-    public void handleCreateItem(ActionEvent event) {
-        switchScene(event, "/views/CreateItemView.fxml", "Tao san pham dau gia");
-    }
-
-    @FXML
-    public void handleCreateAuction(ActionEvent event) {
-        switchScene(event, "/views/CreateAuctionView.fxml", "Tao cuoc dau gia moi");
-    }
 }

@@ -3,6 +3,7 @@ package org.example.client.controllers;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import org.example.client.utils.UserSession;
@@ -11,11 +12,11 @@ import org.example.core.shared.enums.RoleType;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MenuController extends BaseController implements Initializable {
+public class UserMenuController extends BaseController implements Initializable {
 
     @FXML private MenuButton menuUser;
     @FXML private Label roleLabel;
-
+    @FXML private Button btnBackToAdmin;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -23,9 +24,15 @@ public class MenuController extends BaseController implements Initializable {
         if (currentUser != null) {
             menuUser.setText(currentUser.getUserName());
 
+            // Kiểm tra quyền Admin để hiện nút đặc biệt
             if (currentUser.getRole() == RoleType.ADMIN) {
-                roleLabel.setText("Admin ");
+                roleLabel.setText("Admin");
                 roleLabel.setStyle("-fx-text-fill: #e63946; -fx-font-size: 11; -fx-font-weight: bold;");
+
+                // HIỆN NÚT QUAY LẠI CHO ADMIN
+                btnBackToAdmin.setVisible(true);
+                btnBackToAdmin.setManaged(true);
+
             } else if (currentUser.getRole() == RoleType.SELLER) {
                 roleLabel.setText("Seller");
                 roleLabel.setStyle("-fx-text-fill: #ffc107; -fx-font-size: 11; -fx-font-weight: bold;");
@@ -51,5 +58,10 @@ public class MenuController extends BaseController implements Initializable {
     @FXML void handleLogout(ActionEvent event) {
         UserSession.getInstance().cleanUserSession();
         switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+    }
+
+    @FXML
+    void handleBackToAdmin(ActionEvent event) {
+        switchScene(event, "/views/AdminDashboardView.fxml", "Tổng quan hệ thống - Admin");
     }
 }

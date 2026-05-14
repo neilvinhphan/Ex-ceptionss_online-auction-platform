@@ -354,30 +354,6 @@ public class CreateAuctionController extends BaseController implements Initializ
   }
 
 
-
-  public void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-  }
-
-  public void handleCreateAuction(ActionEvent event) {
-    switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá");
-  }
-
-  @FXML
-  void handleWareHouse(ActionEvent event) {
-    switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-  }
-
-  @FXML
-  public void handleWaitPayment(ActionEvent event) {
-    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
-  }
-
-  @FXML
-  void handleCreateItem(ActionEvent event) {
-    switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
-  }
-
   // =========================================================
   // 🔹 HELPERS
   // =========================================================
@@ -387,7 +363,5 @@ public class CreateAuctionController extends BaseController implements Initializ
     return Duration.ofHours(hours).plusMinutes(minutes);
   }
 
-  public void handleHistoryAuction(ActionEvent event) {
-    switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-  }
+
 }

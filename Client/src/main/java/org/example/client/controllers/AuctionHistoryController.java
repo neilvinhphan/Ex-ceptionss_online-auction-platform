@@ -80,9 +80,4 @@ public class AuctionHistoryController extends BaseController implements Initiali
             } catch (Exception e) { e.printStackTrace(); }
         }).start();
     }
-    @FXML void handleWaitPayment(ActionEvent e) { switchScene(e, "/views/WaitPaymentView.fxml", "Thanh toán"); }
-    @FXML void handleWareHouse(ActionEvent e) { switchScene(e, "/views/WareHouseView.fxml", "Kho hàng"); }
-    @FXML void handleCreateItem(ActionEvent e) { switchScene(e, "/views/CreateItemView.fxml", "Tạo vật phẩm"); }
-    @FXML void handleCreateAuction(ActionEvent e) { switchScene(e, "/views/CreateAuctionView.fxml", "Tạo đấu giá"); }
-    @FXML void handleUserUi(ActionEvent e) { switchScene(e, "/views/PersonalView.fxml", "Hồ sơ"); }
-   }
+     }

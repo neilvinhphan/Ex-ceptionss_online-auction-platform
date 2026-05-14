@@ -53,4 +53,25 @@
 .chart-series-line {
     -fx-stroke-width: 2px;
 }
+/* Style mặc định cho nút Sidebar */
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #555555;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s; /* Hiệu ứng chuyển màu mượt */
+}
+
+/* Hiệu ứng khi di chuột qua (Hover) */
+.sidebar-button:hover {
+    -fx-background-color: #f0f2f5;
+    -fx-text-fill: #28a745;
+}
+
+/* Style cho nút đang được chọn (Active) */
+.sidebar-active {
+    -fx-background-color: #d4edda;
+    -fx-text-fill: #28a745;
+    -fx-background-radius: 10;
+}
 

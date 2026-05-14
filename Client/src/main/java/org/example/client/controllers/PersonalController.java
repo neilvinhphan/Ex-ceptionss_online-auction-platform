@@ -67,14 +67,6 @@ public class PersonalController extends BaseController implements Initializable 
     public void handleHistoryAuction(ActionEvent event) {
     switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
     }
-    @FXML
-    void handleCreateAuction(ActionEvent event) {
-        if (userRole.equals(RoleType.BIDDER)) {
-            showAlert("Không có quyền", "Chỉ người mua mới có thể tạo cuộc đấu giá!");
-        } else {
-            switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
-        }
-    }
 
     @FXML
     void handleEditPhone(ActionEvent event) {
@@ -141,23 +133,6 @@ public class PersonalController extends BaseController implements Initializable 
         }
     }
 
-    @FXML
-    void handleCreateItem(ActionEvent event) {
-        if (userRole.equals(RoleType.SELLER)) {
-            switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
-        } else {
-            showAlert("Không có quyền", "Chỉ người mua mới có thể tạo sản phẩm đấu giá!");
-        }
-    }
-
-    @FXML
-    void handleWareHouse(ActionEvent event) {
-        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-    }
-    @FXML
-    public void handleWaitPayment(ActionEvent event) {
-        switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
-    }
 
     @FXML
     public void handleDeposit(ActionEvent event) {

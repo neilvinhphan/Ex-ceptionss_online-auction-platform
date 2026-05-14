@@ -266,26 +266,6 @@ public class CreateItemController extends BaseController implements Initializabl
     }
   }
 
-  @FXML
-  public void handleHistoryAuction(ActionEvent event) {
-  switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-  }
-
-  @FXML
-  void handleUserUi(ActionEvent event) {
-    switchScene(event, "/views/PersonalView.fxml", "Ho so ca nhan");
-  }
-
-
-  @FXML
-  void handleCreateAuction(ActionEvent event) {
-    switchScene(event, "/views/CreateAuctionView.fxml", "Tao cuoc dau gia");
-  }
-
-  @FXML
-  void handleWareHouse(ActionEvent event) {
-    switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-  }
 
   private String encodeFileToBase64(File file) { // mã hóa ảnh
     try {
@@ -297,9 +277,5 @@ public class CreateItemController extends BaseController implements Initializabl
     }
   }
 
-  @FXML
-  public void handleWaitPayment(ActionEvent event) {
-    switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
 
-  }
 }

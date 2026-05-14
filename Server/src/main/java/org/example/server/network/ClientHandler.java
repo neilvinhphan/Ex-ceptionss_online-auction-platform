@@ -192,6 +192,8 @@ public class ClientHandler implements Runnable {
               Response dummyResponse = new Response("SUCCESS", "Chưa có dữ liệu", null);
               sendMessage(gson.toJson(dummyResponse));
               break;
+            case "GET_ADMIN_DASHBOARD_STATS":
+              break;
             case "LEAVE_ROOM":
               handleLeaveRoom(request);
               break;
