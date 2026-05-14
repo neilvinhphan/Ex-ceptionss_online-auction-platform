@@ -30,34 +30,37 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class MainController extends BaseController implements Initializable {
-  @FXML private HBox upgradeBanner;
-  @FXML private FlowPane promotedAuctionsContainer;
+    @FXML
+    private HBox upgradeBanner;
+    @FXML
+    private FlowPane promotedAuctionsContainer;
 
-  // Các thành phần network
-  private Gson gson = ClientManager.getInstance().getGson();
-  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+    // Các thành phần network
+    private Gson gson = ClientManager.getInstance().getGson();
+    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
-  @Override
-  public void initialize(URL location, ResourceBundle resources) {
-    User currentUser = UserSession.getInstance().getCurrentUser();
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
 
-    if (currentUser != null) {
-      // --- KIỂM TRA ROLE ĐỂ ẨN/HIỆN BANNER NÂNG CẤP ---
-      // (Không còn xử lý text của Menu ở đây nữa vì MenuController đã lo)
-      if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.SELLER) {
-        // Admin và Seller thì ẩn Banner nâng cấp
-        upgradeBanner.setVisible(false);
-        upgradeBanner.setManaged(false);
-      } else {
-        // Mặc định là BIDDER (Người mua) thì hiện Banner nâng cấp
-        upgradeBanner.setVisible(true);
-        upgradeBanner.setManaged(true);
-      }
+        if (currentUser != null) {
+            // --- KIỂM TRA ROLE ĐỂ ẨN/HIỆN BANNER NÂNG CẤP ---
+            // (Không còn xử lý text của Menu ở đây nữa vì MenuController đã lo)
+            if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.SELLER) {
+                // Admin và Seller thì ẩn Banner nâng cấp
+                upgradeBanner.setVisible(false);
+                upgradeBanner.setManaged(false);
+            } else {
+                // Mặc định là BIDDER (Người mua) thì hiện Banner nâng cấp
+                upgradeBanner.setVisible(true);
+                upgradeBanner.setManaged(true);
+            }
+        }
+
+        // --- GỌI SOCKET LẤY DANH SÁCH ĐỀ CỬ ---
+        loadPromotedAuctionsFromServer();
     }
 
-    // --- GỌI SOCKET LẤY DANH SÁCH ĐỀ CỬ ---
-    loadPromotedAuctionsFromServer();
-  }
     @FXML
     private void handleUpgrade(javafx.event.ActionEvent event) {
         // 1. Tạo hộp thoại Custom
@@ -129,60 +132,44 @@ public class MainController extends BaseController implements Initializable {
                 });
     }
 
-  private void sendUpgradeRequestToServer(int userId,ActionEvent event) {
-    // 1. Lấy thông tin user đang login
+    private void sendUpgradeRequestToServer(int userId, ActionEvent event) {
+        // 1. Lấy thông tin user đang login
 
-    // 2. Gói vào DTO (ví dụ UpgradeRoleDTO gồm username và password)
-    UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
-    // 3. Gửi Socket lên Server
-    Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
-    String jsonRequest = gson.toJson(request);
-    // 4. Nhận phản hồi:
-    //    - Nếu Server báo "SUCCESS" -> Chúc mừng, báo đăng nhập lại để cập nhật menu.
-    //    - Nếu Server báo "ERROR" (sai pass) -> In ra Alert lỗi.
-    new Thread(
-            () -> {
-              try {
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(response.getStatus())) {
-                        showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
-                        UserSession.getInstance().cleanUserSession();
-                        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");} else {
-                        showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
-                e.printStackTrace();
-              }
-            })
-        .start();
-  }
+        // 2. Gói vào DTO (ví dụ UpgradeRoleDTO gồm username và password)
+        UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
+        // 3. Gửi Socket lên Server
+        Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
+        String jsonRequest = gson.toJson(request);
+        // 4. Nhận phản hồi:
+        //    - Nếu Server báo "SUCCESS" -> Chúc mừng, báo đăng nhập lại để cập nhật menu.
+        //    - Nếu Server báo "ERROR" (sai pass) -> In ra Alert lỗi.
+        new Thread(
+                () -> {
+                    try {
+                        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                        Response response = gson.fromJson(jsonResponse, Response.class);
+                        Platform.runLater(
+                                () -> {
+                                    if ("SUCCESS".equals(response.getStatus())) {
+                                        showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
+                                        UserSession.getInstance().cleanUserSession();
+                                        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+                                    } else {
+                                        showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
+                                    }
+                                });
+                    } catch (Exception e) {
+                        Platform.runLater(
+                                () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
+                        e.printStackTrace();
+                    }
+                })
+                .start();
+    }
 
-  // ================== HÀM LẤY DATA CHO TRANG CHỦ  ==================
+    // ================== HÀM LẤY DATA CHO TRANG CHỦ  ==================
 
-  private void loadPromotedAuctionsFromServer() {
-    Request request = new Request("GET_PROMOTED_AUCTIONS", null);
-    String jsonRequest = gson.toJson(request);
-
-    new Thread(() -> {
-      try {
-        String jsonResponse = clientSocket.sendRequest(jsonRequest);
-        Response response = gson.fromJson(jsonResponse, Response.class);
-
-        Platform.runLater(() -> {
-          if ("SUCCESS".equals(response.getStatus())) {
-            System.out.println("Lấy danh sách đề cử thành công!");
-            // buildPromotedCards(list);
-          }
-        });
-      } catch (Exception e) {
-        System.out.println("Lỗi khi tải danh sách đề cử: " + e.getMessage());
-      }
-    }).start();
-  }
+    private void loadPromotedAuctionsFromServer() {
+        //TODO: LẤY DỮ LIỆU LÊN ĐỂ VẼ CARD, action "GET_PROMOTED_AUCTIONS"
+    }
 }
