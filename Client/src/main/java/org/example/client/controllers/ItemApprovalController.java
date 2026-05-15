@@ -46,7 +46,7 @@ public class ItemApprovalController extends BaseController implements Initializa
     @FXML private TextArea txtDescription;
     @FXML private Button btnApprove;
     @FXML private Button btnReject;
-    private ObservableList<Item> pendingItemsList = FXCollections.observableArrayList();
+    private ObservableList<Item> daftItemsList = FXCollections.observableArrayList();
     private Gson gson = ClientManager.getInstance().getGson();
     private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
@@ -65,7 +65,7 @@ public class ItemApprovalController extends BaseController implements Initializa
             return new SimpleStringProperty("NULL");
         });
         // 2. Gắn list vào bảng
-        itemTable.setItems(pendingItemsList);
+        itemTable.setItems(daftItemsList);
         // 3. Lắng nghe sự kiện click vào 1 dòng trên bảng
         setupTableSelectionListener();
         // 4. Gọi API tải dữ liệu lần đầu
@@ -118,7 +118,7 @@ public class ItemApprovalController extends BaseController implements Initializa
 
         int adminId = currentUser.getUserId();
 
-        Request request = new Request("ADMIN_GET_ALL_PENDING_ITEMS", adminId);
+        Request request = new Request("ADMIN_GET_ALL_DAFT_ITEMS", adminId);
         String jsonRequest = gson.toJson(request);
 
         new Thread(() -> {
@@ -156,7 +156,7 @@ public class ItemApprovalController extends BaseController implements Initializa
                         }
 
                         Platform.runLater(() -> {
-                            pendingItemsList.setAll(fetchedItems);
+                            daftItemsList.setAll(fetchedItems);
                             clearDetailsPane(); // Reset lại panel chi tiết khi vừa load xong
                             System.out.println("Đã tải xong " + fetchedItems.size() + " tài sản chờ duyệt.");
                         });
@@ -221,7 +221,7 @@ public class ItemApprovalController extends BaseController implements Initializa
                             if ("SUCCESS".equals(response.getStatus())) {
                                 showAlert( "Thành công", "Đã " + actionName + " sản phẩm thành công!");
                                 // Xóa khỏi danh sách chờ trên giao diện
-                                pendingItemsList.remove(selectedItem);
+                                daftItemsList.remove(selectedItem);
                                 clearDetailsPane();
                             } else {
                                 showAlert( "Lỗi", response.getMessage()); // Hiển thị lỗi từ Server (VD: "Mày không phải Admin")

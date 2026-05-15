@@ -1,30 +1,32 @@
 package org.example.client.controllers;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
+import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.dto.admin.AdminDashboardDTO; // Dùng luôn DTO từ Core
 
 import java.util.Map;
 
-public class AdminDashboardController {
+public class AdminDashboardController extends BaseController {
+    // Kế thừa BaseController để dùng tính năng chuyển trang/hiển thị thông báo (nếu cần)
 
     @FXML private Label lblTotalUsers, lblActiveAuctions, lblPendingItems, lblTotalVolume;
-
     @FXML private BarChart<String, Number> bcAuctionStatus;
     @FXML private PieChart pcCategoryDistribution;
 
-    private Gson gson = ClientManager.getInstance().getGson();
+    private final Gson gson = ClientManager.getInstance().getGson();
+    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
     @FXML
     public void initialize() {
@@ -32,63 +34,67 @@ public class AdminDashboardController {
     }
 
     private void loadDashboardData() {
+        if (UserSession.getInstance().getCurrentUser() == null) return;
+
+        // 1. Lấy ID Admin để gửi lên Server xác thực
+        int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+        Request request = new Request("GET_ADMIN_DASHBOARD_STATS", adminId);
+
         new Thread(() -> {
             try {
-                Request request = new Request("GET_ADMIN_DASHBOARD_STATS", null);
-                String jsonRequest = gson.toJson(request);
+                // 2. Gửi request qua Socket (Chuẩn y hệt các Controller khác của ông)
+                clientSocket.getOut().println(gson.toJson(request));
+                String jsonResponse = clientSocket.getIn().readLine();
 
-                String jsonResponse = ClientManager.getInstance().getClient().sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
 
-                if ("SUCCESS".equals(response.getStatus())) {
-                    JsonObject dataObj = gson.toJsonTree(response.getData()).getAsJsonObject();
+                    if ("SUCCESS".equals(response.getStatus())) {
+                        // 3. Ép kiểu 1 phát ra luôn DTO, không cần JsonObject lằng nhằng
+                        String dataJson = gson.toJson(response.getData());
+                        AdminDashboardDTO dashboardData = gson.fromJson(dataJson, AdminDashboardDTO.class);
 
-                    Platform.runLater(() -> {
-                        // 1. Cập nhật các thẻ KPI
-                        updateKPIs(dataObj.getAsJsonObject("kpis"));
-
-                        // 2. Cập nhật PieChart (Tỷ lệ ngành hàng theo Auction)
-                        updatePieChart(dataObj.getAsJsonObject("categories"));
-
-                        // 3. Cập nhật BarChart (Trạng thái phiên đấu giá - Thay cho TableView)
-                        updateBarChart(dataObj.getAsJsonObject("auctionStatus"));
-                    });
+                        Platform.runLater(() -> {
+                            updateKPIs(dashboardData.getKpis());
+                            updatePieChart(dashboardData.getCategories());
+                            updateBarChart(dashboardData.getAuctionStatus());
+                        });
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi", response.getMessage()));
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
             }
         }).start();
     }
 
-    private void updateKPIs(JsonObject kpis) {
-        lblTotalUsers.setText(kpis.get("totalUsers").getAsString());
-        lblActiveAuctions.setText(kpis.get("activeAuctions").getAsString());
-        lblPendingItems.setText(kpis.get("pendingCount").getAsString());
-        lblTotalVolume.setText(kpis.get("totalVolume").getAsString() + " đ");
+    private void updateKPIs(Map<String, String> kpis) {
+        lblTotalUsers.setText(kpis.getOrDefault("totalUsers", "0"));
+        lblActiveAuctions.setText(kpis.getOrDefault("activeAuctions", "0"));
+        lblPendingItems.setText(kpis.getOrDefault("pendingCount", "0"));
+        lblTotalVolume.setText(kpis.getOrDefault("totalVolume", "0"));
+        // Lưu ý: chữ "đ" hoặc format tôi đã xử lý sẵn bên DAO của ông rồi nên cứ gắn thẳng vào là đẹp.
     }
 
-    private void updatePieChart(JsonObject categories) {
+    private void updatePieChart(Map<String, Integer> categories) {
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
-        for (Map.Entry<String, JsonElement> entry : categories.entrySet()) {
-            // Hiển thị tên kèm số lượng trực tiếp trên label
-            String label = entry.getKey() + " (" + entry.getValue().getAsInt() + ")";
-            pieData.add(new PieChart.Data(label, entry.getValue().getAsInt()));
+        for (Map.Entry<String, Integer> entry : categories.entrySet()) {
+            String label = entry.getKey() + " (" + entry.getValue() + ")";
+            pieData.add(new PieChart.Data(label, entry.getValue()));
         }
         pcCategoryDistribution.setData(pieData);
     }
 
-    private void updateBarChart(JsonObject statusData) {
-        // Xóa dữ liệu cũ nếu có
+    private void updateBarChart(Map<String, Integer> statusData) {
         bcAuctionStatus.getData().clear();
-
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng phiên");
 
-        // Server trả về Map: {"Sắp diễn ra": 10, "Đang diễn ra": 5, ...}
-        for (Map.Entry<String, JsonElement> entry : statusData.entrySet()) {
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue().getAsInt()));
+        for (Map.Entry<String, Integer> entry : statusData.entrySet()) {
+            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
-
         bcAuctionStatus.getData().add(series);
     }
 }

@@ -75,3 +75,25 @@
     -fx-background-radius: 10;
 }
 
+/* --- PIE CHART COLORS --- / */
+.default-color0.chart-pie { -fx-pie-color: #3498db; }
+.default-color1.chart-pie { -fx-pie-color: #f39c12; }
+.default-color2.chart-pie { -fx-pie-color: #2ecc71; }
+.default-color3.chart-pie { -fx-pie-color: #e74c3c; }
+.default-color4.chart-pie { -fx-pie-color: #f75454; }
+.default-color5.chart-pie { -fx-pie-color: #34495e; }
+
+.chart-pie {
+    -fx-border-color: transparent;
+}
+
+.default-color0.chart-bar {
+    -fx-bar-fill: #3498db;
+}
+
+.default-color1.chart-bar {
+    -fx-bar-fill: #f39c12;
+}
+.chart-bar {
+    -fx-background-radius: 5 5 0 0;
+}
