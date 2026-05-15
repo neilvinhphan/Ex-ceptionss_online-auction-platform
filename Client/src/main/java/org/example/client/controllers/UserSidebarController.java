@@ -13,7 +13,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class UserSidebarController extends BaseController implements Initializable {
-    @FXML private Button btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem, btnCreateAuction;
+    @FXML private Button btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem, btnCreateAuction,btnRevenue;
 
     // Lưu trữ trang hiện tại để tô màu và chặn click trùng
     private static String currentView = "";
@@ -29,7 +29,7 @@ public class UserSidebarController extends BaseController implements Initializab
      */
     private void applyActiveStyle() {
         // Xóa sạch class active cũ của tất cả các nút
-        for (Node node : new Node[]{btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem}) {
+        for (Node node : new Node[]{btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem,btnCreateAuction,btnRevenue}) {
             node.getStyleClass().remove("sidebar-active");
         }
 
@@ -40,6 +40,8 @@ public class UserSidebarController extends BaseController implements Initializab
             case "WareHouseView.fxml" -> btnWarehouse.getStyleClass().add("sidebar-active");
             case "AuctionHistoryView.fxml" -> btnHistory.getStyleClass().add("sidebar-active");
             case "CreateItemView.fxml" -> btnCreateItem.getStyleClass().add("sidebar-active");
+            case "RevenueView.fxml" -> btnRevenue.getStyleClass().add("sidebar-active");
+
         }
     }
 
@@ -60,6 +62,7 @@ public class UserSidebarController extends BaseController implements Initializab
         }
 
         currentView = fxmlPath;
+        applyActiveStyle();
         switchScene(event, "/views/" + fxmlPath, title);
     }
 
@@ -85,5 +88,10 @@ public class UserSidebarController extends BaseController implements Initializab
 
     @FXML private void handleCreateAuction(ActionEvent event) {
         navigate(event, "CreateAuctionView.fxml", "Tạo đấu giá", true);
+    }
+@FXML
+    public void handleRevenue(ActionEvent event) {
+    navigate(event, "RevenueView.fxml", "Doanh thu", false);
+
     }
 }

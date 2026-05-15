@@ -186,7 +186,7 @@ public class ClientHandler implements Runnable {
               handleJoinRoom(request);
               break;
             case "APPROVE_AUCTION":
-              handleApproveAuction(request);
+             // handleApproveAuction(request);
               break;
             case "GET_PROMOTED_AUCTIONS":
               // TRẢ VỀ DỮ LIỆU RỖNG ĐỂ CLIENT KHÔNG BỊ TREO
@@ -431,28 +431,28 @@ public class ClientHandler implements Runnable {
     sendMessage(gson.toJson(leaveRes));
   }
 
-  private void handleApproveAuction(Request request) {
-    try {
-      String dataJson = gson.toJson(request.getData());
-      org.example.core.dto.admin.AdminApproveAuctionDTO approveReq =
-              gson.fromJson(dataJson, org.example.core.dto.admin.AdminApproveAuctionDTO.class);
-
-      User requester = userDAO.getUserByUserId(approveReq.getAdminId());
-      if (requester == null || requester.getRole() != RoleType.ADMIN) {
-        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
-        return;
-      }
-
-      AuctionService.approveAuction(approveReq.getAuctionId());
-
-      Response response = new Response("SUCCESS", "Đã duyệt và hẹn giờ mở cửa phiên " + approveReq.getAuctionId());
-      sendMessage(gson.toJson(response));
-    } catch (Exception e) {
-      e.printStackTrace(); // In lỗi ra console Server để dễ debug nếu có
-      Response response = new Response("ERROR", "Lỗi khi duyệt phiên: " + e.getMessage());
-      sendMessage(gson.toJson(response));
-    }
-  }
+//  private void handleApproveAuction(Request request) {
+//    try {
+//      String dataJson = gson.toJson(request.getData());
+//      org.example.core.dto.admin.AdminApproveAuctionDTO approveReq =
+//              gson.fromJson(dataJson, org.example.core.dto.admin.AdminApproveAuctionDTO.class);
+//
+//      User requester = userDAO.getUserByUserId(approveReq.getAdminId());
+//      if (requester == null || requester.getRole() != RoleType.ADMIN) {
+//        sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
+//        return;
+//      }
+//
+//      AuctionService.approveAuction(approveReq.getAuctionId());
+//
+//      Response response = new Response("SUCCESS", "Đã duyệt và hẹn giờ mở cửa phiên " + approveReq.getAuctionId());
+//      sendMessage(gson.toJson(response));
+//    } catch (Exception e) {
+//      e.printStackTrace(); // In lỗi ra console Server để dễ debug nếu có
+//      Response response = new Response("ERROR", "Lỗi khi duyệt phiên: " + e.getMessage());
+//      sendMessage(gson.toJson(response));
+//    }
+//  }
 
   private void handlePlaceBid(Request request) {
     try {

@@ -19,7 +19,6 @@ import org.example.core.dto.admin.AdminDashboardDTO; // Dùng luôn DTO từ Cor
 import java.util.Map;
 
 public class AdminDashboardController extends BaseController {
-    // Kế thừa BaseController để dùng tính năng chuyển trang/hiển thị thông báo (nếu cần)
 
     @FXML private Label lblTotalUsers, lblActiveAuctions, lblPendingItems, lblTotalVolume;
     @FXML private BarChart<String, Number> bcAuctionStatus;
@@ -104,19 +103,19 @@ public class AdminDashboardController extends BaseController {
                 String status = data.getXValue();
                 switch (status) {
                     case "OPEN":
-                        bar.setStyle("-fx-bar-fill: #CC66CC;");
+                        bar.setStyle("-fx-bar-fill:#FFCCCC ;");
                         break;
                     case "RUNNING":
                         bar.setStyle("-fx-bar-fill: #2ecc71;");
                         break;
-                    case "Sắp diễn ra":
-                        bar.setStyle("-fx-bar-fill: #f39c12;"); // Cam
-                        break;
-                    case "Đã kết thúc":
+                    case "FINISHED":
                         bar.setStyle("-fx-bar-fill: #e74c3c;"); // Đỏ
                         break;
-                    case "Đã hủy":
-                        bar.setStyle("-fx-bar-fill: #95a5a6;"); // Xám
+                    case "PAID":
+                        bar.setStyle("-fx-bar-fill: #CC66CC;");
+                        break;
+                    case "CANCELED":
+                        bar.setStyle("-fx-bar-fill: #777777;"); // Xám
                         break;
                     default:
                         bar.setStyle("-fx-bar-fill: #3498db;"); // Xanh dương (mặc định)
