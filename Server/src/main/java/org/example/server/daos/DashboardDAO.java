@@ -26,7 +26,7 @@ public class DashboardDAO {
 
         // Đếm tổng User
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM user");
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM user WHERE role != 'ADMIN'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("totalUsers", String.valueOf(rs.getInt(1)));
         } catch (Exception e) { kpis.put("totalUsers", "0"); }
@@ -40,7 +40,7 @@ public class DashboardDAO {
 
         // Đếm tài sản chờ duyệt (DAFT)
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'DAFT'");
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'DRAFT'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("pendingCount", String.valueOf(rs.getInt(1)));
         } catch (Exception e) { kpis.put("pendingCount", "0"); }
