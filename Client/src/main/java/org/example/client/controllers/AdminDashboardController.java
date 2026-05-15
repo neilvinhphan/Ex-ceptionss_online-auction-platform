@@ -96,5 +96,33 @@ public class AdminDashboardController extends BaseController {
             series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
         bcAuctionStatus.getData().add(series);
+        // 3. Lặp qua các cột để tô màu theo trạng thái
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            javafx.scene.Node bar = data.getNode(); // Lấy cục UI của cái cột
+
+            if (bar != null) {
+                String status = data.getXValue();
+                switch (status) {
+                    case "OPEN":
+                        bar.setStyle("-fx-bar-fill: #CC66CC;");
+                        break;
+                    case "RUNNING":
+                        bar.setStyle("-fx-bar-fill: #2ecc71;");
+                        break;
+                    case "Sắp diễn ra":
+                        bar.setStyle("-fx-bar-fill: #f39c12;"); // Cam
+                        break;
+                    case "Đã kết thúc":
+                        bar.setStyle("-fx-bar-fill: #e74c3c;"); // Đỏ
+                        break;
+                    case "Đã hủy":
+                        bar.setStyle("-fx-bar-fill: #95a5a6;"); // Xám
+                        break;
+                    default:
+                        bar.setStyle("-fx-bar-fill: #3498db;"); // Xanh dương (mặc định)
+                        break;
+                }
+            }
+        }
     }
 }
