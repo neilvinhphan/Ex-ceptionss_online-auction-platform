@@ -15,54 +15,40 @@ import java.util.ResourceBundle;
 public class UserSidebarController extends BaseController implements Initializable {
     @FXML private Button btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem, btnCreateAuction,btnRevenue;
 
-    // Lưu trữ trang hiện tại để tô màu và chặn click trùng
-    private static String currentView = "";
+    public static String currentView = "PersonalView.fxml";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Platform.runLater giúp đợi giao diện gắn vào cửa sổ (Stage) xong rồi mới chạy
-        javafx.application.Platform.runLater(() -> {
-            if (btnProfile.getScene() != null && btnProfile.getScene().getWindow() != null) {
-                javafx.stage.Stage stage = (javafx.stage.Stage) btnProfile.getScene().getWindow();
-                String title = stage.getTitle();
-
-                // Dựa vào tiêu đề trang (được truyền từ hàm switchScene) để set lại currentView
-                if (title != null) {
-                    if (title.contains("Hồ sơ")) currentView = "PersonalView.fxml";
-                    else if (title.contains("Thanh toán")) currentView = "WaitPaymentView.fxml";
-                    else if (title.contains("Kho hàng")) currentView = "WareHouseView.fxml";
-                    else if (title.contains("Lịch sử")) currentView = "AuctionHistoryView.fxml";
-                    else if (title.contains("Tạo sản phẩm")) currentView = "CreateItemView.fxml";
-                    else if (title.contains("Tạo đấu giá")) currentView = "CreateAuctionView.fxml";
-                    else if (title.contains("Doanh thu")) currentView = "RevenueView.fxml";
-                    else currentView = ""; // Nếu đang ở Catalog, không highlight nút nào
-                }
-            }
-
-            // Chạy hàm tô màu sau khi đã "chỉnh đốn" lại biến currentView
-            applyActiveStyle();
-        });
+        // Đảm bảo lúc nào load giao diện lên cũng bôi màu đúng theo view đang mở
+        applyActiveStyle();
     }
-
     /**
      * Tự động tô màu nút dựa trên biến currentView
      * Sử dụng Style Class để giao diện chuyên nghiệp hơn
      */
     private void applyActiveStyle() {
         // Xóa sạch class active cũ của tất cả các nút
-        for (Node node : new Node[]{btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem,btnCreateAuction,btnRevenue}) {
-            node.getStyleClass().remove("sidebar-active");
+        for (Node node : new Node[]{btnProfile, btnWaitPayment, btnWarehouse, btnHistory, btnCreateItem, btnCreateAuction, btnRevenue}) {
+            if (node != null) {
+                node.getStyleClass().remove("sidebar-active");
+            }
         }
 
-        // Áp dụng class active cho đúng nút
-        switch (currentView) {
-            case "PersonalView.fxml" -> btnProfile.getStyleClass().add("sidebar-active");
-            case "WaitPaymentView.fxml" -> btnWaitPayment.getStyleClass().add("sidebar-active");
-            case "WareHouseView.fxml" -> btnWarehouse.getStyleClass().add("sidebar-active");
-            case "AuctionHistoryView.fxml" -> btnHistory.getStyleClass().add("sidebar-active");
-            case "CreateItemView.fxml" -> btnCreateItem.getStyleClass().add("sidebar-active");
-            case "RevenueView.fxml" -> btnRevenue.getStyleClass().add("sidebar-active");
+        if (currentView == null || currentView.isEmpty()) return;
 
+        switch (currentView) {
+            case "PersonalView.fxml" -> { if(btnProfile != null) btnProfile.getStyleClass().add("sidebar-active"); }
+            case "WaitPaymentView.fxml" -> { if(btnWaitPayment != null) btnWaitPayment.getStyleClass().add("sidebar-active"); }
+            case "WareHouseView.fxml" -> { if(btnWarehouse != null) btnWarehouse.getStyleClass().add("sidebar-active"); }
+            case "AuctionHistoryView.fxml" -> { if(btnHistory != null) btnHistory.getStyleClass().add("sidebar-active"); }
+            case "CreateItemView.fxml" -> { if(btnCreateItem != null) btnCreateItem.getStyleClass().add("sidebar-active"); }
+            case "CreateAuctionView.fxml" -> { if(btnCreateAuction != null) btnCreateAuction.getStyleClass().add("sidebar-active"); }
+            case "RevenueView.fxml" -> { if(btnRevenue != null) btnRevenue.getStyleClass().add("sidebar-active"); }
+            default -> {
+                // Nếu ở trang nằm ngoài sidebar (như Catalog công cộng), ta có thể mặc định sáng nút Hồ sơ
+                // hoặc để trống tùy bạn. Nếu muốn mặc định sáng nút Hồ sơ khi mới vào:
+                if(btnProfile != null) btnProfile.getStyleClass().add("sidebar-active");
+            }
         }
     }
 

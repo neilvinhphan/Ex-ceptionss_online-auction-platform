@@ -59,6 +59,7 @@ public class LoginController extends BaseController {
                           System.out.println(loggedInUser.getRole());
                           if (loggedInUser.getRole() != null && loggedInUser.getRole() == RoleType.ADMIN) {
                             showAlert("Thành công", "Đăng nhập thành công! Chuyển đến Admin Panel...");
+                            AdminSidebarController.activePage = "AdminDashboardView.fxml";
                             switchScene(event, "/views/AdminDashboardView.fxml", "Tổng quan hệ thống - Admin");
                           } else {
                             showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");

@@ -41,15 +41,12 @@ public class AdminDashboardController extends BaseController {
 
         new Thread(() -> {
             try {
-                // 2. Gửi request qua Socket (Chuẩn y hệt các Controller khác của ông)
-                clientSocket.getOut().println(gson.toJson(request));
-                String jsonResponse = clientSocket.getIn().readLine();
+                String requestJson = gson.toJson(request);
+                String jsonResponse = clientSocket.sendRequest(requestJson);
 
                 if (jsonResponse != null) {
                     Response response = gson.fromJson(jsonResponse, Response.class);
-
                     if ("SUCCESS".equals(response.getStatus())) {
-                        // 3. Ép kiểu 1 phát ra luôn DTO, không cần JsonObject lằng nhằng
                         String dataJson = gson.toJson(response.getData());
                         AdminDashboardDTO dashboardData = gson.fromJson(dataJson, AdminDashboardDTO.class);
 

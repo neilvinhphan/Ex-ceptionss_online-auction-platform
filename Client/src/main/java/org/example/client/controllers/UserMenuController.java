@@ -52,6 +52,7 @@ public class UserMenuController extends BaseController implements Initializable 
     }
 
     @FXML void handleUserUi(ActionEvent event) {
+        UserSidebarController.currentView = "PersonalView.fxml";
         switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
     }
 
@@ -62,6 +63,7 @@ public class UserMenuController extends BaseController implements Initializable 
 
     @FXML
     void handleBackToAdmin(ActionEvent event) {
+        AdminSidebarController.activePage = "AdminDashboardView.fxml";
         switchScene(event, "/views/AdminDashboardView.fxml", "Tổng quan hệ thống - Admin");
     }
 }

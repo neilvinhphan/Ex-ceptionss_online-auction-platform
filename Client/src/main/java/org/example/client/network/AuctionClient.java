@@ -10,6 +10,7 @@ public class AuctionClient {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private static final Object networkLock = new Object();
 
     public void connect(String serverAddress, int port) {
         try {
@@ -22,20 +23,26 @@ public class AuctionClient {
         }
     }
 
-    public synchronized String sendRequest(String requestJson) {
-        try {
-            out.println(requestJson);
-            return in.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException("Error sending request: " + e.getMessage(), e);
+    public String sendRequest(String requestJson) {
+        synchronized (networkLock) {
+            try {
+                while (in.ready()) {
+                    String trash = in.readLine();
+                    System.out.println("🚨 CẢNH BÁO: Đã dọn rác kẹt trong ống: " + trash);
+                }
+                out.println(requestJson);
+                return in.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException("Error sending request: " + e.getMessage(), e);
+            }
         }
     }
+        public PrintWriter getOut () {
+            return this.out; // Trả về biến out đã khai báo ở trên cùng của class
+        }
 
-    public PrintWriter getOut() {
-        return this.out; // Trả về biến out đã khai báo ở trên cùng của class
-    }
+        public BufferedReader getIn () {
+            return this.in; // Trả về biến in đã khai báo ở trên cùng của class
+        }
 
-    public BufferedReader getIn() {
-        return this.in; // Trả về biến in đã khai báo ở trên cùng của class
-    }
 }
