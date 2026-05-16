@@ -33,12 +33,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 
 public class PersonalController extends BaseController implements Initializable {
-    @FXML
-    private MenuButton menuDanhMuc;
-    @FXML
-    private MenuButton menuPhongDauGia;
-    @FXML
-    private MenuButton menuUser;
+
     @FXML
     private Label lbUserName;
     @FXML
@@ -58,7 +53,6 @@ public class PersonalController extends BaseController implements Initializable 
     public void initialize(URL location, ResourceBundle resources) {
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
-            menuUser.setText(currentUser.getUserName());
             lbUserName.setText(currentUser.getUserName());
             lbPhoneNum.setText(currentUser.getPhone());
             lbEmail.setText(currentUser.getEmail());
@@ -69,22 +63,9 @@ public class PersonalController extends BaseController implements Initializable 
 
     @FXML
     private Button createAuction;
-
-    @FXML
-    private void handleMenuItem(ActionEvent event) {
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục sản phẩm đấu giá");
-    }
     @FXML
     public void handleHistoryAuction(ActionEvent event) {
     switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-    }
-    @FXML
-    void handleCreateAuction(ActionEvent event) {
-        if (userRole.equals(RoleType.BIDDER)) {
-            showAlert("Không có quyền", "Chỉ người mua mới có thể tạo cuộc đấu giá!");
-        } else {
-            switchScene(event, "/views/CreateAuctionView.fxml", "Tạo cuộc đấu giá");
-        }
     }
 
     @FXML
@@ -152,39 +133,6 @@ public class PersonalController extends BaseController implements Initializable 
         }
     }
 
-    @FXML
-    void handleMain(ActionEvent event) {
-        switchScene(event, "/views/MainView.fxml", "Trang chủ");
-    }
-
-    @FXML
-    void handleLogout(ActionEvent event) {
-        UserSession.getInstance().cleanUserSession();
-        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-    }
-
-    @FXML
-    void handleUserUi(ActionEvent event) {
-        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-    }
-
-    @FXML
-    void handleCreateItem(ActionEvent event) {
-        if (userRole.equals(RoleType.SELLER)) {
-            switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
-        } else {
-            showAlert("Không có quyền", "Chỉ người mua mới có thể tạo sản phẩm đấu giá!");
-        }
-    }
-
-    @FXML
-    void handleWareHouse(ActionEvent event) {
-        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-    }
-    @FXML
-    public void handleWaitPayment(ActionEvent event) {
-        switchScene(event, "/views/WaitPaymentView.fxml", "San pham cho thanh toan");
-    }
 
     @FXML
     public void handleDeposit(ActionEvent event) {

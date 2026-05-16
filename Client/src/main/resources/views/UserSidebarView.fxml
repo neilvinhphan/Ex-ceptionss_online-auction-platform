@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="sidebarContainer" maxHeight="-Infinity" prefWidth="280.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.UserSidebarController">
+    <children>
+        <Button fx:id="btnProfile" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleUserUi" styleClass="sidebar-button" text="👤 Hồ sơ của tôi" />
+
+        <Button fx:id="btnWaitPayment" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWaitPayment" styleClass="sidebar-button" text="🛒 Sản phẩm chờ thanh toán" />
+
+        <Button fx:id="btnWarehouse" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWareHouse" styleClass="sidebar-button" text="⏳ Kho hàng" />
+
+        <Button fx:id="btnHistory" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHistoryAuction" styleClass="sidebar-button" text="📜 Lịch sử đấu giá" />
+
+        <Button fx:id="btnCreateItem" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateItem" styleClass="sidebar-button" text="➕ Tạo sản phẩm đấu giá" />
+      <Button fx:id="btnRevenue" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRevenue" styleClass="sidebar-button" text="⚖ Quản lý doanh thu" />
+
+        <Button fx:id="btnCreateAuction" alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateAuction" styleClass="btn-create-auction" text="➕ Tạo cuộc đấu giá" />
+    </children>
+    <padding>
+        <Insets bottom="20.0" left="15.0" right="15.0" top="20.0" />
+    </padding>
+</VBox>

@@ -46,10 +46,6 @@ public class WaitPaymentController extends BaseController implements Initializab
     private TableColumn<PendingPaymentsDTO, Void> colAction; // Cột chứa nút bấm dùng kiểu Void
 
     @FXML
-    private MenuButton menuUser;
-    @FXML
-    private MenuButton menuDanhMuc;
-    @FXML
     private Button btnPayAll;
     private Gson gson = ClientManager.getInstance().getGson();
     private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
@@ -58,9 +54,7 @@ public class WaitPaymentController extends BaseController implements Initializab
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (currentUser != null) {
-            menuUser.setText(currentUser.getUserName());
-        }
+
         // 1. Cấu hình các cột hiển thị dữ liệu bình thường
         colName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
         colPrice.setCellValueFactory(new PropertyValueFactory<>("winPrice"));
@@ -245,43 +239,6 @@ public class WaitPaymentController extends BaseController implements Initializab
         }).start();
     }
 
-    @FXML
-    public void handleMain(ActionEvent event) {
-        switchScene(event, "/views/MainView.fxml", "Trang chu");
-    }
 
-    @FXML
-    public void handleMenuItem(ActionEvent event) {
-        switchScene(event, "/views/AuctionCatalogView.fxml", "Danh sach cuoc dau gia");
-    }
 
-    @FXML
-    public void handleHistoryAuction(ActionEvent event) {
-        switchScene(event, "/views/AuctionHistoryView.fxml", "Lich su dau gia");
-    }
-
-    @FXML
-    public void handleLogout(ActionEvent event) {
-        switchScene(event, "/views/LoginView.fxml", "Dang nhap he thong");
-    }
-
-    @FXML
-    public void handleUserUi(ActionEvent event) {
-        switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
-    }
-
-    @FXML
-    public void handleWareHouse(ActionEvent event) {
-        switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-    }
-
-    @FXML
-    public void handleCreateItem(ActionEvent event) {
-        switchScene(event, "/views/CreateItemView.fxml", "Tao san pham dau gia");
-    }
-
-    @FXML
-    public void handleCreateAuction(ActionEvent event) {
-        switchScene(event, "/views/CreateAuctionView.fxml", "Tao cuoc dau gia moi");
-    }
 }

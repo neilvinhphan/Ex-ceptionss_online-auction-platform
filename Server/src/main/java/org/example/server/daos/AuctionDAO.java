@@ -39,6 +39,54 @@ public class AuctionDAO {
     return instance;
   }
 
+  // Lấy tất cả các phiên đấu giá (Không phân biệt trạng thái - Dành cho Admin)
+  public List<Auction> getAllAuctions() {
+    List<Auction> auctions = new ArrayList<>();
+
+    // Câu SQL này tôi copy từ hàm getAllAuctionsByStatus của ông,
+    // nhưng ĐÃ XÓA dòng "WHERE a.status = ?" để kéo toàn bộ dữ liệu lên.
+    String sql =
+            "SELECT a.*, "
+                    + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
+                    + "FROM auction a "
+                    + "JOIN items i ON a.items_id = i.items_id "
+                    + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
+                    + "GROUP BY a.auction_id";
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        Auction auction = new Auction();
+        auction.setAuctionId(rs.getInt("auction_id"));
+        auction.setItemId(rs.getInt("items_id"));
+
+        // Bọc check null cho thời gian phòng trường hợp có phiên nháp chưa set giờ
+        if (rs.getTimestamp("start_time") != null) {
+          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+        }
+        if (rs.getTimestamp("end_time") != null) {
+          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        }
+
+        auction.setHighestBid(rs.getBigDecimal("highest_price"));
+        auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+          auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
+        }
+
+        auctions.add(auction);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return auctions;
+  }
+
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
     String sql =

@@ -9,6 +9,7 @@ import org.example.core.dto.userDTO.LoginRequestDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.RoleType;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -56,8 +57,13 @@ public class LoginController extends BaseController {
                           UserSession.getInstance().setCurrentUser(loggedInUser);
                           System.out.println("Đăng nhập thành công! Người dùng: ");
                           System.out.println(loggedInUser.getRole());
-                          showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
-                          switchScene(event, "/views/MainView.fxml", "Trang chủ");
+                          if (loggedInUser.getRole() != null && loggedInUser.getRole() == RoleType.ADMIN) {
+                            showAlert("Thành công", "Đăng nhập thành công! Chuyển đến Admin Panel...");
+                            switchScene(event, "/views/AdminDashboardView.fxml", "Tổng quan hệ thống - Admin");
+                          } else {
+                            showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
+                            switchScene(event, "/views/MainView.fxml", "Trang chủ");
+                          }
                         } else {
                           System.out.println("Đăng nhập thất bại: " + response.getMessage());
                           System.out.println("Message: " + response.getMessage());
