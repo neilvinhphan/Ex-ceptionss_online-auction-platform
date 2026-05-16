@@ -118,7 +118,7 @@ public class ItemApprovalController extends BaseController implements Initializa
 
         int adminId = currentUser.getUserId();
 
-        Request request = new Request("ADMIN_GET_ALL_DAFT_ITEMS", adminId);
+        Request request = new Request("ADMIN_GET_ALL_DRAFT_ITEMS", adminId);
         String jsonRequest = gson.toJson(request);
 
         new Thread(() -> {

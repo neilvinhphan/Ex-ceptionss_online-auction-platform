@@ -20,7 +20,28 @@ public class UserSidebarController extends BaseController implements Initializab
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        applyActiveStyle();
+        // Platform.runLater giúp đợi giao diện gắn vào cửa sổ (Stage) xong rồi mới chạy
+        javafx.application.Platform.runLater(() -> {
+            if (btnProfile.getScene() != null && btnProfile.getScene().getWindow() != null) {
+                javafx.stage.Stage stage = (javafx.stage.Stage) btnProfile.getScene().getWindow();
+                String title = stage.getTitle();
+
+                // Dựa vào tiêu đề trang (được truyền từ hàm switchScene) để set lại currentView
+                if (title != null) {
+                    if (title.contains("Hồ sơ")) currentView = "PersonalView.fxml";
+                    else if (title.contains("Thanh toán")) currentView = "WaitPaymentView.fxml";
+                    else if (title.contains("Kho hàng")) currentView = "WareHouseView.fxml";
+                    else if (title.contains("Lịch sử")) currentView = "AuctionHistoryView.fxml";
+                    else if (title.contains("Tạo sản phẩm")) currentView = "CreateItemView.fxml";
+                    else if (title.contains("Tạo đấu giá")) currentView = "CreateAuctionView.fxml";
+                    else if (title.contains("Doanh thu")) currentView = "RevenueView.fxml";
+                    else currentView = ""; // Nếu đang ở Catalog, không highlight nút nào
+                }
+            }
+
+            // Chạy hàm tô màu sau khi đã "chỉnh đốn" lại biến currentView
+            applyActiveStyle();
+        });
     }
 
     /**
@@ -55,8 +76,8 @@ public class UserSidebarController extends BaseController implements Initializab
 
         if (requireSeller) {
             User user = UserSession.getInstance().getCurrentUser();
-            if (user == null || (user.getRole() != RoleType.SELLER && user.getRole() != RoleType.ADMIN)) {
-                showAlert("Quyền truy cập", "Tính năng này chỉ dành cho SELLER. Vui lòng nâng cấp tài khoản!");
+            if (user == null || (user.getRole() != RoleType.SELLER )) {
+                showAlert("Quyền truy cập", "Tính năng này chỉ dành cho SELLER!");
                 return;
             }
         }
@@ -67,7 +88,7 @@ public class UserSidebarController extends BaseController implements Initializab
     }
 
     @FXML private void handleUserUi(ActionEvent event) {
-        navigate(event, "PersonalView.fxml", "Hồ sơ cá nhân", false);
+        navigate(event, "PersonalView.fxml", "Hồ sơ", false);
     }
 
     @FXML private void handleWaitPayment(ActionEvent event) {
@@ -91,7 +112,7 @@ public class UserSidebarController extends BaseController implements Initializab
     }
 @FXML
     public void handleRevenue(ActionEvent event) {
-    navigate(event, "RevenueView.fxml", "Doanh thu", false);
+    navigate(event, "RevenueView.fxml", "Doanh thu", true);
 
     }
 }

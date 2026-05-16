@@ -20,7 +20,22 @@ public class AdminSidebarController extends BaseController implements Initializa
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Khi Sidebar được load lên, kiểm tra biến static và tô màu nút tương ứng
+        // Platform.runLater giúp đợi giao diện gắn vào cửa sổ (Stage) xong rồi mới chạy
+        javafx.application.Platform.runLater(() -> {
+            if (btnDashboard.getScene() != null && btnDashboard.getScene().getWindow() != null) {
+                javafx.stage.Stage stage = (javafx.stage.Stage) btnDashboard.getScene().getWindow();
+                String title = stage.getTitle();
+
+                // Dựa vào tiêu đề trang (được truyền từ hàm switchScene) để set lại currentView
+                if (title != null) {
+                    if (title.contains("Tổng quan hệ thống")) activePage = "AdminDashboardView.fxml";
+                    else if (title.contains("Duyệt tài sản")) activePage = "ItemApprovalView.fxml";
+                    else if (title.contains("Quản lý người dùng")) activePage = "ManageUserView.fxml";
+                    else if (title.contains("Quản lý phiên đấu giá")) activePage = "ManageAuctionView.fxml";
+                    else activePage = ""; 
+                }
+            }
+        });
         highlightActiveButton();
     }
 
