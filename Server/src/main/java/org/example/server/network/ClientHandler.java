@@ -182,9 +182,6 @@ public class ClientHandler implements Runnable {
             case "ADMIN_CANCEL_AUCTION":
               handleAdminCancelAuction(request);
               break;
-            //            case "GET_PENDING_AUCTIONS":
-            //              handleGetPendingAuctions(request);
-            //              break;
             case "JOIN_ROOM":
               handleJoinRoom(request);
               break;
