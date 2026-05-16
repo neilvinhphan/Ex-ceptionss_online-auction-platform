@@ -42,7 +42,7 @@ public class AuctionDAO {
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
     String sql =
-        "SELECT a.*, "
+        "SELECT a.*, i.items_name, i.owner_id, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
@@ -57,6 +57,8 @@ public class AuctionDAO {
         Auction auction = new Auction();
         auction.setAuctionId(rs.getInt("auction_id"));
         auction.setItemId(rs.getInt("items_id"));
+        auction.setItemName(rs.getString("items_name"));
+        auction.setOwnerId(rs.getInt("owner_id"));
         auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
         auction.setHighestBid(rs.getBigDecimal("highest_price"));

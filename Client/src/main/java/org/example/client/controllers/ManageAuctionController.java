@@ -66,22 +66,24 @@ public class ManageAuctionController extends BaseController implements Initializ
     colId.setCellValueFactory(new PropertyValueFactory<>("auctionId"));
 
     // 2. Cột Tên sản phẩm: Phải  vào trong Item để lấy ra
-    colItemName.setCellValueFactory(
-        cellData -> {
-          if (cellData.getValue().getItem() != null) {
-            return new SimpleStringProperty(cellData.getValue().getItem().getItemName());
-          }
-          return new SimpleStringProperty("Sản phẩm bị lỗi");
-        });
+//    colItemName.setCellValueFactory(
+//        cellData -> {
+//          if (cellData.getValue().getItem() != null) {
+//            return new SimpleStringProperty(cellData.getValue().getItem().getItemName());
+//          }
+//          return new SimpleStringProperty("Sản phẩm bị lỗi");
+//        });
+    colItemName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
 
     // 3. Cột Người bán: Lấy SellerID từ Item
-    colSeller.setCellValueFactory(
-        cellData -> {
-          if (cellData.getValue().getItem() != null) {
-            return new SimpleStringProperty("sellerID");
-          }
-          return new SimpleStringProperty("NULL");
-        });
+//    colSeller.setCellValueFactory(
+//        cellData -> {
+//          if (cellData.getValue().getItem() != null) {
+//            return new SimpleStringProperty("sellerID");
+//          }
+//          return new SimpleStringProperty("NULL");
+//        });
+    colSeller.setCellValueFactory(new PropertyValueFactory<>("ownerId"));
 
     // 4. Cột Giờ bắt đầu: Dùng Formatter để biến LocalDateTime thành chữ cho đẹp
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
