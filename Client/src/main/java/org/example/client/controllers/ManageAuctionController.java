@@ -221,11 +221,6 @@ public class ManageAuctionController extends BaseController implements Initializ
 
 
   @FXML
-  public void handleGoToApproval(ActionEvent event) {
-    switchScene(event, "/views/AuctionApprovalView.fxml", "Kiểm duyệt phiên đấu giá");
-  }
-
-  @FXML
   public void handleCancelAuction(ActionEvent event) {
     Auction selectedAuction = auctionTable.getSelectionModel().getSelectedItem();
 
