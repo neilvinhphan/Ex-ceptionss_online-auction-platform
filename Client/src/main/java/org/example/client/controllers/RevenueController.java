@@ -1,5 +1,6 @@
 package org.example.client.controllers;
 
+import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,7 +10,12 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
+import org.example.core.dto.Request;
+import org.example.core.dto.Response;
+import org.example.core.dto.userDTO.SellerDashboardDTO;
 
 import java.text.NumberFormat;
 import java.util.LinkedHashMap;
@@ -18,14 +24,13 @@ import java.util.Map;
 
 public class RevenueController extends BaseController {
 
-    @FXML
-    private Label lblTotalRevenue;
-    @FXML
-    private Label lblTotalSold;
-    @FXML
-    private LineChart<String, Number> lineChartRevenue;
-    @FXML
-    private PieChart pieChartCategory;
+    @FXML private Label lblTotalRevenue;
+    @FXML private Label lblTotalSold;
+    @FXML private LineChart<String, Number> lineChartRevenue;
+    @FXML private PieChart pieChartCategory;
+
+    private final Gson gson = ClientManager.getInstance().getGson();
+    private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
     @FXML
     public void initialize() {
@@ -34,21 +39,35 @@ public class RevenueController extends BaseController {
 
     private void loadDashboardData() {
         if (UserSession.getInstance().getCurrentUser() == null) return;
-
         int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
 
         new Thread(() -> {
             try {
-                //TODO : GỌI SOCKET Ở ĐÂY
+                Request request = new Request("GET_SELLER_DASHBOARD", sellerId);
+                clientSocket.getOut().println(gson.toJson(request));
 
+                String jsonResponse = clientSocket.getIn().readLine();
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
+
+                    if ("SUCCESS".equals(response.getStatus())) {
+                        String dataJson = gson.toJson(response.getData());
+                        SellerDashboardDTO dto = gson.fromJson(dataJson, SellerDashboardDTO.class);
+
+                        Platform.runLater(() -> {
+                            updateKPIs(dto.getTotalRevenue(), dto.getTotalSold());
+                            updatePieChart(dto.getCategoryData());
+                        });
+                    } else {
+                        Platform.runLater(() -> showAlert("Lỗi", response.getMessage()));
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() -> showAlert("Lỗi", "Không thể tải dữ liệu: " + e.getMessage()));
+                Platform.runLater(() -> showAlert("Lỗi mạng", "Không thể tải dữ liệu: " + e.getMessage()));
             }
         }).start();
     }
-
-    // --- CÁC HÀM UPDATE GIAO DIỆN (GIỮ NGUYÊN) ---
 
     private void updateKPIs(double totalRevenue, int totalSold) {
         NumberFormat currencyFormatter = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -56,21 +75,14 @@ public class RevenueController extends BaseController {
         lblTotalSold.setText(String.valueOf(totalSold));
     }
 
-    private void updateLineChart(Map<String, Double> revenueData) {
-        lineChartRevenue.getData().clear();
-        if (revenueData == null || revenueData.isEmpty()) return;
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Doanh thu");
-
-        for (Map.Entry<String, Double> entry : revenueData.entrySet()) {
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-        }
-
-        lineChartRevenue.getData().add(series);
-    }
-
     private void updatePieChart(Map<String, Integer> categoryData) {
-
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        if (categoryData != null) {
+            for (Map.Entry<String, Integer> entry : categoryData.entrySet()) {
+                String label = entry.getKey() + " (" + entry.getValue() + ")";
+                pieData.add(new PieChart.Data(label, entry.getValue()));
+            }
+        }
+        pieChartCategory.setData(pieData);
     }
 }

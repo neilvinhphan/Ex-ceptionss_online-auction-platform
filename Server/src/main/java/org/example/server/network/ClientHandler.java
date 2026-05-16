@@ -199,6 +199,9 @@ public class ClientHandler implements Runnable {
             case "GET_ADMIN_DASHBOARD_STATS":
               handleGetAdminDashboardStats(request);
               break;
+            case "GET_SELLER_DASHBOARD":
+              handleGetSellerDashboard(request);
+              break;
             case "LEAVE_ROOM":
               handleLeaveRoom(request);
               break;
@@ -217,6 +220,22 @@ public class ClientHandler implements Runnable {
       throw new RuntimeException(e);
     } finally {
       closeConnection();
+    }
+  }
+
+  private void handleGetSellerDashboard(Request request) {
+    try {
+      String dataJson = gson.toJson(request.getData());
+      Integer sellerId = gson.fromJson(dataJson, Integer.class);
+
+      org.example.core.dto.userDTO.SellerDashboardDTO dto =
+              org.example.server.daos.DashboardDAO.getInstance().getSellerDashboardStats(sellerId);
+
+      Response response = new Response("SUCCESS", "Lấy dữ liệu thành công", dto);
+      sendMessage(gson.toJson(response));
+    } catch (Exception e) {
+      e.printStackTrace();
+      sendMessage(gson.toJson(new Response("ERROR", "Lỗi Server: " + e.getMessage())));
     }
   }
 
@@ -565,17 +584,28 @@ public class ClientHandler implements Runnable {
 
   private void handleGetActiveAuctions() {
     try {
-      List<Auction> activeItems = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
+      List<Auction> runningAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
+
+      List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
+
+      List<Auction> activeItems = new java.util.ArrayList<>();
+
+      if (runningAuctions != null) {
+        activeItems.addAll(runningAuctions);
+      }
+      if (openAuctions != null) {
+        activeItems.addAll(openAuctions);
+      }
 
       Response response =
-          new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+              new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
 
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse =
-          new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+              new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
