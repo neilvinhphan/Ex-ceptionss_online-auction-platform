@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.PieChart?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AdminDashboardController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AdminDashboardController">
     <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
@@ -65,28 +55,28 @@
                                         <!-- Card 1: Người dùng -->
                                         <VBox prefWidth="200.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2); -fx-border-left-color: #3498db; -fx-border-left-width: 5; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
                                             <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 14; -fx-font-weight: bold;" text="TỔNG NGƯỜI DÙNG" />
-                                            <Label fx:id="lblTotalUsers" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="1,245" />
+                                            <Label fx:id="lblTotalUsers" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="-" />
                                             <Label style="-fx-text-fill: #2ecc71; -fx-font-size: 12;" text="+12 user hôm nay" />
                                         </VBox>
 
                                         <!-- Card 2: Đang diễn ra -->
                                         <VBox prefWidth="200.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2); -fx-border-left-color: #2ecc71; -fx-border-left-width: 5; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
                                             <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 14; -fx-font-weight: bold;" text="PHIÊN ĐANG MỞ" />
-                                            <Label fx:id="lblActiveAuctions" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="34" />
+                                            <Label fx:id="lblActiveAuctions" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="-" />
                                             <Label style="-fx-text-fill: #2ecc71; -fx-font-size: 12;" text="Đang hoạt động tốt" />
                                         </VBox>
 
                                         <!-- Card 3: Chờ duyệt (Cần chú ý) -->
                                         <VBox prefWidth="200.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2); -fx-border-left-color: #f39c12; -fx-border-left-width: 5; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
                                             <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 14; -fx-font-weight: bold;" text="TÀI SẢN CHỜ DUYỆT" />
-                                            <Label fx:id="lblPendingItems" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #e67e22;" text="18" />
+                                            <Label fx:id="lblPendingItems" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #e67e22;" text="-" />
                                             <Label style="-fx-text-fill: #e74c3c; -fx-font-size: 12; -fx-font-weight: bold;" text="Cần xử lý ngay!" />
                                         </VBox>
 
                                         <!-- Card 4: Doanh thu / Giao dịch -->
                                         <VBox prefWidth="200.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2); -fx-border-left-color: #9b59b6; -fx-border-left-width: 5; -fx-border-radius: 12;" HBox.hgrow="ALWAYS">
                                             <Label style="-fx-text-fill: #95a5a6; -fx-font-size: 14; -fx-font-weight: bold;" text="TỔNG TIỀN GIAO DỊCH" />
-                                            <Label fx:id="lblTotalVolume" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="4.2 Tỷ VNĐ" />
+                                            <Label fx:id="lblTotalVolume" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" text="-" />
                                             <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 12;" text="Trong tháng này" />
                                         </VBox>
                                     </children>
@@ -98,7 +88,7 @@
                                         <VBox spacing="15.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label style="-fx-font-weight: bold; -fx-font-size: 16; -fx-text-fill: #2c3e50;" text="Thống kê trạng thái phiên đấu giá" />
-                                                <BarChart fx:id="bcAuctionStatus" prefHeight="350.0" legendVisible="false">
+                                                <BarChart fx:id="bcAuctionStatus" legendVisible="false" prefHeight="350.0">
                                                     <xAxis>
                                                         <CategoryAxis label="Trạng thái" side="BOTTOM" />
                                                     </xAxis>

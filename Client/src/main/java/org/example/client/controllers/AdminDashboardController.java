@@ -19,7 +19,6 @@ import org.example.core.dto.admin.AdminDashboardDTO; // Dùng luôn DTO từ Cor
 import java.util.Map;
 
 public class AdminDashboardController extends BaseController {
-    // Kế thừa BaseController để dùng tính năng chuyển trang/hiển thị thông báo (nếu cần)
 
     @FXML private Label lblTotalUsers, lblActiveAuctions, lblPendingItems, lblTotalVolume;
     @FXML private BarChart<String, Number> bcAuctionStatus;
@@ -96,5 +95,33 @@ public class AdminDashboardController extends BaseController {
             series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
         bcAuctionStatus.getData().add(series);
+        // 3. Lặp qua các cột để tô màu theo trạng thái
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            javafx.scene.Node bar = data.getNode(); // Lấy cục UI của cái cột
+
+            if (bar != null) {
+                String status = data.getXValue();
+                switch (status) {
+                    case "OPEN":
+                        bar.setStyle("-fx-bar-fill:#FFCCCC ;");
+                        break;
+                    case "RUNNING":
+                        bar.setStyle("-fx-bar-fill: #2ecc71;");
+                        break;
+                    case "FINISHED":
+                        bar.setStyle("-fx-bar-fill: #e74c3c;"); // Đỏ
+                        break;
+                    case "PAID":
+                        bar.setStyle("-fx-bar-fill: #CC66CC;");
+                        break;
+                    case "CANCELED":
+                        bar.setStyle("-fx-bar-fill: #777777;"); // Xám
+                        break;
+                    default:
+                        bar.setStyle("-fx-bar-fill: #3498db;"); // Xanh dương (mặc định)
+                        break;
+                }
+            }
+        }
     }
 }
