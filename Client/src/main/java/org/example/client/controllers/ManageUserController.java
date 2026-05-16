@@ -64,12 +64,10 @@ public class ManageUserController extends BaseController implements Initializabl
 
                 // 2. Đóng gói Request gửi lên Server
                 Request request = new Request("ADMIN_GET_ALL_USERS", adminId);
-                clientSocket.getOut().println(gson.toJson(request));
-
-                // 3. Đọc dữ liệu Server trả về
-                String responseStr = clientSocket.getIn().readLine();
-                if (responseStr != null) {
-                    Response response = gson.fromJson(responseStr, Response.class);
+                String requestJson = gson.toJson(request);
+                String jsonResponse = clientSocket.sendRequest(requestJson);
+                if (jsonResponse != null) {
+                    Response response = gson.fromJson(jsonResponse, Response.class);
 
                     if ("SUCCESS".equals(response.getStatus())) {
                         // 4. Bóc tách mảng (List) User từ data của Response

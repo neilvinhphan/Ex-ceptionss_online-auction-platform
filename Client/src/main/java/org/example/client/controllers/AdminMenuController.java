@@ -18,7 +18,7 @@ public class AdminMenuController extends BaseController {
     @FXML
     private void handleSwitchToUserUI(ActionEvent event) {
         System.out.println("Chuyển hướng sang giao diện người dùng...");
-        switchScene(event, "/views/MainView.fxml", "Trang chủ - AuctionPro");
+        switchScene(event, "/views/AuctionCatalogView.fxml", "Trang chủ - AuctionPro");
     }
 
     /**

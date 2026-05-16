@@ -136,10 +136,8 @@ public class ItemApprovalController extends BaseController implements Initializa
             () -> {
               try {
                 System.out.println("Đang lấy danh sách tài sản chờ duyệt từ Server...");
-
-                clientSocket.getOut().println(jsonRequest);
-                String jsonResponse = clientSocket.getIn().readLine();
-
+                String requestJson = gson.toJson(request);
+                String jsonResponse = clientSocket.sendRequest(requestJson);
                 if (jsonResponse != null) {
                   Response response = gson.fromJson(jsonResponse, Response.class);
 
