@@ -284,6 +284,22 @@ public class ItemDAO {
     }
   }
 
+  public boolean updateAiEvaluation(Item item) {
+    String sql =
+        "UPDATE items SET status = ?, suggested_price = ?, ai_reason = ? WHERE items_id = ?";
+    try (Connection conn = DBConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, item.getStatus().name());
+      ps.setBigDecimal(2, item.getSuggestedPrice());
+      ps.setString(3, item.getAiReason());
+      ps.setInt(4, item.getItemId());
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
   public boolean deleteItemByItemId(int itemId) {
     String sql = "DELETE FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -297,7 +313,7 @@ public class ItemDAO {
 
   public List<Item> getItemsByStatus(ItemStatus status) {
     String sql =
-            """
+        """
         SELECT
             i.*,
             art.artist, art.creation_year,
@@ -310,7 +326,7 @@ public class ItemDAO {
         WHERE i.status = ?
         """;
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
 
       // Truyền trạng thái vào SQL (chuyển Enum thành String)
       ps.setString(1, status.name());
