@@ -164,9 +164,9 @@ public class ClientHandler implements Runnable {
             case "PAY_ALL":
               handlePayAllItems(request);
               break;
-            //            case "ADMIN_GET_ALL_AUCTIONS":
-            //              handleAdminGetAllAuctions();
-            //              break;
+                        case "ADMIN_GET_ALL_AUCTIONS":
+                          handleAdminGetAllAuctions();
+                          break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
@@ -182,9 +182,9 @@ public class ClientHandler implements Runnable {
             case "ADMIN_CANCEL_AUCTION":
               handleAdminCancelAuction(request);
               break;
-            //            case "GET_PENDING_AUCTIONS":
-            //              handleGetPendingAuctions(request);
-            //              break;
+//                        case "GET_PENDING_AUCTIONS":
+//                          handleGetPendingAuctions(request);
+//                          break;
             case "JOIN_ROOM":
               handleJoinRoom(request);
               break;
@@ -779,21 +779,24 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  //    private void handleAdminGetAllAuctions() {
-  //      try{
-  //        List<Auction> pendingAuctions =
-  // AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
-  //        Response response = new Response("SUCCESS", "Lay danh sach auctions thanh
-  //   cong",pendingAuctions);
-  //        sendMessage(gson.toJson(response));
-  //      } catch (Exception e) {
-  //        e.printStackTrace();
-  //        Response errResponse = new Response("ERROR", "Loi khong the lay duoc danh sach
-  // auctions");
-  //        sendMessage(gson.toJson(errResponse));
-  //      }
-  //    }
+  private void handleAdminGetAllAuctions() {
+    try {
+      List<Auction> allAuctions = new java.util.ArrayList<>();
+      for (AuctionStatus status : AuctionStatus.values()) {
+        List<Auction> listByStatus = AuctionService.getAuctionsByStatus(status);
+        if (listByStatus != null) {
+          allAuctions.addAll(listByStatus);
+        }
+      }
+      Response response = new Response("SUCCESS", "Lấy toàn bộ danh sách Auctions thành công", allAuctions);
+      sendMessage(gson.toJson(response));
 
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errResponse = new Response("ERROR", "Lỗi không thể lấy được danh sách auctions: " + e.getMessage());
+      sendMessage(gson.toJson(errResponse));
+    }
+  }
   private void handleAdminBanUser(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
