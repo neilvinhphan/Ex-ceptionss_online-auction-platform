@@ -558,17 +558,28 @@ public class ClientHandler implements Runnable {
 
   private void handleGetActiveAuctions() {
     try {
-      List<Auction> activeItems = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
+      List<Auction> runningAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
+
+      List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
+
+      List<Auction> activeItems = new java.util.ArrayList<>();
+
+      if (runningAuctions != null) {
+        activeItems.addAll(runningAuctions);
+      }
+      if (openAuctions != null) {
+        activeItems.addAll(openAuctions);
+      }
 
       Response response =
-          new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+              new Response("SUCCESS", "Lấy danh sách đấu giá (RUNNING & OPEN) thành công", activeItems);
 
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse =
-          new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+              new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
