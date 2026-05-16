@@ -22,7 +22,7 @@ public class Auction extends Entity {
   private BigDecimal bidIncrement;
   private int ownerId;
   private String itemName;
-
+  private String type;
   // Constructor tạo mới đấu giá
   public Auction(
       Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
@@ -192,7 +192,8 @@ public class Auction extends Entity {
   public void setItemName(String itemName) {this.itemName = itemName;}
 
   public String getItemName() {return itemName;}
-
+  public void setType(String type) {this.type = type;}
+  public String getType() {return type;}
   public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
 
   public int getOwnerId() {return ownerId;}

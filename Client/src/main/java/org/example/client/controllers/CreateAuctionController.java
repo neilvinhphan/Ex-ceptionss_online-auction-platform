@@ -319,11 +319,7 @@ public class CreateAuctionController extends BaseController implements Initializ
                           // (hoặc kho)
                           Platform.runLater(
                               () -> {
-                                showAlert(
-                                    "Thành công",
-                                    "Tạo phòng thành công! Vui lòng chờ Admin kiểm duyệt để lên sàn.");
 
-                                // Xóa Session đi cho sạch vì mình không vào phòng nữa
                                 AuctionSession.getInstance().clearSession();
 
                                 // Chuyển hướng người dùng về Sảnh chờ (Catalog) để họ xem các phòng

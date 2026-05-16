@@ -81,7 +81,7 @@ public class ItemDAO {
 
   public int insertIntoItemTable(Item item) {
     String sql =
-            "INSERT INTO items (owner_id, items_name, description, start_price, type, image) VALUES (?,?,?,?,?,?)";
+            "INSERT INTO items (owner_id, items_name, description, start_price, type, image,status) VALUES (?,?,?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
          PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());

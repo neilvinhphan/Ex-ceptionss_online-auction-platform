@@ -188,7 +188,7 @@ public class AuctionService {
   // ==========================================
 
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
-    return auctionDAO.getAllAuctionsByStatus(status);
+    return auctionDAO.getAllAuctionsByStatusForCatalog(status);
   }
 
   public static void forceCancelAuction(int auctionId, String reason) throws Exception {

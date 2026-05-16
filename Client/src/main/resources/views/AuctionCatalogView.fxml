@@ -101,6 +101,30 @@
                     <center>
                         <VBox BorderPane.alignment="CENTER">
                             <children>
+                                <HBox fx:id="upgradeBanner" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 30 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
+                                    <VBox.margin>
+                                        <Insets bottom="30.0" />
+                                    </VBox.margin>
+                                    <children>
+                                        <VBox spacing="8.0">
+                                            <children>
+                                                <Label text="Trở thành Người Bán (Seller) ngay hôm nay!" textFill="#333333">
+                                                    <font>
+                                                        <Font name="System Bold" size="24.0" />
+                                                    </font>
+                                                </Label>
+                                                <Label text="Mở khóa tính năng tạo phòng đấu giá, đăng bán tài sản và tiếp cận hàng ngàn người mua." textFill="#666666">
+                                                    <font>
+                                                        <Font size="15.0" />
+                                                    </font>
+                                                </Label>
+                                            </children>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button mnemonicParsing="false" onAction="#handleUpgrade" style="-fx-background-color: #ffc107; -fx-text-fill: #333333; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 12 25; -fx-cursor: hand; -fx-font-size: 16; -fx-effect: dropshadow(gaussian, rgba(255,193,7,0.4), 10, 0, 0, 4);" text="🚀 Nâng cấp Seller" />
+                                    </children>
+                                </HBox>
+
                                 <HBox alignment="CENTER_LEFT">
                                     <children>
                                         <Label text="Danh sách phòng đấu giá">

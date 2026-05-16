@@ -19,7 +19,7 @@ public class ItemService {
     validateItemData(requestPayload);
 
     Item newItem = ItemFactory.createItemDTO(requestPayload);
-
+    newItem.setStatus(org.example.core.shared.enums.ItemStatus.PENDING);
     Integer itemId = itemDAO.insertIntoItemTable(newItem);
     if (itemId == null || itemId <= 0) {
       throw new Exception("Cannot create item.");
