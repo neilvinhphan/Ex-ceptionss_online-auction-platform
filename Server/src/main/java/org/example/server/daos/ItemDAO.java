@@ -81,7 +81,7 @@ public class ItemDAO {
 
   public int insertIntoItemTable(Item item) {
     String sql =
-        "INSERT INTO items (owner_id, items_name, description, start_price, type, image, status) VALUES (?,?,?,?,?,?,?)";
+        "INSERT INTO items (owner_id, items_name, description, start_price, type, image) VALUES (?,?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());
@@ -186,6 +186,7 @@ public class ItemDAO {
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
           item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
           item.setAiReason(rs.getString("ai_reason"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
           return item;
         }
       } catch (Exception e) {
