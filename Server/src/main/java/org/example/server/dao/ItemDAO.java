@@ -65,6 +65,9 @@ public class ItemDAO {
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
 
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
           items.add(item);
         }
         return items;
@@ -78,7 +81,7 @@ public class ItemDAO {
 
   public int insertIntoItemTable(Item item) {
     String sql =
-        "INSERT INTO items (owner_id, items_name, description, start_price, type, image) VALUES (?,?,?,?,?,?)";
+        "INSERT INTO items (owner_id, items_name, description, start_price, type, image, status) VALUES (?,?,?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());
@@ -87,6 +90,7 @@ public class ItemDAO {
       ps.setBigDecimal(4, item.getStartingPrice());
       ps.setString(5, item.getType());
       ps.setString(6, item.getImage());
+      ps.setString(7, item.getStatus().name());
 
       int affectedRows = ps.executeUpdate();
       if (affectedRows != 0) {
@@ -178,7 +182,10 @@ public class ItemDAO {
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setImage(rs.getString("image"));
-          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
+
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
           return item;
         }
       } catch (Exception e) {
@@ -198,38 +205,6 @@ public class ItemDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           return rs.getInt("owner_id");
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  public String getItemTypeByItemId(int itemId) {
-    String sql = "SELECT type FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return rs.getString("type");
-        }
-      }
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  public ItemStatus getItemStatusById(int itemId) {
-    String sql = "SELECT status FROM items WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, itemId);
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return ItemStatus.valueOf(rs.getString("status"));
         }
       }
     } catch (SQLException | IOException e) {
@@ -280,30 +255,6 @@ public class ItemDAO {
     }
   }
 
-  public boolean updateOwnerIdInDB(int itemId, int ownerId) {
-    String sql = "UPDATE items SET owner_id = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, ownerId);
-      ps.setInt(2, itemId);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public boolean updateFinalPriceByItemId(int id, BigDecimal finalPrice) {
-    String sql = "UPDATE items SET final_price = ? WHERE items_id = ?";
-    try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setBigDecimal(1, finalPrice);
-      ps.setInt(2, id);
-      return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
-    }
-    return false;
-  }
-
   public boolean updateItemDescriptionByItemId(int itemId, String description) {
     String sql = "UPDATE items SET description = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -340,6 +291,22 @@ public class ItemDAO {
     }
   }
 
+  public boolean updateAiEvaluation(Item item) {
+    String sql =
+        "UPDATE items SET status = ?, suggested_price = ?, ai_reason = ? WHERE items_id = ?";
+    try (Connection conn = DBConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, item.getStatus().name());
+      ps.setBigDecimal(2, item.getSuggestedPrice());
+      ps.setString(3, item.getAiReason());
+      ps.setInt(4, item.getItemId());
+      return ps.executeUpdate() > 0;
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
   public boolean deleteItemByItemId(int itemId) {
     String sql = "DELETE FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
@@ -350,10 +317,10 @@ public class ItemDAO {
       throw new RuntimeException(e);
     }
   }
-  // Lấy danh sách tất cả Item dựa theo trạng thái (Dành cho Admin)
+
   public List<Item> getItemsByStatus(ItemStatus status) {
     String sql =
-            """
+        """
         SELECT
             i.*,
             art.artist, art.creation_year,
@@ -366,7 +333,7 @@ public class ItemDAO {
         WHERE i.status = ?
         """;
     try (Connection connection = DBConnection.getConnection();
-         PreparedStatement ps = connection.prepareStatement(sql)) {
+        PreparedStatement ps = connection.prepareStatement(sql)) {
 
       // Truyền trạng thái vào SQL (chuyển Enum thành String)
       ps.setString(1, status.name());
@@ -385,6 +352,51 @@ public class ItemDAO {
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<Item> getApprovedItemsByUserId(int userId) {
+    String sql =
+        """
+            SELECT
+                i.*,
+                art.artist, art.creation_year,
+                ele.ele_brand, ele.warranty_months, ele.item_condition,
+                veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+            FROM items i
+            LEFT JOIN art_items art ON i.items_id = art.items_id
+            LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+            LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+            WHERE i.owner_id = ? AND i.status = 'APPROVED'
+            """; // 🎯 CHỐT CHẶN: Chỉ lấy đồ APPROVED của chính User này
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+          item.setImage(rs.getString("image"));
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
 
           items.add(item);
         }

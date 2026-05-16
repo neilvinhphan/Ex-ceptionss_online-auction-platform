@@ -10,16 +10,17 @@ import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.CreateAuctionDTO;
-import org.example.core.dto.PendingItemsDTO;
+import org.example.core.dto.auctionDTO.CreateAuctionDTO;
+import org.example.core.dto.itemsDTO.PendingItemsDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
-import org.example.core.models.items.Item; // Đảm bảo bạn đã import đúng class Item của bạn
+import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -43,6 +44,7 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 public class CreateAuctionController extends BaseController implements Initializable {
+  @FXML private MenuButton menuUser;
   @FXML private Spinner<Integer> durationHourSpinner;
   @FXML private Spinner<Integer> durationMinuteSpinner;
   @FXML private ComboBox<Item> cbPendingItems;
@@ -52,9 +54,8 @@ public class CreateAuctionController extends BaseController implements Initializ
   @FXML private DatePicker dpStartDate;
   @FXML private Spinner<Integer> startHourSpinner;
   @FXML private Spinner<Integer> startMinuteSpinner;
-  // Danh sách lưu toàn bộ item chưa đấu giá kéo từ server về
+
   private List<Item> allPendingItems = new ArrayList<>();
-  // Cờ chống lặp vô hạn giữa 2 cái Listener
   private boolean isAutoSelecting = false;
   private Gson gson = ClientManager.getInstance().getGson();
   private AuctionClient clientSocket = ClientManager.getInstance().getClient();
@@ -63,11 +64,10 @@ public class CreateAuctionController extends BaseController implements Initializ
   public void initialize(URL location, ResourceBundle resources) {
     initUser();
     initSpinners();
-    setupItemDisplayFormat(); // Định dạng cách hiển thị tên Item trong ComboBox
-    loadPendingItems(); // 1. Lấy dữ liệu giả lập (hoặc từ Server)
-    setupListeners(); // 2. Bật "Tai nghe" lắng nghe sự kiện Lọc / Tự động điền
+    setupItemDisplayFormat();
+    loadPendingItems();
+    setupListeners();
 
-    // Setup spinner cho Start Time (Mặc định lấy giờ hiện tại)
     SpinnerValueFactory<Integer> startHourFactory =
         new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 23, LocalDateTime.now().getHour());
     startHourSpinner.setValueFactory(startHourFactory);
@@ -78,12 +78,14 @@ public class CreateAuctionController extends BaseController implements Initializ
     startMinuteSpinner.setValueFactory(startMinuteFactory);
     startMinuteSpinner.setEditable(true);
 
-    // Set ngày mặc định là hôm nay
     dpStartDate.setValue(LocalDate.now());
   }
 
   private void initUser() {
     User currentUser = UserSession.getInstance().getCurrentUser();
+    if (currentUser != null) {
+      menuUser.setText(currentUser.getUserName());
+    }
   }
 
   private void initSpinners() {
@@ -99,32 +101,30 @@ public class CreateAuctionController extends BaseController implements Initializ
   // 🔹 XỬ LÝ DỮ LIỆU & LOGIC LỌC / AUTO-FILL
   // =========================================================
   private void loadPendingItems() {
-    // TODO: GỌI SOCKET / API ĐỂ LẤY DANH SÁCH TÀI SẢN TRẠNG THÁI RUNNING/PENDING CỦA USER NÀY.
     int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
-
-    ArrayList<Item> allItem = new ArrayList<>();
-    cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
-
     PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
-
     requestPayload.setSellerId(sellerId);
-    System.out.println("Tao luong");
+
+    System.out.println("Khởi tạo luồng tải sản phẩm đã duyệt...");
     try {
-      Request request = new Request("GET_PENDING_ITEMS", requestPayload);
+      // 🛠️ CẬP NHẬT: Đổi tên lệnh thành lệnh lấy đồ APPROVED của riêng User này
+      Request request = new Request("GET_APPROVED_ITEMS", requestPayload);
       String jsonRequest = gson.toJson(request);
+
       new Thread(
               () -> {
                 try {
-                  System.out.println("Gui request");
+                  System.out.println("Gửi yêu cầu tải danh sách sản phẩm APPROVED...");
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
                   Response response = gson.fromJson(jsonResponse, Response.class);
-                  System.out.println("Nhan response");
+
                   Platform.runLater(
                       () -> {
-                        if (response.getStatus().equals("SUCCESS")) {
+                        if ("SUCCESS".equals(response.getStatus())) {
                           String jsonData = gson.toJson(response.getData());
                           JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                           allPendingItems.clear();
+
                           for (JsonElement element : jsonArray) {
                             JsonObject itemObj = element.getAsJsonObject();
                             String type = itemObj.get("type").getAsString();
@@ -140,11 +140,9 @@ public class CreateAuctionController extends BaseController implements Initializ
                             }
 
                             if (parsedItem != null) {
-
-                              // 2. MÀNG LỌC: Chỉ những món đồ mang trạng thái DRAFT mới được cho
-                              // vào list
-                              if (parsedItem.getStatus()
-                                  == org.example.core.shared.enums.ItemStatus.DRAFT) {
+                              // 🛠️ MÀNG LỌC MỚI: Chỉ nhận những món đồ mang trạng thái APPROVED
+                              // mới cho lên sàn
+                              if (parsedItem.getStatus() == ItemStatus.APPROVED) {
                                 allPendingItems.add(parsedItem);
                               }
                             }
@@ -160,7 +158,8 @@ public class CreateAuctionController extends BaseController implements Initializ
                   Platform.runLater(
                       () ->
                           showAlert(
-                              "Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
+                              "Lỗi kết nối",
+                              "Không thể lấy danh sách sản phẩm: " + e.getMessage()));
                   e.printStackTrace();
                 }
               })
@@ -171,8 +170,6 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
   }
 
-  // Hàm này giúp ComboBox thay vì hiển thị địa chỉ bộ nhớ (org.example.Item@123)
-  // thì sẽ in ra cái Tên của sản phẩm.
   private void setupItemDisplayFormat() {
     cbPendingItems.setConverter(
         new StringConverter<Item>() {
@@ -184,7 +181,7 @@ public class CreateAuctionController extends BaseController implements Initializ
 
           @Override
           public Item fromString(String string) {
-            return null; // Không cần implement vì combobox không cho phép gõ tay tạo mới
+            return null;
           }
         });
   }
@@ -196,14 +193,12 @@ public class CreateAuctionController extends BaseController implements Initializ
         .selectedItemProperty()
         .addListener(
             (observable, oldValue, newValue) -> {
-              // Nếu đang trong quá trình Auto-fill thì bỏ qua để tránh lỗi vòng lặp
               if (isAutoSelecting || newValue == null) return;
 
               ObservableList<Item> filteredList;
               if (newValue.equals("Tất cả") || newValue.equals("-- Tất cả danh mục --")) {
                 filteredList = FXCollections.observableArrayList(allPendingItems);
               } else {
-                // Lọc ra các item có type khớp với danh mục được chọn
                 List<Item> filtered =
                     allPendingItems.stream()
                         .filter(item -> newValue.equals(item.getType()))
@@ -211,12 +206,11 @@ public class CreateAuctionController extends BaseController implements Initializ
                 filteredList = FXCollections.observableArrayList(filtered);
               }
               cbPendingItems.setItems(filteredList);
-              // Xóa trắng ô chọn item và giá khi người dùng vừa đổi bộ lọc
               cbPendingItems.getSelectionModel().clearSelection();
               tfStartingPrice.clear();
             });
 
-    // 🎧 LISTENER 2: KHI NGƯỜI DÙNG CHỌN 1 TÀI SẢN (AUTO-FILL DANH MỤC VÀ GIÁ)
+    // 🎧 LISTENER 2: KHI NGƯỜI DÙNG CHỌN 1 TÀI SẢN (TỰ ĐỘNG ĐIỀN GIÁ AI)
     cbPendingItems
         .getSelectionModel()
         .selectedItemProperty()
@@ -227,13 +221,21 @@ public class CreateAuctionController extends BaseController implements Initializ
                 cbCategory.getSelectionModel().clearSelection();
                 return;
               }
-              // Bật cờ để thằng Listener 1 không bị giật mình chạy lại
+
               isAutoSelecting = true;
               cbCategory.setValue(selectedItem.getType());
-              if (selectedItem.getStartingPrice() != null) {
-                tfStartingPrice.setText(
-                    selectedItem.getStartingPrice().toString()); // Dùng toString cho BigDecimal
+
+              if (selectedItem.getSuggestedPrice() != null) {
+                tfStartingPrice.setText(selectedItem.getSuggestedPrice().toString());
+                tfStartingPrice.setStyle(
+                    "-fx-text-fill: #deff9a; -fx-font-weight: bold; -fx-border-color: #28a745;");
+                System.out.println(
+                    "🤖 Tự động điền giá gợi ý từ AI cho: " + selectedItem.getItemName());
+              } else if (selectedItem.getStartingPrice() != null) {
+                tfStartingPrice.setText(selectedItem.getStartingPrice().toString());
+                tfStartingPrice.setStyle("-fx-text-fill: white;");
               }
+
               isAutoSelecting = false;
             });
   }
@@ -241,21 +243,25 @@ public class CreateAuctionController extends BaseController implements Initializ
   // =========================================================
   // 🔹 SUBMIT & ĐIỀU HƯỚNG
   // =========================================================
-
   public void handleSubmit(ActionEvent event) {
-    // 1. Lấy thẳng Item đang được chọn trên ComboBox
     Item selectedItem = cbPendingItems.getSelectionModel().getSelectedItem();
     if (selectedItem == null) {
       showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
       return;
     }
+
+    // 🛠️ CHỐT CHẶN BẢO MẬT: Phòng hờ lỗi giao diện, chỉ cho phép đồ APPROVED tạo phòng
+    if (selectedItem.getStatus() != ItemStatus.APPROVED) {
+      showAlert("Lỗi nghiệp vụ", "Vật phẩm này chưa được kiểm duyệt hoàn tất!");
+      return;
+    }
+
     String bidIncrText = tfBidIncrement.getText().trim();
     if (bidIncrText.isEmpty()) {
       showAlert("Lỗi", "Vui lòng nhập bước giá!");
-      return; // Dừng lại không chạy tiếp
+      return;
     }
 
-    // --- BỔ SUNG LẤY VÀ KIỂM TRA START TIME ---
     LocalDate startDate = dpStartDate.getValue();
     if (startDate == null) {
       showAlert("Lỗi", "Vui lòng chọn ngày mở phiên đấu giá!");
@@ -274,67 +280,45 @@ public class CreateAuctionController extends BaseController implements Initializ
       showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
       return;
     }
-    if (getDuration().toMinutes() <= 0) {
-      showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
-      return;
-    }
+
     try {
-      // 3. Quy đổi thời gian
       long durationMinutes = getDuration().toMinutes();
       BigDecimal bidIncrement = new BigDecimal(tfBidIncrement.getText().trim());
 
-      // 4. ĐÓNG GÓI VÀO DTO CHÍNH THỨC
       CreateAuctionDTO requestDTO =
           new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement, startTime);
-      // 5. Gửi lên Server
-      Request request =
-          new Request(
-              "CREATE_AUCTION",
-              requestDTO); // Đổi tên lệnh "CREATE_AUCTION" cho khớp với Server của đệ nhé
+
+      Request request = new Request("CREATE_AUCTION", requestDTO);
       String jsonRequest = gson.toJson(request);
 
       new Thread(
               () -> {
                 try {
-                  // Bắn lên Server và chờ phản hồi
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
                   Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  // Xử lý giao diện phải dùng Platform.runLater
                   Platform.runLater(
                       () -> {
                         if ("SUCCESS".equals(response.getStatus())) {
-
-                          // 1. MÓC DỮ LIỆU AUCTION TỪ SERVER TRẢ VỀ (Tùy cấu trúc DTO của bro)
                           String jsonData = gson.toJson(response.getData());
                           Auction newAuction = gson.fromJson(jsonData, Auction.class);
 
-                          // 2. BƯỚC QUAN TRỌNG NHẤT: Bơm dữ liệu vào Trạm trung chuyển (Session)
                           AuctionSession.getInstance().setCurrentAuction(newAuction);
-                          AuctionSession.getInstance()
-                              .setCurrentItem(
-                                  selectedItem); // selectedItem là cái đã getComboBox ở đầu hàm
+                          AuctionSession.getInstance().setCurrentItem(selectedItem);
 
-                          // 3. Không vào phòng ngay nữa, mà báo chờ duyệt và đá về Sảnh Catalog
-                          // (hoặc kho)
-                          Platform.runLater(
-                              () -> {
-                                showAlert(
-                                    "Thành công",
-                                    "Tạo phòng thành công! Vui lòng chờ Admin kiểm duyệt để lên sàn.");
+                          // 🛠️ SỬA THÔNG BÁO: Phù hợp kịch bản hệ thống tự động chạy ngầm không
+                          // qua Admin duyệt phòng nữa
+                          showAlert(
+                              "Thành công",
+                              "Tạo phòng đấu giá thành công! Phiên đấu giá đang ở trạng thái chờ mở cửa (OPEN) và sẽ tự động lên sàn vào lúc "
+                                  + startTime.toString());
 
-                                // Xóa Session đi cho sạch vì mình không vào phòng nữa
-                                AuctionSession.getInstance().clearSession();
+                          AuctionSession.getInstance().clearSession();
 
-                                // Chuyển hướng người dùng về Sảnh chờ (Catalog) để họ xem các phòng
-                                // khác
-                                switchScene(
-                                    event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
-                              });
+                          switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
 
                         } else {
-                          Platform.runLater(
-                              () -> showAlert("Lỗi tạo đấu giá", response.getMessage()));
+                          showAlert("Lỗi tạo đấu giá", response.getMessage());
                         }
                       });
                 } catch (Exception e) {
@@ -345,7 +329,8 @@ public class CreateAuctionController extends BaseController implements Initializ
               })
           .start();
 
-      System.out.println("Đã đóng gói DTO thành công! Tài sản: " + selectedItem.getItemName());
+      System.out.println(
+          "Đã gửi DTO tạo đấu giá thành công! Tài sản: " + selectedItem.getItemName());
 
     } catch (Exception e) {
       showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
@@ -353,15 +338,49 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
   }
 
+  public void handleMain(ActionEvent event) {
+    switchScene(event, "/views/MainView.fxml", "Trang chủ");
+  }
 
-  // =========================================================
-  // 🔹 HELPERS
-  // =========================================================
+  public void handleUserUi(ActionEvent event) {
+    switchScene(event, "/views/PersonalView.fxml", "Hồ sơ cá nhân");
+  }
+
+  public void handleLogout(ActionEvent event) {
+    UserSession.getInstance().cleanUserSession();
+    switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+  }
+
+  public void handleCreateAuction(ActionEvent event) {
+    switchScene(event, "/views/CreateAuctionView.fxml", "Tạo đấu giá");
+  }
+
+  @FXML
+  void handleWareHouse(ActionEvent event) {
+    switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
+  }
+
+  @FXML
+  public void handleWaitPayment(ActionEvent event) {
+    switchScene(event, "/views/WaitPaymentView.fxml", "Sản phẩm chờ thanh toán");
+  }
+
+  @FXML
+  void handleCreateItem(ActionEvent event) {
+    switchScene(event, "/views/CreateItemView.fxml", "Tạo sản phẩm đấu giá");
+  }
+
+  public void handleMenuItem(ActionEvent event) {
+    switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+  }
+
   private Duration getDuration() {
     int hours = (durationHourSpinner.getValue() != null) ? durationHourSpinner.getValue() : 0;
     int minutes = (durationMinuteSpinner.getValue() != null) ? durationMinuteSpinner.getValue() : 0;
     return Duration.ofHours(hours).plusMinutes(minutes);
   }
 
-
+  public void handleHistoryAuction(ActionEvent event) {
+    switchScene(event, "/views/AuctionHistoryView.fxml", "Lịch sử đấu giá");
+  }
 }
