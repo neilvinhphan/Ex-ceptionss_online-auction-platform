@@ -223,8 +223,11 @@ public class AuctionDAO {
 
   public int createNewAuctionItem(
       Item item, long time, BigDecimal bidIncrement, LocalDateTime startTime) {
+
+    // BỔ SUNG CỘT status VÀO CÂU SQL
     String sql =
-        "INSERT INTO auction (items_id, start_price, bid_increment, end_time, start_time) VALUES (?,?,?,?,?)";
+        "INSERT INTO auction (items_id, start_price, bid_increment, end_time, start_time, status) VALUES (?,?,?,?,?,?)";
+
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getItemId());
@@ -233,6 +236,10 @@ public class AuctionDAO {
       LocalDateTime endtime = startTime.plusMinutes(time);
       ps.setTimestamp(4, Timestamp.valueOf(endtime));
       ps.setTimestamp(5, Timestamp.valueOf(startTime));
+
+      // ÉP CỨNG TRẠNG THÁI LÀ OPEN (CHỜ TỚI GIỜ MỞ CỬA)
+      ps.setString(6, AuctionStatus.OPEN.name());
+
       try (ResultSet rs = ps.executeUpdate() > 0 ? ps.getGeneratedKeys() : null) {
         if (rs.next()) {
           return rs.getInt(1);

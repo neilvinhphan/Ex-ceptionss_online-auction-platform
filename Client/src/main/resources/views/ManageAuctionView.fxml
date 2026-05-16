@@ -44,10 +44,6 @@
                                 text="🔍 Tìm kiếm"/>
 
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button mnemonicParsing="false" onAction="#handleGoToApproval"
-                                prefHeight="35.0"
-                                style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
-                                text="⏳ KIỂM DUYỆT PHÒNG CHỜ"/>
                         <Button mnemonicParsing="false" onAction="#handleRefresh" prefHeight="35.0"
                                 style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
                                 text="🔄 Làm mới"/>
