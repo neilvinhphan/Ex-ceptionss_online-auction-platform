@@ -53,23 +53,28 @@ public class AuctionService {
 
     int auction_id =
         auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
-
-    // THÊM ĐOẠN NÀY: Hẹn giờ mở phòng tự động ngay lập tức
-    long delayToStart = Duration.between(LocalDateTime.now(), startTime).toMillis();
-    if (delayToStart < 0) delayToStart = 0; // Đề phòng lỗi âm thời gian
-
-    scheduler.schedule(
-        () -> {
-          try {
-            startAuction(auction_id); // Hàm chuyển sang RUNNING mà bro đã viết
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        },
-        delayToStart,
-        TimeUnit.MILLISECONDS);
-
     return auctionDAO.getAuctionByAuctionId(auction_id);
+  }
+
+  // TRẠM 1: Admin duyệt và lên dây cót
+  public static void approveAuction(int auctionId) throws Exception {
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+    if (auction == null || auction.getStatus() != AuctionStatus.PENDING) {
+      throw new Exception("Phiên đấu giá không hợp lệ hoặc đã được duyệt!");
+    }
+
+    // Đổi trạng thái sang OPEN (Chờ mở cửa)
+    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.OPEN);
+
+    LocalDateTime now = LocalDateTime.now();
+    long delayToStart = Duration.between(now, auction.getStartTime()).getSeconds();
+
+    if (delayToStart <= 0) {
+      startAuction(auctionId); // Đã qua giờ -> Mở luôn
+    } else {
+      scheduler.schedule(() -> startAuction(auctionId), delayToStart, TimeUnit.SECONDS);
+      System.out.println("⏰ Đã hẹn giờ MỞ phiên " + auctionId + " sau " + delayToStart + "s.");
+    }
   }
 
   // ==========================================

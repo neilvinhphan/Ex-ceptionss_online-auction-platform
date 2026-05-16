@@ -4,14 +4,13 @@ import org.example.core.dto.itemsDTO.CreateArtItemDTO;
 import org.example.core.dto.itemsDTO.CreateElectronicsItemDTO;
 import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 import org.example.core.dto.itemsDTO.CreateVehicleItemDTO;
-import org.example.core.shared.enums.ItemStatus;
 
 import java.sql.ResultSet;
 
 public class ItemFactory {
   public static Item takeItemFromDB(ResultSet rs) throws Exception {
     String type = rs.getString("type");
-    Item item = null;
+    Item item;
     switch (type) {
       case "ART" -> {
         ArtItem artItem = new ArtItem();
@@ -39,20 +38,6 @@ public class ItemFactory {
         item = vehicleItem;
       }
       default -> throw new Exception("Unknown item type: " + type);
-    }
-
-    if (item != null) { // Set các thông tin chung
-      item.setItemId(rs.getInt("items_id"));
-      item.setItemName(rs.getString("items_name"));
-      item.setDescription(rs.getString("description"));
-      item.setStartingPrice(rs.getBigDecimal("start_price"));
-      item.setType(type);
-      item.setImage(rs.getString("image"));
-      item.setStatus(ItemStatus.valueOf(rs.getString("status")));
-
-      // --- BỔ SUNG 2 DÒNG NÀY ĐỂ LẤY DỮ LIỆU AI ---
-      item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
-      item.setAiReason(rs.getString("ai_reason"));
     }
 
     return item;
