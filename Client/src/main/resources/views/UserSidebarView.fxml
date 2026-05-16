@@ -12,7 +12,7 @@
 
         <Button fx:id="btnWarehouse" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleWareHouse" styleClass="sidebar-button" text="⏳ Kho hàng" />
 
-        <Button fx:id="btnHistory" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHistoryAuction" styleClass="sidebar-button" text="📜 Lịch sử đấu giá" />
+        <Button fx:id="btnHistory" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHistoryAuction" styleClass="sidebar-button" text="📜 Sản phẩm đã mua" />
 
         <Button fx:id="btnCreateItem" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateItem" styleClass="sidebar-button" text="➕ Tạo sản phẩm đấu giá" />
       <Button fx:id="btnRevenue" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRevenue" styleClass="sidebar-button" text="⚖ Quản lý doanh thu" />
