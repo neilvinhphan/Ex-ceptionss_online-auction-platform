@@ -20,6 +20,7 @@ import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item; // Đảm bảo bạn đã import đúng class Item của bạn
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -110,7 +111,7 @@ public class CreateAuctionController extends BaseController implements Initializ
     requestPayload.setSellerId(sellerId);
     System.out.println("Tao luong");
     try {
-      Request request = new Request("GET_PENDING_ITEMS", requestPayload);
+      Request request = new Request("GET_APPROVED_ITEMS", requestPayload);
       String jsonRequest = gson.toJson(request);
       new Thread(
               () -> {
@@ -143,8 +144,7 @@ public class CreateAuctionController extends BaseController implements Initializ
 
                               // 2. MÀNG LỌC: Chỉ những món đồ mang trạng thái DRAFT mới được cho
                               // vào list
-                              if (parsedItem.getStatus()
-                                  == org.example.core.shared.enums.ItemStatus.DRAFT) {
+                              if (parsedItem.getStatus() == ItemStatus.APPROVED) {
                                 allPendingItems.add(parsedItem);
                               }
                             }
@@ -353,7 +353,6 @@ public class CreateAuctionController extends BaseController implements Initializ
     }
   }
 
-
   // =========================================================
   // 🔹 HELPERS
   // =========================================================
@@ -362,6 +361,4 @@ public class CreateAuctionController extends BaseController implements Initializ
     int minutes = (durationMinuteSpinner.getValue() != null) ? durationMinuteSpinner.getValue() : 0;
     return Duration.ofHours(hours).plusMinutes(minutes);
   }
-
-
 }

@@ -33,6 +33,7 @@ import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
 import org.example.client.utils.ImageUtils;
+import org.example.core.shared.enums.AuctionStatus;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -191,7 +192,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
     btnJoin.setStyle(
         "-fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;");
 
-    if (auction.getStatus() == org.example.core.shared.enums.AuctionStatus.OPEN) {
+    if (auction.getStatus() == AuctionStatus.OPEN) {
       lblState.setText("⏳ SẮP DIỄN RA");
       lblState.setStyle(
           "-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #ff9800;"); // Màu cam
@@ -232,6 +233,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
       showAlert("Lỗi", "Không thể vào phòng đấu giá: " + ex.getMessage());
     }
   }
+
   @FXML
   public void handleFilter(ActionEvent event) {
     // Nếu danh sách gốc chưa load xong thì không làm gì cả

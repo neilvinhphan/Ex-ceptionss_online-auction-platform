@@ -47,7 +47,7 @@ public abstract class Item extends Entity {
     protected Builder(int sellerID, String itemName, BigDecimal startingPrice) {
       this.sellerID = sellerID;
       this.itemName = itemName;
-      this.status = ItemStatus.DRAFT;
+      this.status = ItemStatus.PENDING;
       this.startingPrice = startingPrice;
     }
 
