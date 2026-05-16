@@ -87,4 +87,44 @@ public class DashboardDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return map;
     }
+
+    // LẤY THỐNG KÊ DOANH THU CHO NGƯỜI BÁN
+    public org.example.core.dto.userDTO.SellerDashboardDTO getSellerDashboardStats(int sellerId) {
+        double totalRevenue = 0;
+        int totalSold = 0;
+        Map<String, Integer> categories = new HashMap<>();
+
+        String sqlKpi = "SELECT SUM(amount), COUNT(transaction_id) FROM wallet_transaction WHERE user_id = ? AND transaction_type = 'SELL_REVENUE'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlKpi)) {
+            ps.setInt(1, sellerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    totalRevenue = rs.getDouble(1);
+                    totalSold = rs.getInt(2);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // 2. Lấy số liệu Biểu đồ tròn (Ngành hàng)
+        String sqlPie = """
+            SELECT i.type, COUNT(wt.transaction_id) 
+            FROM wallet_transaction wt
+            JOIN auction a ON wt.auction_id = a.auction_id
+            JOIN items i ON a.items_id = i.items_id
+            WHERE wt.user_id = ? AND wt.transaction_type = 'SELL_REVENUE'
+            GROUP BY i.type
+        """;
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlPie)) {
+            ps.setInt(1, sellerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    categories.put(rs.getString(1), rs.getInt(2));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        return new org.example.core.dto.userDTO.SellerDashboardDTO(totalRevenue, totalSold, categories);
+    }
 }

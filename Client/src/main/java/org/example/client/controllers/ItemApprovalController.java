@@ -46,7 +46,7 @@ public class ItemApprovalController extends BaseController implements Initializa
   @FXML private TextArea txtDescription;
   @FXML private Button btnApprove;
   @FXML private Button btnReject;
-  private ObservableList<Item> daftItemsList = FXCollections.observableArrayList();
+  private ObservableList<Item> pendingItemsList = FXCollections.observableArrayList();
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
@@ -67,7 +67,7 @@ public class ItemApprovalController extends BaseController implements Initializa
           return new SimpleStringProperty("NULL");
         });
     // 2. Gắn list vào bảng
-    itemTable.setItems(daftItemsList);
+    itemTable.setItems(pendingItemsList);
     // 3. Lắng nghe sự kiện click vào 1 dòng trên bảng
     setupTableSelectionListener();
     // 4. Gọi API tải dữ liệu lần đầu
@@ -168,7 +168,7 @@ public class ItemApprovalController extends BaseController implements Initializa
 
                     Platform.runLater(
                         () -> {
-                          daftItemsList.setAll(fetchedItems);
+                          pendingItemsList.setAll(fetchedItems);
                           clearDetailsPane(); // Reset lại panel chi tiết khi vừa load xong
                           System.out.println(
                               "Đã tải xong " + fetchedItems.size() + " tài sản chờ duyệt.");
@@ -245,7 +245,7 @@ public class ItemApprovalController extends BaseController implements Initializa
                                     showAlert(
                                         "Thành công", "Đã " + actionName + " sản phẩm thành công!");
                                     // Xóa khỏi danh sách chờ trên giao diện
-                                    daftItemsList.remove(selectedItem);
+                                    pendingItemsList.remove(selectedItem);
                                     clearDetailsPane();
                                   } else {
                                     showAlert(
