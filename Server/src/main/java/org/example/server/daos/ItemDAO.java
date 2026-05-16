@@ -65,6 +65,9 @@ public class ItemDAO {
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
 
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
           items.add(item);
         }
         return items;
@@ -87,6 +90,7 @@ public class ItemDAO {
       ps.setBigDecimal(4, item.getStartingPrice());
       ps.setString(5, item.getType());
       ps.setString(6, item.getImage());
+      ps.setString(7, item.getStatus().name());
 
       int affectedRows = ps.executeUpdate();
       if (affectedRows != 0) {
@@ -178,6 +182,10 @@ public class ItemDAO {
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setImage(rs.getString("image"));
+
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
           item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
           return item;
         }
@@ -345,6 +353,51 @@ public class ItemDAO {
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
           item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<Item> getApprovedItemsByUserId(int userId) {
+    String sql =
+        """
+            SELECT
+                i.*,
+                art.artist, art.creation_year,
+                ele.ele_brand, ele.warranty_months, ele.item_condition,
+                veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+            FROM items i
+            LEFT JOIN art_items art ON i.items_id = art.items_id
+            LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+            LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+            WHERE i.owner_id = ? AND i.status = 'APPROVED'
+            """; // 🎯 CHỐT CHẶN: Chỉ lấy đồ APPROVED của chính User này
+    try (Connection connection = DBConnection.getConnection();
+        PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+          item.setImage(rs.getString("image"));
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
 
           items.add(item);
         }

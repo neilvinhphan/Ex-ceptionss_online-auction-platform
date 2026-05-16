@@ -131,6 +131,9 @@ public class ClientHandler implements Runnable {
             case "GET_PENDING_ITEMS":
               handleGetPendingItems(request);
               break;
+            case "GET_APPROVED_ITEMS":
+              handleGetApprovedItems(request);
+              break;
             case "CREATE_AUCTION":
               handleCreateAuction(request);
               break;
@@ -167,8 +170,8 @@ public class ClientHandler implements Runnable {
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
-            case "ADMIN_GET_ALL_DAFT_ITEMS":
-              handleAdminGetDaftItems(request);
+            case "ADMIN_GET_ALL_PENDING_ITEMS":
+              handleAdminGetPendingItems(request);
               break;
             case "ADMIN_GET_ALL_USERS":
               handleAdminGetAllUsers(request);
@@ -699,9 +702,9 @@ public class ClientHandler implements Runnable {
                         + ". Vui lòng kiểm tra lại!")));
         return;
       }
-      if (checkItem.getStatus() != ItemStatus.DRAFT) {
+      if (checkItem.getStatus() != ItemStatus.PENDING) {
         Response errorResponse =
-            new Response("ERROR", "Lỗi: Tài sản này không ở trạng thái Bản Nháp (DRAFT)!");
+            new Response("ERROR", "Lỗi: Tài sản này không ở trạng thái PENDING)!");
         sendMessage(gson.toJson(errorResponse));
         return;
       }
@@ -746,18 +749,20 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  //  private void handleAdminGetAllAuctions() {
-  //    try{
-  //      List<Auction> pendingAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
-  //      Response response = new Response("SUCCESS", "Lay danh sach auctions thanh
-  // cong",pendingAuctions);
-  //      sendMessage(gson.toJson(response));
-  //    } catch (Exception e) {
-  //      e.printStackTrace();
-  //      Response errResponse = new Response("ERROR", "Loi khong the lay duoc danh sach auctions");
-  //      sendMessage(gson.toJson(errResponse));
+  //    private void handleAdminGetAllAuctions() {
+  //      try{
+  //        List<Auction> pendingAuctions =
+  // AuctionService.getAuctionsByStatus(AuctionStatus.PENDING);
+  //        Response response = new Response("SUCCESS", "Lay danh sach auctions thanh
+  //   cong",pendingAuctions);
+  //        sendMessage(gson.toJson(response));
+  //      } catch (Exception e) {
+  //        e.printStackTrace();
+  //        Response errResponse = new Response("ERROR", "Loi khong the lay duoc danh sach
+  // auctions");
+  //        sendMessage(gson.toJson(errResponse));
+  //      }
   //    }
-  //  }
 
   private void handleAdminBanUser(Request request) {
     try {
@@ -844,7 +849,7 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleAdminGetDaftItems(Request request) {
+  private void handleAdminGetPendingItems(Request request) {
     try {
       String dataJson = gson.toJson(request.getData());
       Integer adminId = gson.fromJson(dataJson, Integer.class);
@@ -855,7 +860,7 @@ public class ClientHandler implements Runnable {
         return;
       }
 
-      List<Item> daftItems = itemDAO.getItemsByStatus(ItemStatus.DRAFT);
+      List<Item> daftItems = itemDAO.getItemsByStatus(ItemStatus.PENDING);
 
       Response response = new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", daftItems);
       sendMessage(gson.toJson(response));
@@ -864,6 +869,30 @@ public class ClientHandler implements Runnable {
       e.printStackTrace();
       Response errorResponse =
           new Response("ERROR", "Lỗi Server khi lấy danh sách chờ duyệt: " + e.getMessage());
+      sendMessage(gson.toJson(errorResponse));
+    }
+  }
+
+  private void handleGetApprovedItems(Request request) {
+    try {
+      // 1. Giải mã Payload từ Client truyền lên (PendingItemsDTO chứa sellerId)
+      org.example.core.dto.itemsDTO.PendingItemsDTO dto =
+          gson.fromJson(gson.toJson(request.getData()), PendingItemsDTO.class);
+
+      // 2. Gọi DAO lấy danh sách đồ sạch APPROVED của riêng User này
+      List<Item> approvedItems = ItemDAO.getInstance().getApprovedItemsByUserId(dto.getSellerId());
+
+      // 3. Đóng gói phản hồi SUCCESS (Thêm tin nhắn vào giữa cho đủ 3 tham số)
+      Response response =
+          new Response("SUCCESS", "Tải danh sách sản phẩm thành công", approvedItems);
+
+      // 4. Thay thế out.println bằng hàm sendMessage xịn của nhóm ông
+      sendMessage(gson.toJson(response));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      Response errorResponse =
+          new Response("ERROR", "Không thể tải danh sách tài sản: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
