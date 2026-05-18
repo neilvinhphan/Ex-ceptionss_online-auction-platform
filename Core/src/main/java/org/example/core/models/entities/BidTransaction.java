@@ -2,7 +2,6 @@ package org.example.core.models.entities;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class BidTransaction extends Entity {
   private BigDecimal amount;
@@ -36,22 +35,6 @@ public class BidTransaction extends Entity {
     this.bidderName = bidderName;
   }
 
-  public void setBidAmount(BigDecimal amount) {
-    this.amount = amount;
-  }
-
-  public void setBidTime(LocalDateTime time) {
-    this.time = time;
-  }
-
-  public void setBidderId(int bidderID) {
-    this.bidderID = bidderID;
-  }
-
-  public void setBidId(int bidId) {
-    this.bidId = bidId;
-  }
-
   public void setAuctionId(int auctionId) {
     this.auctionId = auctionId;
   }
@@ -68,20 +51,39 @@ public class BidTransaction extends Entity {
     return bidderID;
   }
 
-  public int getBidId() {
-    return bidId;
-  }
-
   public int getAuctionId() {
     return auctionId;
   }
 
-  //  public int compareTo(BidTransaction other) {}
   public String getBidderName() {
     return bidderName;
   }
 
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
+  }
+
+  public void setTime(LocalDateTime time) {
+    this.time = time;
+  }
+
+  public int getBidderID() {
+    return bidderID;
+  }
+
+  public void setBidderID(int bidderID) {
+    this.bidderID = bidderID;
+  }
+
   public void setBidderName(String bidderName) {
     this.bidderName = bidderName;
+  }
+
+  public int getBidId() {
+    return bidId;
+  }
+
+  public void setBidId(int bidId) {
+    this.bidId = bidId;
   }
 }
