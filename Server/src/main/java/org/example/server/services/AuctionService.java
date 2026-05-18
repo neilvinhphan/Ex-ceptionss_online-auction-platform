@@ -209,4 +209,4 @@ public class AuctionService {
   public static List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
     return auctionDAO.getAllAuctionsPaid(userId);
   }
-}
+} 
