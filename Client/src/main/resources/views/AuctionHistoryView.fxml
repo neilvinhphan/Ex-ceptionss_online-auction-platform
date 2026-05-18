@@ -13,8 +13,11 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionHistoryController">
-    <content>
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0"
+            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"
+            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.client.controllers.AuctionHistoryController">
+  <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
                 <BorderPane VBox.vgrow="ALWAYS">
@@ -47,7 +50,7 @@
                                     </children>
                                 </VBox>
 
-                                <TableView fx:id="tvAuctionHistory" prefHeight="450.0" style="-fx-background-radius: 10; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
+                                <TableView fx:id="tvAuctionHistory" VBox.vgrow="ALWAYS" style="-fx-background-radius: 10; -fx-border-color: #E9ECEF; -fx-border-radius: 10;">
                                     <columns>
                                         <TableColumn fx:id="colItemName" prefWidth="250.0" text="Tên sản phẩm" />
                                         <TableColumn fx:id="colCategory" prefWidth="150.0" text="Loại" />
@@ -63,8 +66,6 @@
                         </VBox>
                     </center>
                 </BorderPane>
-
-                <fx:include source="FooterView.fxml" BorderPane.alignment="CENTER" />
 
             </children>
         </VBox>

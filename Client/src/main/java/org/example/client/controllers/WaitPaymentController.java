@@ -240,5 +240,4 @@ public class WaitPaymentController extends BaseController implements Initializab
     }
 
 
-
 }

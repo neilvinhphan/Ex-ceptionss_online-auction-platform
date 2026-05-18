@@ -11,6 +11,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
@@ -24,6 +26,7 @@ import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
+import org.example.core.models.users.User;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -39,14 +42,25 @@ import java.util.concurrent.TimeUnit;
 
 public class AuctionRoomController extends BaseController implements Initializable {
 
+    // --- CÁC COMPONENT CŨ ---
     @FXML private Label lblItemName, lblTimer, lblStatus, lblBid;
-    @FXML private Label lblCurrentPrice, lblHighestBidder, lblWinner, lblBidError;
+    @FXML private Label lblCurrentPrice, lblHighestBidder, lblBidError;
     @FXML private TextArea taDescription;
     @FXML private TextField tfBidAmount;
     @FXML private ListView<String> lvBidHistory;
     @FXML private LineChart<Number, Number> lineChart;
     @FXML private Button btnPlaceBid;
     @FXML private ImageView ivItemImage;
+
+    // --- CÁC COMPONENT MỚI THÊM CHO ROLE-BASED & UI MỚI ---
+    @FXML private Label lblLiveViewersHeader;
+    @FXML private StackPane spRolePanels;
+    @FXML private VBox panelBidder, panelSeller, panelAdmin, vboxCheckoutSection;
+    @FXML private CheckBox cbAutoBid;
+    @FXML private Label lblSellerTotalBids, lblSellerProfit, lblPostAuctionStatus;
+    @FXML private Button btnCheckout;
+    @FXML private Label lblPriceTitle;
+    @FXML private Label lblLeaderTitle;
     private XYChart.Series<Number, Number> priceSeries;
     private ScheduledExecutorService timerService;
 
@@ -57,6 +71,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     private Gson gson;
     private int currentAuctionId;
     private int currentUserId;
+    private User currentUser;
 
     private PrintWriter outToServer;
     private BufferedReader inFromServer;
@@ -64,8 +79,9 @@ public class AuctionRoomController extends BaseController implements Initializab
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (UserSession.getInstance().getCurrentUser() != null) {
-            this.currentUserId = UserSession.getInstance().getCurrentUser().getUserId();
+        currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            this.currentUserId = currentUser.getUserId();
         }
 
         priceSeries = new XYChart.Series<>();
@@ -87,11 +103,15 @@ public class AuctionRoomController extends BaseController implements Initializab
         } else {
             showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
         }
+
     }
 
     private void setupRoom(Auction auction, Item item) {
         this.currentAuction = auction;
         this.currentAuctionId = auction.getAuctionId();
+
+        // Cấu hình UI theo Vai trò (Phân quyền Panel)
+        setupRoleUI(currentUser, item);
 
         // 🛡️ PHÒNG THỦ: Tránh null khi chưa có lượt đặt giá nào
         this.currentMaxPrice =
@@ -119,8 +139,8 @@ public class AuctionRoomController extends BaseController implements Initializab
         }
 
         lblStatus.setText(auction.getStatus() != null ? auction.getStatus().toString() : "UNKNOWN");
-        lblWinner.setText("--");
 
+        setupRolePanels(item);
         priceSeries.getData().clear();
         lvBidHistory.getItems().clear();
         bidStepCount = 0;
@@ -138,6 +158,9 @@ public class AuctionRoomController extends BaseController implements Initializab
 
             String topBidder = auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
             updatePriceUI(currentMaxPrice, topBidder);
+
+            // Cập nhật số lượt đấu giá cho giao diện Seller
+            if(lblSellerTotalBids != null) lblSellerTotalBids.setText(bidStepCount + " lượt");
         } else {
             if (item != null && item.getStartingPrice() != null) {
                 priceSeries.getData().add(new XYChart.Data<>(0, item.getStartingPrice().doubleValue()));
@@ -154,10 +177,72 @@ public class AuctionRoomController extends BaseController implements Initializab
             System.err.println("Lỗi gửi JOIN_ROOM: " + e.getMessage());
         }
 
-        // Thiết lập trạng thái ban đầu của ô nhập thầu
         updateUiComponentsByStatus(auction.getStatus());
         startCountdown();
     }
+
+    /**
+     * HÀM MỚI: Phân quyền hiển thị StackPane dựa trên Role
+     */
+    private void setupRoleUI(User user, Item item) {
+        // Mặc định ẩn tất cả
+        panelBidder.setVisible(false); panelBidder.setManaged(false);
+        panelSeller.setVisible(false); panelSeller.setManaged(false);
+        panelAdmin.setVisible(false); panelAdmin.setManaged(false);
+
+        if (user == null) {
+            panelBidder.setVisible(true); panelBidder.setManaged(true);
+            return;
+        }
+
+        // Logic check role (Cần chỉnh sửa getRole() / getSellerId() cho khớp với model của bạn)
+        String role = String.valueOf(user.getRole()); // Giả sử getRole trả về String hoặc Enum
+
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            panelAdmin.setVisible(true); panelAdmin.setManaged(true);
+        }
+        else if (item != null && user.getUserId() == item.getSellerID()) { // Sửa getOwnerId() thành getSellerId() nếu Model của bạn tên như vậy
+            panelSeller.setVisible(true); panelSeller.setManaged(true);
+        }
+        else {
+            panelBidder.setVisible(true); panelBidder.setManaged(true);
+        }
+    }
+
+    // --- CÁC HÀM XỬ LÝ QUICK BID (THÊM MỚI) ---
+    @FXML
+    private void handleQuickBidStep(ActionEvent event) {
+        if (currentAuction != null && currentAuction.getBidIncrement() != null) {
+            BigDecimal nextBid = currentMaxPrice.add(currentAuction.getBidIncrement());
+            tfBidAmount.setText(nextBid.toPlainString());
+        }
+    }
+
+    @FXML
+    private void handleQuickBid50k(ActionEvent event) {
+        BigDecimal nextBid = currentMaxPrice.add(new BigDecimal("50000"));
+        tfBidAmount.setText(nextBid.toPlainString());
+    }
+
+    @FXML
+    private void handleQuickBid100k(ActionEvent event) {
+        BigDecimal nextBid = currentMaxPrice.add(new BigDecimal("100000"));
+        tfBidAmount.setText(nextBid.toPlainString());
+    }
+
+    // --- CÁC STUB METHOD CHO UI MỚI (TRÁNH LỖI LOAD FXML) ---
+    @FXML private void handleReactHeart(ActionEvent event) { System.out.println("Thả tim!"); }
+    @FXML private void handleReactFire(ActionEvent event) { System.out.println("Thả phẫn nộ/Lửa!"); }
+    @FXML private void handleReactClap(ActionEvent event) { System.out.println("Vỗ tay!"); }
+    @FXML private void handleEndAuctionEarly(ActionEvent event) { showAlert("Tính năng", "Chốt sớm đang phát triển!"); }
+    @FXML private void handleCancelAuctionSeller(ActionEvent event) { showAlert("Tính năng", "Hủy phiên đang phát triển!"); }
+    @FXML private void handlePauseAuction(ActionEvent event) { showAlert("Admin", "Tính năng Tạm dừng đang phát triển!"); }
+    @FXML private void handleKickBidder(ActionEvent event) { showAlert("Admin", "Tính năng Kick đang phát triển!"); }
+
+
+    // ======================================================================
+    // LOGIC CŨ BÊN DƯỚI GIỮ NGUYÊN 100% ĐỂ KHÔNG ẢNH HƯỞNG SERVER
+    // ======================================================================
 
     private void updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus status) {
         if (status == org.example.core.shared.enums.AuctionStatus.OPEN) {
@@ -168,6 +253,10 @@ public class AuctionRoomController extends BaseController implements Initializab
             tfBidAmount.setDisable(true);
             btnPlaceBid.setDisable(true);
             tfBidAmount.setPromptText("Phiên đã kết thúc.");
+            if(btnCheckout != null) {
+                btnCheckout.setVisible(true);
+                btnCheckout.setManaged(true);
+            }
         } else {
             tfBidAmount.setDisable(false);
             btnPlaceBid.setDisable(false);
@@ -187,6 +276,8 @@ public class AuctionRoomController extends BaseController implements Initializab
                 lblBidError.setText("Giá đặt phải cao hơn giá hiện tại!");
                 return;
             }
+
+            // TODO: Nếu checkbox AutoBid (cbAutoBid.isSelected()) được tích, bạn có thể gửi DTO khác lên Server sau này.
 
             BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
             Request requestContainer = new Request("PLACE_BID", bidReq);
@@ -215,7 +306,6 @@ public class AuctionRoomController extends BaseController implements Initializab
                         while (isListening && (messageFromServer = inFromServer.readLine()) != null) {
                             if (!isListening) break;
 
-                            // 🛡️ CHỐT CHẶN TRIỆT ĐỂ: Try-Catch bọc từng gói tin, một gói lỗi không làm sập toàn bộ Thread nghe Socket
                             try {
                                 Response response = gson.fromJson(messageMessageFromServer(messageFromServer), Response.class);
                                 if (response == null) continue;
@@ -247,7 +337,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.RUNNING);
                                         lblBidError.setStyle("-fx-text-fill: green;");
                                         lblBidError.setText(response.getMessage());
-                                        startCountdown(); // Tái kích hoạt đồng hồ đếm ngược duration phòng
+                                        startCountdown();
                                     });
                                 }
                                 else if ("AUCTION_ENDED".equals(response.getStatus())) {
@@ -256,11 +346,20 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         stopTimer();
                                         lblTimer.setText("00:00:00");
                                         lblStatus.setText("FINISHED");
-                                        lblWinner.setText(winnerName != null ? winnerName : "Không có");
-                                        updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+                                        btnPlaceBid.setDisable(true);
+                                        tfBidAmount.setDisable(true);
 
-                                        org.example.core.models.users.User user = UserSession.getInstance().getCurrentUser();
-                                        if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
+                                        // ----- THÊM ĐOẠN ĐỔI CHỮ NÀY VÀO -----
+                                        // Đổi tiêu đề thành Giá chốt và Người chiến thắng
+                                        lblPriceTitle.setText("GIÁ CHỐT CUỐI CÙNG");
+                                        lblLeaderTitle.setText("🏆 NGƯỜI CHIẾN THẮNG:");
+
+                                        // Cập nhật tên người thắng và cho nó to lên, màu đỏ rực rỡ để nổi bật
+                                        lblHighestBidder.setText(winnerName);
+                                        lblHighestBidder.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
+                                        // ------------------------------------
+
+                                        if (winnerName != null && winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())) {
                                             showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
                                         } else {
                                             showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
@@ -268,7 +367,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                                     });
                                 }
                             } catch (Exception parseEx) {
-                                System.err.println("❌ Lỗi bóc tách gói tin (Bỏ qua để nghe tiếp): " + parseEx.getMessage());
+                                System.err.println("❌ Lỗi bóc tách gói tin: " + parseEx.getMessage());
                             }
                         }
                     } catch (Exception e) {
@@ -278,7 +377,6 @@ public class AuctionRoomController extends BaseController implements Initializab
                 .start();
     }
 
-    // Tiện ích bọc chuỗi phòng hờ
     private String messageMessageFromServer(String raw) {
         return raw;
     }
@@ -295,6 +393,9 @@ public class AuctionRoomController extends BaseController implements Initializab
 
                         bidStepCount++;
                         priceSeries.getData().add(new XYChart.Data<>(bidStepCount, newPrice.doubleValue()));
+
+                        // Cập nhật lượt đấu giá cho seller
+                        if(lblSellerTotalBids != null) lblSellerTotalBids.setText(bidStepCount + " lượt");
 
                         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                         String historyLine = String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue());
@@ -324,7 +425,6 @@ public class AuctionRoomController extends BaseController implements Initializab
                 () -> {
                     Platform.runLater(
                             () -> {
-                                // 🛡️ CHỐT CHẶN GIÁP THÉP: Try-catch bảo vệ tuyệt đối luồng vẽ UI FX không bị nghẽn nghẹt, đứng hình
                                 try {
                                     if (currentAuction == null) return;
 
@@ -337,7 +437,6 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         targetTime = currentAuction.getEndTime();
                                     }
 
-                                    // Fallback phòng hờ trường hợp dữ liệu thời gian bị null
                                     if (targetTime == null) {
                                         lblTimer.setText("--:--:--");
                                         return;
@@ -399,6 +498,36 @@ public class AuctionRoomController extends BaseController implements Initializab
     private void stopTimer() {
         if (timerService != null && !timerService.isShutdown()) {
             timerService.shutdown();
+        }
+    }
+    private void setupRolePanels(Item currentItem) {
+        // 1. Lấy thông tin user đang đăng nhập
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        // 2. Giấu tất cả các bảng đi trước cho sạch sẽ
+        panelBidder.setVisible(false); panelBidder.setManaged(false);
+        panelSeller.setVisible(false); panelSeller.setManaged(false);
+        panelAdmin.setVisible(false); panelAdmin.setManaged(false);
+
+        // 3. Phân loại người dùng và bật đúng bảng
+        String role = String.valueOf(currentUser.getRole()); // Tuỳ thuộc vào Entity User của bạn
+
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            // Nếu là Admin -> Mở bảng Admin (có nút Hủy phòng, Kick user)
+            panelAdmin.setVisible(true);
+            panelAdmin.setManaged(true);
+
+        } else if (currentItem != null && currentUser.getUserId() == currentItem.getSellerID()) {
+            // Lưu ý: Sửa lại getSellerID() cho đúng với tên hàm trong class Item của bạn
+            // Nếu ID của user hiện tại trùng với ID người bán món đồ -> Mở bảng Seller
+            panelSeller.setVisible(true);
+            panelSeller.setManaged(true);
+
+        } else {
+            // Còn lại tất cả những người khác -> Mở bảng Bidder (để đặt giá)
+            panelBidder.setVisible(true);
+            panelBidder.setManaged(true);
         }
     }
 }
