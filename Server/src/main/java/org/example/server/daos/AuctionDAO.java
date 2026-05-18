@@ -309,15 +309,15 @@ public class AuctionDAO {
   public Auction getAuctionByAuctionId(int auctionId) {
     String sql = "SELECT * FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Auction auction = new Auction();
           auction.setAuctionId(rs.getInt("auction_id"));
           auction.setItemId(rs.getInt("items_id"));
-          auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-          // --- BẮT ĐẦU ĐOẠN SỬA ---
+          auction.setStatus(AuctionStatus.valueOf(rs.getString("status").toUpperCase()));
+
           Timestamp startTs = rs.getTimestamp("start_time");
           if (startTs != null) {
             auction.setStartTime(startTs.toLocalDateTime());
@@ -327,14 +327,29 @@ public class AuctionDAO {
           if (endTs != null) {
             auction.setEndTime(endTs.toLocalDateTime());
           }
-          // --- KẾT THÚC ĐOẠN SỬA ---
+
           auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
           auction.setHighestBid(rs.getBigDecimal("highest_price"));
           auction.setBidderId(rs.getInt("bidder_id"));
+
+          // 🛡️ BẢO HIỂM 1: Tự động tính khoảng cách số phút thực tế từ DB để durationMinutes không bao giờ bằng 0
+          if (auction.getStartTime() != null && auction.getEndTime() != null) {
+            long minutes = java.time.Duration.between(auction.getStartTime(), auction.getEndTime()).toMinutes();
+            auction.setDurationMinutes(minutes);
+          }
+
+          // 🛡️ BẢO HIỂM 2: Nạp kèm luôn đối tượng sản phẩm Item vào để Client mở phòng có dữ liệu render tranh ảnh/mô tả
+          try {
+            Item item = ItemDAO.getInstance().getItemById(auction.getItemId());
+            auction.setItem(item);
+          } catch (Exception e) {
+            System.err.println("Lỗi nạp kèm Item trong DAO: " + e.getMessage());
+          }
+
           return auction;
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (SQLException | java.io.IOException e) {
       throw new RuntimeException(e);
     }
     return null;

@@ -51,6 +51,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -164,9 +165,9 @@ public class ClientHandler implements Runnable {
             case "PAY_ALL":
               handlePayAllItems(request);
               break;
-                        case "ADMIN_GET_ALL_AUCTIONS":
-                          handleAdminGetAllAuctions();
-                          break;
+            case "ADMIN_GET_ALL_AUCTIONS":
+              handleAdminGetAllAuctions();
+              break;
             case "ADMIN_PROCESS_ITEM":
               handleAdminProcessItem(request);
               break;
@@ -182,9 +183,6 @@ public class ClientHandler implements Runnable {
             case "ADMIN_CANCEL_AUCTION":
               handleAdminCancelAuction(request);
               break;
-//                        case "GET_PENDING_AUCTIONS":
-//                          handleGetPendingAuctions(request);
-//                          break;
             case "JOIN_ROOM":
               handleJoinRoom(request);
               break;
@@ -588,7 +586,7 @@ public class ClientHandler implements Runnable {
 
       List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
 
-      List<Auction> activeItems = new java.util.ArrayList<>();
+      List<Auction> activeItems = new ArrayList<>();
 
       if (runningAuctions != null) {
         activeItems.addAll(runningAuctions);
@@ -598,14 +596,14 @@ public class ClientHandler implements Runnable {
       }
 
       Response response =
-              new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
+          new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
 
       sendMessage(gson.toJson(response));
 
     } catch (Exception e) {
       e.printStackTrace();
       Response errorResponse =
-              new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+          new Response("ERROR", "Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
       sendMessage(gson.toJson(errorResponse));
     }
   }
