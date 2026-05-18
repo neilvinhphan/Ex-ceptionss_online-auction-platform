@@ -15,8 +15,6 @@ import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
 import org.example.server.daos.WalletDAO;
-
-// Thay đổi import này theo đúng package chứa mạng của bro
 import org.example.server.network.AuctionServer;
 
 import java.math.BigDecimal;
@@ -34,12 +32,7 @@ public class AuctionService {
   private static final ItemDAO itemDAO = ItemDAO.getInstance();
   private static final WalletDAO walletDAO = WalletDAO.getInstance();
 
-  // Lập tổ đội 10 luồng chuyên xử lý báo thức
   private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
-
-  // ==========================================
-  //  1. NHÓM KHỞI TẠO & KIỂM DUYỆT
-  // ==========================================
 
   public static Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
     Item checkItem = requestPayLoad.getItem();
@@ -52,77 +45,65 @@ public class AuctionService {
       throw new Exception("Vật phẩm đang được đấu giá!");
 
     int auction_id =
-        auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
-    return auctionDAO.getAuctionByAuctionId(auction_id);
+            auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
+
+    Auction newAuction = auctionDAO.getAuctionByAuctionId(auction_id);
+
+    // ⏰ KÍCH HOẠT TỰ ĐỘNG: Lên lịch hẹn giờ mở cửa phòng ngay khi User vừa tạo phòng thành công
+    if (newAuction != null) {
+      long delayToStart = Duration.between(LocalDateTime.now(), newAuction.getStartTime()).getSeconds();
+      if (delayToStart <= 0) {
+        scheduler.submit(() -> startAuction(auction_id));
+      } else {
+        scheduler.schedule(() -> startAuction(auction_id), delayToStart, TimeUnit.SECONDS);
+        System.out.println("⏰ [HẸN GIỜ] Phiên đấu giá mới tạo ID: " + auction_id + " sẽ mở cửa sau " + delayToStart + " giây.");
+      }
+    }
+    return newAuction;
   }
 
-  // TRẠM 1: Admin duyệt và lên dây cót
-  public static void approveAuction(int auctionId) throws Exception {
-    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-    if (auction == null || auction.getStatus() != AuctionStatus.PENDING) {
-      throw new Exception("Phiên đấu giá không hợp lệ hoặc đã được duyệt!");
-    }
-
-    // Đổi trạng thái sang OPEN (Chờ mở cửa)
-    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.OPEN);
-
-    LocalDateTime now = LocalDateTime.now();
-    long delayToStart = Duration.between(now, auction.getStartTime()).getSeconds();
-
-    if (delayToStart <= 0) {
-      startAuction(auctionId); // Đã qua giờ -> Mở luôn
-    } else {
-      scheduler.schedule(() -> startAuction(auctionId), delayToStart, TimeUnit.SECONDS);
-      System.out.println("⏰ Đã hẹn giờ MỞ phiên " + auctionId + " sau " + delayToStart + "s.");
-    }
-  }
-
-  // ==========================================
-  // 2. NHÓM VẬN HÀNH TỰ ĐỘNG (AUTO-TRIGGER)
-  // ==========================================
-
-  // TRẠM 2: Mở cửa phòng
   private static void startAuction(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.OPEN) {
 
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.RUNNING);
-        System.out.println("🔥 Phiên " + auctionId + " ĐÃ BẮT ĐẦU!");
+        System.out.println("🔥 Phiên " + auctionId + " ĐÃ CHUYỂN SANG RUNNING!");
 
-        // Broadcast gọi Client mở khóa màn hình
+        // Broadcast gọi Client mở khóa màn hình vũ khí
         Response startResponse = new Response("AUCTION_STARTED", "Phiên đấu giá bắt đầu!");
         AuctionServer.broadcastToRoom(auctionId, startResponse);
 
-        // Lên dây cót ĐÓNG PHÒNG
-        long durationSeconds = auction.getDurationMinutes() * 60L;
+        // 🛡️ VÁ LỖI CHÍ MẠNG: Tính số giây tồn tại của phòng dựa trên khoảng cách thực tế đến endTime trong DB
+        long durationSeconds = Duration.between(LocalDateTime.now(), auction.getEndTime()).getSeconds();
+        if (durationSeconds <= 0) {
+          durationSeconds = 1; // Fallback an toàn bảo vệ hệ thống
+        }
+
         scheduler.schedule(() -> endAuction(auctionId), durationSeconds, TimeUnit.SECONDS);
+        System.out.println("⏰ Đã lên lịch ĐÓNG phiên " + auctionId + " sau chính xác " + durationSeconds + " giây.");
       }
     } catch (Exception e) {
       System.err.println("Lỗi luồng startAuction: " + e.getMessage());
     }
   }
 
-  // TRẠM 3: Đóng cửa phòng
   private static void endAuction(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.RUNNING) {
 
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.FINISHED);
-        System.out.println("🛑 Phiên " + auctionId + " ĐÃ KẾT THÚC!");
+        System.out.println("🛑 Phiên " + auctionId + " ĐÃ KẾT THÚC THÀNH CÔNG!");
 
-        // Lấy thông tin người thắng để bắn về (Nếu có)
         String winnerName = "Không có ai";
         if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-          winnerName = auction.getBidHistory().get(0).getBidderName(); // Giả sử list xếp giảm dần
+          winnerName = auction.getBidHistory().get(0).getBidderName();
         }
 
-        // Broadcast khóa màn hình
         Response endResponse = new Response("AUCTION_ENDED", winnerName);
         AuctionServer.broadcastToRoom(auctionId, endResponse);
 
-        // Lên dây cót hủy phòng nếu không thanh toán (Bác lao công 24h)
         scheduler.schedule(() -> cancelIfNotPaid(auctionId), 24, TimeUnit.HOURS);
         System.out.println("⏰ Đã hẹn giờ kiểm tra thanh toán phiên " + auctionId + " sau 24h.");
       }
@@ -131,27 +112,22 @@ public class AuctionService {
     }
   }
 
-  // TRẠM 4: Bác lao công 24h
   private static void cancelIfNotPaid(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-      // Nếu sau 24h mà trạng thái VẪN là FINISHED (nghĩa là hàm checkoutAuction chưa được gọi)
       if (auction != null && auction.getStatus() == AuctionStatus.FINISHED) {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
-        System.out.println(
-            "🗑️ Phiên " + auctionId + " đã bị HỦY do người thắng không thanh toán quá 24h!");
+        System.out.println("🗑️ Phiên " + auctionId + " đã bị HỦY do quá hạn thanh toán 24h.");
       }
     } catch (Exception e) {
       System.err.println("Lỗi luồng cancelIfNotPaid: " + e.getMessage());
     }
   }
 
-  // HÀM BẢO HIỂM: Phục hồi báo thức khi sập Server
   public static void reloadScheduledTasksOnStartup() {
     try {
       LocalDateTime now = LocalDateTime.now();
 
-      // 1. Khôi phục phòng OPEN
       List<Auction> openAuctions = auctionDAO.getAllAuctionsByStatusForCatalog(AuctionStatus.OPEN);
       for (Auction a : openAuctions) {
         long delay = Duration.between(now, a.getStartTime()).getSeconds();
@@ -159,18 +135,14 @@ public class AuctionService {
         else scheduler.schedule(() -> startAuction(a.getAuctionId()), delay, TimeUnit.SECONDS);
       }
 
-      // 2. Khôi phục phòng RUNNING
-      List<Auction> runningAuctions =
-          auctionDAO.getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
+      List<Auction> runningAuctions = auctionDAO.getAllAuctionsByStatusForCatalog(AuctionStatus.RUNNING);
       for (Auction a : runningAuctions) {
         long delay = Duration.between(now, a.getEndTime()).getSeconds();
         if (delay <= 0) endAuction(a.getAuctionId());
         else scheduler.schedule(() -> endAuction(a.getAuctionId()), delay, TimeUnit.SECONDS);
       }
 
-      // 3. Khôi phục phòng FINISHED (Check mốc 24h)
-      List<Auction> finishedAuctions =
-          auctionDAO.getAllAuctionsByStatusForCatalog(AuctionStatus.FINISHED);
+      List<Auction> finishedAuctions = auctionDAO.getAllAuctionsByStatusForCatalog(AuctionStatus.FINISHED);
       for (Auction a : finishedAuctions) {
         LocalDateTime deadlineToPay = a.getEndTime().plusHours(24);
         long delay = Duration.between(now, deadlineToPay).getSeconds();
@@ -182,10 +154,6 @@ public class AuctionService {
       System.err.println("Lỗi reload task: " + e.getMessage());
     }
   }
-
-  // ==========================================
-  // 3. CÁC NHÓM CÒN LẠI (HỖ TRỢ, THANH TOÁN...)
-  // ==========================================
 
   public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     return auctionDAO.getAllAuctionsByStatusForCatalog(status);
@@ -226,12 +194,9 @@ public class AuctionService {
     userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
     userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
 
-    walletDAO.insertWalletTransaction(
-        winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
-    walletDAO.insertWalletTransaction(
-        sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
+    walletDAO.insertWalletTransaction(winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
+    walletDAO.insertWalletTransaction(sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
 
-    // Chuyển trạng thái sang PAID, chặn đứng cái "Báo thức 24h"
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
     itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
     return true;
