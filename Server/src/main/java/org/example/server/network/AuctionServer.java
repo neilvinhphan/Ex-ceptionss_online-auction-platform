@@ -1,12 +1,16 @@
 package org.example.server.network;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.example.core.dto.Response;
+import org.example.core.network.LocalDateTimeAdapter;
 import org.example.server.services.AuctionService;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +23,9 @@ public class AuctionServer {
   private final ExecutorService executor = Executors.newFixedThreadPool(50);
   private final Gson gson = new Gson();
 
+  private static final Gson customGson = new GsonBuilder()
+          .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+          .create();
   /**
    * TRẠM ĐIỀU PHỐI PHÒNG: Lưu trữ danh sách Client theo từng AuctionId. Dùng ConcurrentHashMap để
    * đảm bảo an toàn khi nhiều luồng cùng truy cập (Thread-safe).
@@ -54,7 +61,7 @@ public class AuctionServer {
     List<ClientHandler> clientsInRoom = roomClients.get(auctionId);
 
     if (clientsInRoom != null && !clientsInRoom.isEmpty()) {
-      String jsonMsg = new Gson().toJson(response);
+      String jsonMsg = customGson.toJson(response);
 
       // Duyệt qua danh sách Client trong phòng và gửi tin nhắn
       // Dùng đồng bộ hóa nhẹ để tránh lỗi khi có người thoát phòng giữa chừng
@@ -80,21 +87,31 @@ public class AuctionServer {
     }
   }
 
-  /** Thêm Client vào phòng khi họ bấm "Vào phòng" */
-  public static void addClientToRoom(int auctionId, ClientHandler handler) {
-    roomClients
-        .computeIfAbsent(auctionId, k -> Collections.synchronizedList(new ArrayList<>()))
-        .add(handler);
+
+  public static void addClientToRoom(int auctionId, ClientHandler client) {
+    roomClients.computeIfAbsent(auctionId, k -> new java.util.concurrent.CopyOnWriteArrayList<>())
+            .add(client);
+    System.out.println("👥 [SERVER ROOM] Client " + client.hashCode() + " gia nhập phòng " + auctionId);
   }
 
-  /** Xóa Client khỏi phòng khi họ thoát hoặc mất kết nối */
-  public static void removeClientFromRoom(int auctionId, ClientHandler handler) {
-    List<ClientHandler> clients = roomClients.get(auctionId);
+  public static void removeClientFromRoom(int auctionId, ClientHandler client) {
+    java.util.List<ClientHandler> clients = roomClients.get(auctionId);
     if (clients != null) {
-      clients.remove(handler);
+      clients.remove(client);
+      System.out.println("👥 [SERVER ROOM] Client " + client.hashCode() + " rời khỏi phòng " + auctionId);
       if (clients.isEmpty()) {
-        roomClients.remove(auctionId);
+        roomClients.remove(auctionId); // Phòng không còn ai thì giải phóng luôn
       }
     }
+  }
+
+  public static void broadcastRoomUserCount(int auctionId) {
+    if (auctionId == -1) return;
+    java.util.List<ClientHandler> clients = roomClients.get(auctionId);
+    int count = (clients != null) ? clients.size() : 0;
+
+    // Đóng gói gói tin Response mang nhãn ROOM_USER_COUNT, ném số lượng vào message
+    Response countResponse = new Response("ROOM_USER_COUNT", String.valueOf(count));
+    broadcastToRoom(auctionId, countResponse);
   }
 }

@@ -58,4 +58,32 @@ public class BidTransaction extends Entity {
   public String getBidderName() {
     return bidderName;
   }
+
+  public void setAmount(BigDecimal amount) {
+    this.amount = amount;
+  }
+
+  public void setTime(LocalDateTime time) {
+    this.time = time;
+  }
+
+  public int getBidderID() {
+    return bidderID;
+  }
+
+  public void setBidderID(int bidderID) {
+    this.bidderID = bidderID;
+  }
+
+  public void setBidderName(String bidderName) {
+    this.bidderName = bidderName;
+  }
+
+  public int getBidId() {
+    return bidId;
+  }
+
+  public void setBidId(int bidId) {
+    this.bidId = bidId;
+  }
 }

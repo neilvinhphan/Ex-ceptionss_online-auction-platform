@@ -11,8 +11,6 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
@@ -21,12 +19,12 @@ import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.bidDTO.BidBroadcastDTO;
 import org.example.core.dto.bidDTO.BidRequestDTO;
+import org.example.core.dto.bidDTO.AutoBidRequestDTO; // 🔥 KHỚP NỐI: Import DTO nhận thầu mới từ Core
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
-import org.example.core.models.users.User;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -42,9 +40,9 @@ import java.util.concurrent.TimeUnit;
 
 public class AuctionRoomController extends BaseController implements Initializable {
 
-    // --- CÁC COMPONENT CŨ ---
     @FXML private Label lblItemName, lblTimer, lblStatus, lblBid;
-    @FXML private Label lblCurrentPrice, lblHighestBidder, lblBidError;
+    @FXML private Label lblCurrentPrice, lblHighestBidder, lblWinner, lblBidError;
+    @FXML private Label lblOnlineCount; // Chèn cạnh các nhãn Label cũ của bro
     @FXML private TextArea taDescription;
     @FXML private TextField tfBidAmount;
     @FXML private ListView<String> lvBidHistory;
@@ -52,26 +50,21 @@ public class AuctionRoomController extends BaseController implements Initializab
     @FXML private Button btnPlaceBid;
     @FXML private ImageView ivItemImage;
 
-    // --- CÁC COMPONENT MỚI THÊM CHO ROLE-BASED & UI MỚI ---
-    @FXML private Label lblLiveViewersHeader;
-    @FXML private StackPane spRolePanels;
-    @FXML private VBox panelBidder, panelSeller, panelAdmin, vboxCheckoutSection;
-    @FXML private CheckBox cbAutoBid;
-    @FXML private Label lblSellerTotalBids, lblSellerProfit, lblPostAuctionStatus;
-    @FXML private Button btnCheckout;
-    @FXML private Label lblPriceTitle;
-    @FXML private Label lblLeaderTitle;
+    // --- THÊM LINH KIỆN ĐỒ HỌA AUTOBID ---
+    @FXML private TextField tfMaxBid;
+    @FXML private Button btnToggleAutoBid;
+
     private XYChart.Series<Number, Number> priceSeries;
     private ScheduledExecutorService timerService;
 
     private Auction currentAuction;
     private BigDecimal currentMaxPrice;
     private int bidStepCount = 0;
+    private boolean isAutoBidActive = false; // Biến cờ theo dõi trạng thái Bật/Tắt Bot của bản thân
 
     private Gson gson;
     private int currentAuctionId;
     private int currentUserId;
-    private User currentUser;
 
     private PrintWriter outToServer;
     private BufferedReader inFromServer;
@@ -79,9 +72,8 @@ public class AuctionRoomController extends BaseController implements Initializab
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        currentUser = UserSession.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            this.currentUserId = currentUser.getUserId();
+        if (UserSession.getInstance().getCurrentUser() != null) {
+            this.currentUserId = UserSession.getInstance().getCurrentUser().getUserId();
         }
 
         priceSeries = new XYChart.Series<>();
@@ -103,17 +95,12 @@ public class AuctionRoomController extends BaseController implements Initializab
         } else {
             showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
         }
-
     }
 
     private void setupRoom(Auction auction, Item item) {
         this.currentAuction = auction;
         this.currentAuctionId = auction.getAuctionId();
 
-        // Cấu hình UI theo Vai trò (Phân quyền Panel)
-        setupRoleUI(currentUser, item);
-
-        // 🛡️ PHÒNG THỦ: Tránh null khi chưa có lượt đặt giá nào
         this.currentMaxPrice =
                 auction.getHighestBid() != null ? auction.getHighestBid() : (item != null ? item.getStartingPrice() : BigDecimal.ZERO);
 
@@ -139,8 +126,8 @@ public class AuctionRoomController extends BaseController implements Initializab
         }
 
         lblStatus.setText(auction.getStatus() != null ? auction.getStatus().toString() : "UNKNOWN");
+        lblWinner.setText("--");
 
-        setupRolePanels(item);
         priceSeries.getData().clear();
         lvBidHistory.getItems().clear();
         bidStepCount = 0;
@@ -158,9 +145,6 @@ public class AuctionRoomController extends BaseController implements Initializab
 
             String topBidder = auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
             updatePriceUI(currentMaxPrice, topBidder);
-
-            // Cập nhật số lượt đấu giá cho giao diện Seller
-            if(lblSellerTotalBids != null) lblSellerTotalBids.setText(bidStepCount + " lượt");
         } else {
             if (item != null && item.getStartingPrice() != null) {
                 priceSeries.getData().add(new XYChart.Data<>(0, item.getStartingPrice().doubleValue()));
@@ -181,85 +165,21 @@ public class AuctionRoomController extends BaseController implements Initializab
         startCountdown();
     }
 
-    /**
-     * HÀM MỚI: Phân quyền hiển thị StackPane dựa trên Role
-     */
-    private void setupRoleUI(User user, Item item) {
-        // Mặc định ẩn tất cả
-        panelBidder.setVisible(false); panelBidder.setManaged(false);
-        panelSeller.setVisible(false); panelSeller.setManaged(false);
-        panelAdmin.setVisible(false); panelAdmin.setManaged(false);
-
-        if (user == null) {
-            panelBidder.setVisible(true); panelBidder.setManaged(true);
-            return;
-        }
-
-        // Logic check role (Cần chỉnh sửa getRole() / getSellerId() cho khớp với model của bạn)
-        String role = String.valueOf(user.getRole()); // Giả sử getRole trả về String hoặc Enum
-
-        if ("ADMIN".equalsIgnoreCase(role)) {
-            panelAdmin.setVisible(true); panelAdmin.setManaged(true);
-        }
-        else if (item != null && user.getUserId() == item.getSellerID()) { // Sửa getOwnerId() thành getSellerId() nếu Model của bạn tên như vậy
-            panelSeller.setVisible(true); panelSeller.setManaged(true);
-        }
-        else {
-            panelBidder.setVisible(true); panelBidder.setManaged(true);
-        }
-    }
-
-    // --- CÁC HÀM XỬ LÝ QUICK BID (THÊM MỚI) ---
-    @FXML
-    private void handleQuickBidStep(ActionEvent event) {
-        if (currentAuction != null && currentAuction.getBidIncrement() != null) {
-            BigDecimal nextBid = currentMaxPrice.add(currentAuction.getBidIncrement());
-            tfBidAmount.setText(nextBid.toPlainString());
-        }
-    }
-
-    @FXML
-    private void handleQuickBid50k(ActionEvent event) {
-        BigDecimal nextBid = currentMaxPrice.add(new BigDecimal("50000"));
-        tfBidAmount.setText(nextBid.toPlainString());
-    }
-
-    @FXML
-    private void handleQuickBid100k(ActionEvent event) {
-        BigDecimal nextBid = currentMaxPrice.add(new BigDecimal("100000"));
-        tfBidAmount.setText(nextBid.toPlainString());
-    }
-
-    // --- CÁC STUB METHOD CHO UI MỚI (TRÁNH LỖI LOAD FXML) ---
-    @FXML private void handleReactHeart(ActionEvent event) { System.out.println("Thả tim!"); }
-    @FXML private void handleReactFire(ActionEvent event) { System.out.println("Thả phẫn nộ/Lửa!"); }
-    @FXML private void handleReactClap(ActionEvent event) { System.out.println("Vỗ tay!"); }
-    @FXML private void handleEndAuctionEarly(ActionEvent event) { showAlert("Tính năng", "Chốt sớm đang phát triển!"); }
-    @FXML private void handleCancelAuctionSeller(ActionEvent event) { showAlert("Tính năng", "Hủy phiên đang phát triển!"); }
-    @FXML private void handlePauseAuction(ActionEvent event) { showAlert("Admin", "Tính năng Tạm dừng đang phát triển!"); }
-    @FXML private void handleKickBidder(ActionEvent event) { showAlert("Admin", "Tính năng Kick đang phát triển!"); }
-
-
-    // ======================================================================
-    // LOGIC CŨ BÊN DƯỚI GIỮ NGUYÊN 100% ĐỂ KHÔNG ẢNH HƯỞNG SERVER
-    // ======================================================================
-
     private void updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus status) {
+        boolean disable = (status == org.example.core.shared.enums.AuctionStatus.OPEN || status == org.example.core.shared.enums.AuctionStatus.FINISHED);
+        tfBidAmount.setDisable(disable);
+        btnPlaceBid.setDisable(disable);
+        tfMaxBid.setDisable(disable || isAutoBidActive); // Khóa ô nhập trần nếu chưa mở cửa hoặc Bot đang chạy
+        btnToggleAutoBid.setDisable(disable);
+
         if (status == org.example.core.shared.enums.AuctionStatus.OPEN) {
-            tfBidAmount.setDisable(true);
-            btnPlaceBid.setDisable(true);
             tfBidAmount.setPromptText("Phòng chưa mở cửa...");
+            tfMaxBid.setPromptText("Phòng chưa mở cửa...");
         } else if (status == org.example.core.shared.enums.AuctionStatus.FINISHED) {
-            tfBidAmount.setDisable(true);
-            btnPlaceBid.setDisable(true);
             tfBidAmount.setPromptText("Phiên đã kết thúc.");
-            if(btnCheckout != null) {
-                btnCheckout.setVisible(true);
-                btnCheckout.setManaged(true);
-            }
+            tfMaxBid.setPromptText("Phiên đã kết thúc.");
         } else {
-            tfBidAmount.setDisable(false);
-            btnPlaceBid.setDisable(false);
+            if (!isAutoBidActive) tfMaxBid.setPromptText("Nhập hạn mức trần...");
             tfBidAmount.setPromptText("Nhập giá tiền...");
         }
     }
@@ -277,8 +197,6 @@ public class AuctionRoomController extends BaseController implements Initializab
                 return;
             }
 
-            // TODO: Nếu checkbox AutoBid (cbAutoBid.isSelected()) được tích, bạn có thể gửi DTO khác lên Server sau này.
-
             BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
             Request requestContainer = new Request("PLACE_BID", bidReq);
 
@@ -287,13 +205,63 @@ public class AuctionRoomController extends BaseController implements Initializab
                 tfBidAmount.clear();
                 lblBidError.setStyle("-fx-text-fill: green;");
                 lblBidError.setText("Đã gửi yêu cầu, đang chờ xác nhận...");
-            } else {
-                lblBidError.setStyle("-fx-text-fill: red;");
-                lblBidError.setText("Lỗi mạng: Không thể gửi dữ liệu!");
             }
         } catch (NumberFormatException e) {
             lblBidError.setStyle("-fx-text-fill: red;");
             lblBidError.setText("Vui lòng nhập số tiền hợp lệ!");
+        }
+    }
+
+    // 🔥 HÀM THÊM MỚI: Xử lý cơ chế Lật trạng thái Bật/Tắt Bot AutoBid cực kỳ mượt mà
+    @FXML
+    private void handleToggleAutoBid(ActionEvent event) {
+        lblBidError.setText("");
+        if (!isAutoBidActive) {
+            // LUỒNG BẬT BOT
+            String input = tfMaxBid.getText().trim();
+            if (input.isEmpty()) {
+                lblBidError.setStyle("-fx-text-fill: red;");
+                lblBidError.setText("Vui lòng nhập số tiền trần tối đa!");
+                return;
+            }
+            try {
+                BigDecimal maxBid = new BigDecimal(input);
+                if (maxBid.compareTo(currentMaxPrice) <= 0) {
+                    lblBidError.setStyle("-fx-text-fill: red;");
+                    lblBidError.setText("Giá trần của Bot phải lớn hơn giá hiện tại!");
+                    return;
+                }
+
+                // Đóng gói chuyển dữ liệu lên Server kích hoạt mìn
+                AutoBidRequestDTO autoBidReq = new AutoBidRequestDTO(currentAuctionId, currentUserId, maxBid);
+                outToServer.println(gson.toJson(new Request("REGISTER_AUTOBID", autoBidReq)));
+
+                // Ép đổi giao diện sang màu Đỏ cảnh báo hủy diệt
+                isAutoBidActive = true;
+                tfMaxBid.setDisable(true);
+                btnToggleAutoBid.setText("HỦY AUTOBID");
+                btnToggleAutoBid.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;");
+                lblBidError.setStyle("-fx-text-fill: green;");
+                lblBidError.setText("Hệ thống AutoBid đã được kích hoạt thành công!");
+
+            } catch (NumberFormatException e) {
+                lblBidError.setStyle("-fx-text-fill: red;");
+                lblBidError.setText("Số tiền cài trần không hợp lệ!");
+            }
+        } else {
+            // LUỒNG TẮT BOT GIỮA CHỪNG
+            AutoBidRequestDTO cancelReq = new AutoBidRequestDTO(currentAuctionId, currentUserId, BigDecimal.ZERO);
+            outToServer.println(gson.toJson(new Request("CANCEL_AUTOBID", cancelReq)));
+
+            // Trả nút bấm về màu Cam rực rỡ ban đầu
+            isAutoBidActive = false;
+            tfMaxBid.setDisable(false);
+            tfMaxBid.clear();
+            tfMaxBid.setPromptText("Nhập hạn mức trần...");
+            btnToggleAutoBid.setText("KÍCH HOẠT AUTOBID");
+            btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+            lblBidError.setStyle("-fx-text-fill: green;");
+            lblBidError.setText("Hệ thống AutoBid đã ngừng hoạt động!");
         }
     }
 
@@ -307,7 +275,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                             if (!isListening) break;
 
                             try {
-                                Response response = gson.fromJson(messageMessageFromServer(messageFromServer), Response.class);
+                                Response response = gson.fromJson(messageFromServer, Response.class);
                                 if (response == null) continue;
 
                                 if ("NEW_BID".equals(response.getStatus()) && response.getData() != null) {
@@ -319,7 +287,10 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         BigDecimal price = BigDecimal.valueOf(data.getNewPrice());
                                         String leader = data.getLeaderUsername();
                                         LocalDateTime endT = data.getNewEndTime();
-                                        onNewBidBroadcastReceived(aId, price, leader, endT);
+                                        boolean isAutoTriggered = data.isAutoBidTriggered(); // 🔥 KHỚP NỐI CORE: Đón cờ AutoBid
+
+                                        // Ném thêm tham số cờ truyền xuống UI render đồ họa
+                                        onNewBidBroadcastReceived(aId, price, leader, endT, isAutoTriggered);
                                     }
                                 }
                                 else if ("ERROR_BID".equals(response.getStatus())) {
@@ -346,28 +317,50 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         stopTimer();
                                         lblTimer.setText("00:00:00");
                                         lblStatus.setText("FINISHED");
-                                        btnPlaceBid.setDisable(true);
-                                        tfBidAmount.setDisable(true);
+                                        lblWinner.setText(winnerName != null ? winnerName : "Không có");
+                                        updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
 
-                                        // ----- THÊM ĐOẠN ĐỔI CHỮ NÀY VÀO -----
-                                        // Đổi tiêu đề thành Giá chốt và Người chiến thắng
-                                        lblPriceTitle.setText("GIÁ CHỐT CUỐI CÙNG");
-                                        lblLeaderTitle.setText("🏆 NGƯỜI CHIẾN THẮNG:");
-
-                                        // Cập nhật tên người thắng và cho nó to lên, màu đỏ rực rỡ để nổi bật
-                                        lblHighestBidder.setText(winnerName);
-                                        lblHighestBidder.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;");
-                                        // ------------------------------------
-
-                                        if (winnerName != null && winnerName.equals(UserSession.getInstance().getCurrentUser().getUserName())) {
+                                        org.example.core.models.users.User user = UserSession.getInstance().getCurrentUser();
+                                        if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
                                             showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
                                         } else {
                                             showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
                                         }
                                     });
                                 }
+                                // Chèn thêm nhánh này vào trong cấu trúc if-else phân loại response.getStatus() của hàm listenFromServer()
+                                else if ("MY_AUTOBID_STATUS".equals(response.getStatus())) {
+                                    try {
+                                        String innerData = gson.toJson(response.getData());
+                                        // Bóc lấy số tiền trần cũ từ Server gửi về
+                                        java.util.Map<String, Double> dataMap = gson.fromJson(innerData, java.util.Map.class);
+                                        double savedMaxBid = dataMap.get("maxBid");
+
+                                        Platform.runLater(() -> {
+                                            // 🔥 KHÔI PHỤC NGUYÊN VẸN GIAO DIỆN BOT
+                                            isAutoBidActive = true;
+                                            tfMaxBid.setText(String.format("%.0f", savedMaxBid)); // Điền lại số tiền cũ
+                                            tfMaxBid.setDisable(true); // Khóa ô nhập thầu
+
+                                            // Ép nút bấm sang trạng thái HỦY màu Đỏ
+                                            btnToggleAutoBid.setText("HỦY AUTOBID");
+                                            btnToggleAutoBid.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                                            lblBidError.setStyle("-fx-text-fill: green;");
+                                            lblBidError.setText("Hệ thống nhận diện: Bot AutoBid của bạn đang gác phòng này!");
+                                        });
+                                    } catch (Exception e) {
+                                        System.err.println("Lỗi parse trạng thái AutoBid cũ: " + e.getMessage());
+                                    }
+                                }
+                                else if ("ROOM_USER_COUNT".equals(response.getStatus())) {
+                                    String countStr = response.getMessage(); // Server sẽ ném số lượng người vào trường Message
+                                    Platform.runLater(() -> {
+                                        lblOnlineCount.setText("| 👥 Đang xem: " + countStr + " người");
+                                    });
+                                }
                             } catch (Exception parseEx) {
-                                System.err.println("❌ Lỗi bóc tách gói tin: " + parseEx.getMessage());
+                                System.err.println("❌ Lỗi bóc tách gói tin (Bỏ qua để nghe tiếp): " + parseEx.getMessage());
                             }
                         }
                     } catch (Exception e) {
@@ -377,12 +370,9 @@ public class AuctionRoomController extends BaseController implements Initializab
                 .start();
     }
 
-    private String messageMessageFromServer(String raw) {
-        return raw;
-    }
-
+    // 🔥 SỬA ĐỔI: Nhận thêm biến cờ isAutoBidTriggered để lập lịch hiển thị Text cực kỳ trực quan
     public void onNewBidBroadcastReceived(
-            int incomingAuctionId, BigDecimal newPrice, String bidderName, LocalDateTime newEndTime) {
+            int incomingAuctionId, BigDecimal newPrice, String bidderName, LocalDateTime newEndTime, boolean isAutoBidTriggered) {
 
         if (this.currentAuction != null && incomingAuctionId == this.currentAuction.getAuctionId()) {
             Platform.runLater(
@@ -394,11 +384,14 @@ public class AuctionRoomController extends BaseController implements Initializab
                         bidStepCount++;
                         priceSeries.getData().add(new XYChart.Data<>(bidStepCount, newPrice.doubleValue()));
 
-                        // Cập nhật lượt đấu giá cho seller
-                        if(lblSellerTotalBids != null) lblSellerTotalBids.setText(bidStepCount + " lượt");
-
+                        // CHUẨN HOÁ HIỂN THỊ: Nếu giá tăng do Bot, thêm nhãn nhận diện tránh nghi ngờ hack hệ thống
                         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                        String historyLine = String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue());
+                        String historyLine;
+                        if (isAutoBidTriggered) {
+                            historyLine = String.format("[🤖 AutoBid] [%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue());
+                        } else {
+                            historyLine = String.format("[%s] %s đã đặt %,d VND", time, bidderName, newPrice.longValue());
+                        }
                         lvBidHistory.getItems().add(0, historyLine);
 
                         lblBidError.setText("");
@@ -498,36 +491,6 @@ public class AuctionRoomController extends BaseController implements Initializab
     private void stopTimer() {
         if (timerService != null && !timerService.isShutdown()) {
             timerService.shutdown();
-        }
-    }
-    private void setupRolePanels(Item currentItem) {
-        // 1. Lấy thông tin user đang đăng nhập
-        User currentUser = UserSession.getInstance().getCurrentUser();
-        if (currentUser == null) return;
-
-        // 2. Giấu tất cả các bảng đi trước cho sạch sẽ
-        panelBidder.setVisible(false); panelBidder.setManaged(false);
-        panelSeller.setVisible(false); panelSeller.setManaged(false);
-        panelAdmin.setVisible(false); panelAdmin.setManaged(false);
-
-        // 3. Phân loại người dùng và bật đúng bảng
-        String role = String.valueOf(currentUser.getRole()); // Tuỳ thuộc vào Entity User của bạn
-
-        if ("ADMIN".equalsIgnoreCase(role)) {
-            // Nếu là Admin -> Mở bảng Admin (có nút Hủy phòng, Kick user)
-            panelAdmin.setVisible(true);
-            panelAdmin.setManaged(true);
-
-        } else if (currentItem != null && currentUser.getUserId() == currentItem.getSellerID()) {
-            // Lưu ý: Sửa lại getSellerID() cho đúng với tên hàm trong class Item của bạn
-            // Nếu ID của user hiện tại trùng với ID người bán món đồ -> Mở bảng Seller
-            panelSeller.setVisible(true);
-            panelSeller.setManaged(true);
-
-        } else {
-            // Còn lại tất cả những người khác -> Mở bảng Bidder (để đặt giá)
-            panelBidder.setVisible(true);
-            panelBidder.setManaged(true);
         }
     }
 }

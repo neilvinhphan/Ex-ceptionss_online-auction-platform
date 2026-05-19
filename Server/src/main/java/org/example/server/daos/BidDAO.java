@@ -26,15 +26,19 @@ public class BidDAO {
     return instance;
   }
 
-  public boolean updateNewBid(int auctionId, int userId, BigDecimal amount) {
-    String sql =
-        "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
+  /**
+   * Hàm ghi nhận lượt đặt thầu chuẩn OOP:
+   * Tiếp nhận đối tượng thực thể đã đóng gói trọn gói từ tầng Service!
+   */
+  public boolean insertBid(BidTransaction tx) {
+    String sql = "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, auctionId);
-      ps.setInt(2, userId);
-      ps.setBigDecimal(3, amount);
-      ps.setString(4, UserDAO.getInstance().getUserNameByUserId(userId));
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, tx.getAuctionId());   // Sử dụng đúng các getter của thực thể Core
+      ps.setInt(2, tx.getBidderId());
+      ps.setBigDecimal(3, tx.getAmount());
+      ps.setString(4, tx.getBidderName());
+
       int rowsUpdated = ps.executeUpdate();
       return rowsUpdated > 0;
     } catch (SQLException | IOException e) {
