@@ -1,5 +1,6 @@
 package org.example.server.daos;
 
+import org.example.core.dto.userDTO.SellerDashboardDTO;
 import org.example.server.config.DBConnection;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -11,7 +12,8 @@ import java.util.Map;
 public class DashboardDAO {
     private static DashboardDAO instance;
 
-    private DashboardDAO() {}
+    private DashboardDAO() {
+    }
 
     public static DashboardDAO getInstance() {
         if (instance == null) {
@@ -29,21 +31,27 @@ public class DashboardDAO {
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM user WHERE role != 'ADMIN'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("totalUsers", String.valueOf(rs.getInt(1)));
-        } catch (Exception e) { kpis.put("totalUsers", "0"); }
+        } catch (Exception e) {
+            kpis.put("totalUsers", "0");
+        }
 
         // Đếm phiên đang chạy (RUNNING)
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM auction WHERE status = 'RUNNING'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("activeAuctions", String.valueOf(rs.getInt(1)));
-        } catch (Exception e) { kpis.put("activeAuctions", "0"); }
+        } catch (Exception e) {
+            kpis.put("activeAuctions", "0");
+        }
 
         // Đếm tài sản chờ duyệt (DAFT)
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'DRAFT'");
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'PENDING'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("pendingCount", String.valueOf(rs.getInt(1)));
-        } catch (Exception e) { kpis.put("pendingCount", "0"); }
+        } catch (Exception e) {
+            kpis.put("pendingCount", "0");
+        }
 
         // Tính tổng doanh thu (Chỉ tính các phiên đã PAID)
         try (Connection conn = DBConnection.getConnection();
@@ -55,7 +63,9 @@ public class DashboardDAO {
                 // Format luôn thành chuỗi có dấu phẩy cho đẹp giống hợp đồng
                 kpis.put("totalVolume", String.format("%,.0f", total));
             }
-        } catch (Exception e) { kpis.put("totalVolume", "0"); }
+        } catch (Exception e) {
+            kpis.put("totalVolume", "0");
+        }
 
         return kpis;
     }
@@ -70,7 +80,9 @@ public class DashboardDAO {
             while (rs.next()) {
                 map.put(rs.getString(1), rs.getInt(2));
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return map;
     }
 
@@ -84,11 +96,13 @@ public class DashboardDAO {
             while (rs.next()) {
                 map.put(rs.getString(1), rs.getInt(2));
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return map;
     }
 
-    // LẤY THỐNG KÊ DOANH THU CHO NGƯỜI BÁN
+    // LẤY THỐNG KÊ DOANH THU VÀ NGÀNH HÀNG CHO RIÊNG NGƯỜI BÁN
     public org.example.core.dto.userDTO.SellerDashboardDTO getSellerDashboardStats(int sellerId) {
         double totalRevenue = 0;
         int totalSold = 0;
@@ -104,9 +118,10 @@ public class DashboardDAO {
                     totalSold = rs.getInt(2);
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // 2. Lấy số liệu Biểu đồ tròn (Ngành hàng)
         String sqlPie = """
             SELECT i.type, COUNT(wt.transaction_id) 
             FROM wallet_transaction wt
@@ -123,7 +138,9 @@ public class DashboardDAO {
                     categories.put(rs.getString(1), rs.getInt(2));
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return new org.example.core.dto.userDTO.SellerDashboardDTO(totalRevenue, totalSold, categories);
     }
