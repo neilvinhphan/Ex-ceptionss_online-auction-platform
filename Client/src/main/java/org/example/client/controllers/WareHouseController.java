@@ -180,8 +180,8 @@ public class WareHouseController extends BaseController implements Initializable
     }
 
     // 2. Kiểm tra an toàn: Chỉ cho xóa DRAFT
-    if (selectedItem.getStatus() != null && selectedItem.getStatus() != ItemStatus.DRAFT) {
-      showAlert("Cảnh báo", "Bạn chỉ có thể xóa tài sản đang ở trạng thái DRAFT (Chưa đấu giá)!");
+    if (selectedItem.getStatus() != null && selectedItem.getStatus() != ItemStatus.APPROVED && selectedItem.getStatus() != ItemStatus.PENDING) {
+      showAlert("Cảnh báo", "Bạn chỉ có thể xóa tài sản đang ở trạng thái APPROVED hoặc PENDING (Chưa đấu giá)!");
       return;
     }
 
