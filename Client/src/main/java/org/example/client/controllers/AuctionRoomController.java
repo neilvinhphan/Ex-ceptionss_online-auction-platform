@@ -61,6 +61,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     private BigDecimal currentMaxPrice;
     private int bidStepCount = 0;
     private boolean isAutoBidActive = false; // Biến cờ theo dõi trạng thái Bật/Tắt Bot của bản thân
+    private int bidderId;
 
     private Gson gson;
     private int currentAuctionId;
@@ -189,8 +190,18 @@ public class AuctionRoomController extends BaseController implements Initializab
         String input = tfBidAmount.getText().trim();
         lblBidError.setText("");
 
+        String myUsername = org.example.client.utils.UserSession.getInstance().getCurrentUser().getUserName();
+        String leadingUsername = lblHighestBidder.getText().trim();
+
         try {
             BigDecimal bidAmount = new BigDecimal(input);
+
+            if (myUsername.equalsIgnoreCase(leadingUsername)) {
+                lblBidError.setStyle("-fx-text-fill: red;");
+                lblBidError.setText("Bạn đang là người dẫn đầu phòng!");
+                return;
+            }
+
             if (bidAmount.compareTo(currentMaxPrice) <= 0) {
                 lblBidError.setStyle("-fx-text-fill: red;");
                 lblBidError.setText("Giá đặt phải cao hơn giá hiện tại!");
