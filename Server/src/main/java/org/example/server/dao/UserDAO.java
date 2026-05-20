@@ -52,7 +52,7 @@ public class UserDAO {
       preparedstatement.setString(3, user.getEmail());
       preparedstatement.setString(4, user.getPhone());
       return preparedstatement.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -67,7 +67,7 @@ public class UserDAO {
           return mapResultSetToUser(rs);
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -83,7 +83,7 @@ public class UserDAO {
           return mapResultSetToUser(rs);
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -97,7 +97,7 @@ public class UserDAO {
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           return rs.getString("user_name");
-  }}     } catch (SQLException | IOException e) {
+  }}     } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -113,7 +113,7 @@ public class UserDAO {
       ps.setBigDecimal(1, balance);
       ps.setInt(2, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -125,7 +125,7 @@ public class UserDAO {
       ps.setString(1, password);
       ps.setInt(2, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -136,7 +136,7 @@ public class UserDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -148,7 +148,7 @@ public class UserDAO {
       ps.setString(1, pn);
       ps.setInt(2, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -160,7 +160,7 @@ public class UserDAO {
       ps.setString(1, email);
       ps.setInt(2, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -171,7 +171,7 @@ public class UserDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -182,7 +182,7 @@ public class UserDAO {
         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, userId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -200,7 +200,7 @@ public class UserDAO {
           return null;
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -212,14 +212,14 @@ public class UserDAO {
       ps.setDouble(1, rating);
       ps.setString(2, username);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   public List<User> getAllUsers() {
     List<User> users = new ArrayList<>();
-    String sql = "SELECT * FROM user";
+    String sql = "SELECT * FROM user WHERE role IN ('SELLER', 'BIDDER')";
 
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement stmt = conn.prepareStatement(sql);
@@ -230,7 +230,7 @@ public class UserDAO {
         users.add(u);
       }
 
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
 

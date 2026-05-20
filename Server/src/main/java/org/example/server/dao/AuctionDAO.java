@@ -81,7 +81,7 @@ public class AuctionDAO {
 
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return auctions;
@@ -114,7 +114,7 @@ public class AuctionDAO {
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return auctions;
@@ -126,14 +126,14 @@ public class AuctionDAO {
     // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
     String sql =
         "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment, a.bidder_id,"
-            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, i.description, "
+            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, i.description, i.owner_id,"
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
             + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
             + "WHERE a.status = ? "
             + "GROUP BY a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
-            + "i.items_name, i.type, i.start_price, i.image, i.description";
+            + "i.items_name, i.type, i.start_price, i.image, i.description, i.owner_id";
 
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -147,6 +147,7 @@ public class AuctionDAO {
         auction.setItemId(rs.getInt("items_id"));
         auction.setBidderId(rs.getInt("bidder_id"));
         String statusStr = rs.getString("status");
+        auction.setOwnerId(rs.getInt("owner_id"));
         if (statusStr != null) {
           auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
         }
@@ -187,7 +188,7 @@ public class AuctionDAO {
 
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
 
@@ -212,7 +213,7 @@ public class AuctionDAO {
         pendingPaymentsDTO.setEndDate(rs.getTimestamp("end_time").toLocalDateTime().plusHours(24));
         pendingPaymentsDTOs.add(pendingPaymentsDTO);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return pendingPaymentsDTOs;
@@ -244,7 +245,7 @@ public class AuctionDAO {
         paidHistoryDTOs.add(paidHistoryDTO);
       }
       return paidHistoryDTOs;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
@@ -264,7 +265,7 @@ public class AuctionDAO {
           auctionIds.add(rs.getInt("auction_id"));
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       System.err.println("Lỗi khi lấy danh sách Auction ID: " + e.getMessage());
       e.printStackTrace();
     }
@@ -289,7 +290,7 @@ public class AuctionDAO {
           return rs.getInt(1);
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return -1;
@@ -302,7 +303,7 @@ public class AuctionDAO {
       ps.setString(1, status.name());
       ps.setInt(2, auctionId);
       ps.executeUpdate();
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -350,7 +351,7 @@ public class AuctionDAO {
           return auction;
         }
       }
-    } catch (SQLException | java.io.IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -366,7 +367,7 @@ public class AuctionDAO {
           return rs.getBigDecimal("bid_increment");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -379,7 +380,7 @@ public class AuctionDAO {
       ps.setTimestamp(1, Timestamp.valueOf(endTime));
       ps.setInt(2, auctionId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -394,7 +395,7 @@ public class AuctionDAO {
           return rs.getString("status");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -407,7 +408,7 @@ public class AuctionDAO {
       ps.setBigDecimal(1, newPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

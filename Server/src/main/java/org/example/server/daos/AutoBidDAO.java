@@ -28,8 +28,6 @@ public class AutoBidDAO {
             ps.setBigDecimal(3, maxBid);
             ps.setBigDecimal(4, maxBid);
             ps.executeUpdate();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -63,8 +61,6 @@ public class AutoBidDAO {
                     list.add(config);
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return list;
     }
@@ -81,8 +77,6 @@ public class AutoBidDAO {
                     return rs.getBigDecimal("max_bid"); // Trả về mức giá trần đang gác phòng
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return null; // Không có bot nào đang chạy
     }

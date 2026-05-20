@@ -29,7 +29,7 @@
                         <Label alignment="CENTER" style="-fx-font-size:22; -fx-font-weight:bold; -fx-text-fill:#2c3e50;" text="SÀN ĐẤU GIÁ THỜI GIAN THỰC" />
                         <HBox alignment="CENTER" spacing="8">
                             <Label style="-fx-font-size:12; -fx-text-fill:#28a745; -fx-font-weight:bold;" text="● Kết nối trực tuyến ổn định" />
-                            <Label fx:id="lblOnlineCount" style="-fx-font-size:12; -fx-text-fill:#0984e3; -fx-font-weight:bold;" text="| 👥 Đang xem: 1 người" />
+                            <Label fx:id="lblOnlineCount" style="-fx-font-size:12; -fx-text-fill:#0984e3; -fx-font-weight:bold;" text="| 👥 Đang xem: null" />
                         </HBox>
                     </VBox>
                     <Region HBox.hgrow="ALWAYS" />
@@ -75,7 +75,7 @@
                             <Label fx:id="lblBidError" style="-fx-text-fill:red; -fx-font-size:12; -fx-font-weight:bold;" text="" wrapText="true" />
                         </VBox>
                         <VBox fx:id="vboxSellerControls" managed="false" spacing="12" style="-fx-padding:15; -fx-background-color:#e8f5e9; -fx-background-radius:12; -fx-border-color:#c8e6c9; -fx-border-radius:12;" visible="false">
-                            <Label style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#2e7d32;" text="📊 TRẠNG THÁI TÀI SẢN CỦA BẠN" />
+                            <Label style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#2e7d32;" text="📊 THEO DÕI TRẠNG THÁI TÀI SẢN CỦA BẠN" />
 
                             <Label style="-fx-text-fill:#37474f; -fx-font-size:13;" text="Hệ thống đang tự động điều phối phiên đấu giá. Chúc tài sản của bạn đạt được mức giá tốt nhất!" wrapText="true" />
 
@@ -84,14 +84,14 @@
 
 
                         <VBox fx:id="vboxAdminControls" managed="false" spacing="12" style="-fx-padding:15; -fx-background-color:#ffebee; -fx-background-radius:12; -fx-border-color:#ffcdd2; -fx-border-radius:12;" visible="false">
-                            <Label style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#c62828;" text="⚙️ KHU VỰC ĐIỀU KHIỂN QUẢN TRỊ" />
+                            <Label style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#c62828;" text="⚙ KHU VỰC ĐIỀU KHIỂN QUẢN TRỊ" />
 
                             <HBox spacing="10">
                                   <Button maxWidth="Infinity" onAction="#handleForceCancel" prefHeight="38" style="-fx-background-color:#d32f2f; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:6; -fx-cursor:hand;" text="Hủy Lập Tức (Vi phạm)" HBox.hgrow="ALWAYS" />
 
                             </HBox>
 
-                            <Label style="-fx-text-fill:#d32f2f; -fx-font-size:12; -fx-font-weight:bold;" text="⚠️ Chú ý: Hành động của Admin sẽ can thiệp trực tiếp vào kết quả giao dịch." wrapText="true" />
+                            <Label style="-fx-text-fill:#d32f2f; -fx-font-size:12; -fx-font-weight:bold;" text="⚠ Chú ý: Hành động của Admin sẽ can thiệp trực tiếp vào kết quả giao dịch." wrapText="true" />
                         </VBox>
                         </StackPane>
                     </VBox>
@@ -111,7 +111,7 @@
                                 <Label style="-fx-text-fill:#2f9e44; -fx-font-weight:bold; -fx-font-size:12;" text="MỨC GIÁ CAO NHẤT HIỆN TẠI" />
                                 <Label fx:id="lblCurrentPrice" style="-fx-font-size:26; -fx-text-fill:#2b8a3e; -fx-font-weight:bold;" text="0 đ" />
                             </VBox>
-                                <VBox fx:id="vboxWinnerBox" managed="false" visible="false" alignment="CENTER" spacing="4" style="-fx-background-color:#fff8e1; -fx-padding:12 20; -fx-background-radius:12; -fx-border-color:#ffe082; -fx-border-radius:12;">
+                                <VBox fx:id="vboxWinnerBox" alignment="CENTER" managed="false" spacing="4" style="-fx-background-color:#fff8e1; -fx-padding:12 20; -fx-background-radius:12; -fx-border-color:#ffe082; -fx-border-radius:12;" visible="false">
                                     <Label style="-fx-text-fill:#f57f17; -fx-font-weight:bold; -fx-font-size:12;" text="🏆 NGƯỜI CHIẾN THẮNG" />
                                     <Label fx:id="lblWinner" style="-fx-font-size:26; -fx-text-fill:#f57c00; -fx-font-weight:bold;" text="--" />
                                 </VBox>

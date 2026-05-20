@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Auction extends Entity {
-  private int id;
   private int itemId;
   private int auctionId;
   private int bidderId;
@@ -23,6 +22,7 @@ public class Auction extends Entity {
   private int ownerId;
   private String itemName;
   private String type;
+
   // Constructor tạo mới đấu giá
   public Auction(
       Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
@@ -46,7 +46,6 @@ public class Auction extends Entity {
       BigDecimal highestBid,
       int bidderId) {
     super(createdAt);
-    this.id = id;
     this.item = item;
     this.status = status;
     this.startTime = startTime;
@@ -98,14 +97,6 @@ public class Auction extends Entity {
     this.durationMinutes = durationMinutes;
   }
 
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
   public int getBidderId() {
     return bidderId;
   }
@@ -144,7 +135,7 @@ public class Auction extends Entity {
 
   public void setStatus(AuctionStatus status) {
     if (status == null) {
-      System.out.println("WARNING: Đang cố tình set Status thành NULL cho Auction ID: " + this.id);
+      System.out.println("WARNING: Đang cố tình set Status thành NULL cho Auction ID: " + this.auctionId);
     }
     this.status = status;
   }

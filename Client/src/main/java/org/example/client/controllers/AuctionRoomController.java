@@ -77,7 +77,7 @@ public class AuctionRoomController extends BaseController implements Initializab
     private volatile boolean isListening = true;
 
     // 🔥 HÀM THÊM MỚI: Xử lý ẩn/hiện giao diện theo danh tính
-    private void setupRoleBasedUI(org.example.core.models.users.User currentUser, Auction auction) {
+    private void setupRoleBasedUI(User currentUser, Auction auction) {
         // 1. Reset: Ẩn và giải phóng không gian của cả 3 bảng điều khiển
         vboxBidderControls.setVisible(false); vboxBidderControls.setManaged(false);
         vboxSellerControls.setVisible(false); vboxSellerControls.setManaged(false);
@@ -85,7 +85,7 @@ public class AuctionRoomController extends BaseController implements Initializab
 
         // 2. Lấy thông tin user hiện tại
         if (currentUser == null) return;
-        String role = currentUser.getRole().toString(); // Tùy thuộc Entity User của bạn (VD: Role.ADMIN.name())
+        String role = currentUser.getRole().toString();
         int userId = currentUser.getUserId();
         System.out.println("DEBUG - ID của tôi là: " + userId);
         System.out.println("DEBUG - ID của Chủ phòng là: " + auction.getOwnerId());
@@ -267,7 +267,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         String input = tfBidAmount.getText().trim();
         lblBidError.setText("");
 
-        String myUsername = org.example.client.utils.UserSession.getInstance().getCurrentUser().getUserName();
+        String myUsername = UserSession.getInstance().getCurrentUser().getUserName();
         String leadingUsername = lblHighestBidder.getText().trim();
 
         try {
@@ -399,25 +399,61 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         startCountdown();
                                     });
                                 }
-                                else if ("AUCTION_ENDED".equals(response.getStatus())) {
-                                    String winnerName = response.getMessage();
-                                    Platform.runLater(() -> {
-                                        stopTimer();
-                                        lblTimer.setText("00:00:00");
-                                        lblStatus.setText("FINISHED");
-                                        showWinnerBox(winnerName);
-                                        lblWinner.setText(winnerName != null ? winnerName : "Không có");
-                                        updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+//                                else if ("AUCTION_END".equals(response.getStatus())) {
+//                                    String winnerName = response.getMessage();
+//                                    Platform.runLater(() -> {
+//                                        stopTimer();
+//                                        lblTimer.setText("00:00:00");
+//                                        lblStatus.setText("FINISHED");
+//                                        showWinnerBox(winnerName);
+//                                        lblWinner.setText(winnerName != null ? winnerName : "Không có");
+//                                        updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+//
+//                                        User user = UserSession.getInstance().getCurrentUser();
+//                                        if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
+//                                            showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
+//                                        } else {
+//                                            showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+//                                        }
+//                                    });
+//                                }
+                                else if ("AUCTION_END".equals(response.getStatus())) {
+                                    // 1. Lấy dữ liệu đính kèm (nếu có) và loại bỏ dấu ngoặc kép thừa do Gson sinh ra
+                                    String additionalData = "";
+                                    if (response.getData() != null) {
+                                        additionalData = response.getData().toString().replace("\"", "");
+                                    }
 
-                                        User user = UserSession.getInstance().getCurrentUser();
-                                        if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
-                                            showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
-                                        } else {
-                                            showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
-                                        }
-                                    });
+                                    // 2. Rẽ nhánh: Nếu là Admin hủy thì đếm ngược, nếu không thì báo người thắng
+                                    if ("ADMIN_CANCELLED".equals(additionalData)) {
+
+                                        // LUỒNG 1: BỊ ADMIN HỦY KHẨN CẤP
+                                        Platform.runLater(() -> {
+                                            showCancelAlertAndCountdown(); // Gọi hàm đếm ngược 15s ở cuối file
+                                        });
+
+                                    } else {
+
+                                        // LUỒNG 2: KẾT THÚC BÌNH THƯỜNG (CÓ NGƯỜI THẮNG)
+                                        String winnerName = response.getMessage();
+
+                                        Platform.runLater(() -> {
+                                            stopTimer();
+                                            lblTimer.setText("00:00:00");
+                                            lblStatus.setText("FINISHED");
+                                            showWinnerBox(winnerName);
+                                            lblWinner.setText(winnerName != null ? winnerName : "Không có");
+                                            updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+
+                                            User user = UserSession.getInstance().getCurrentUser();
+                                            if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
+                                                showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
+                                            } else {
+                                                showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
+                                            }
+                                        });
+                                    }
                                 }
-                                // Chèn thêm nhánh này vào trong cấu trúc if-else phân loại response.getStatus() của hàm listenFromServer()
                                 else if ("MY_AUTOBID_STATUS".equals(response.getStatus())) {
                                     try {
                                         String innerData = gson.toJson(response.getData());
@@ -608,5 +644,41 @@ public class AuctionRoomController extends BaseController implements Initializab
             }
         });
     }
+    // 🔥 HÀM XỬ LÝ HIỂN THỊ ALERT VÀ ĐẾM NGƯỢC 15 GIÂY
+    private void showCancelAlertAndCountdown() {
+        stopTimer(); // Dừng bộ đếm thời gian đấu giá cũ lại
+        updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED); // Khóa hết các nút bấm nhập giá
 
+        // Tạo Alert cảnh báo
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("PHÒNG ĐÃ BỊ HỦY KHẨN CẤP");
+        alert.setHeaderText("Thông báo từ Ban Quản Trị Hệ Thống");
+
+        // Thiết lập bộ đếm 15 giây chạy ngầm
+        ScheduledExecutorService countdownService = Executors.newSingleThreadScheduledExecutor();
+        final int[] timeLeft = {15};
+
+        countdownService.scheduleAtFixedRate(() -> {
+            Platform.runLater(() -> {
+                if (timeLeft[0] > 0) {
+                    alert.setContentText("Phiên đấu giá này đã bị Admin hủy bỏ khẩn cấp!\n" +
+                            "Hệ thống sẽ tự động đưa bạn về Danh mục sau: " + timeLeft[0] + " giây.");
+                    timeLeft[0]--;
+                } else {
+                    // Hết 15 giây: Tắt luồng đếm, đóng alert và chuyển scene
+                    countdownService.shutdown();
+                    alert.close();
+                    cleanUpBeforeExit();
+                    switchScene(new ActionEvent(btnPlaceBid, null), "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+                }
+            });
+        }, 0, 1, TimeUnit.SECONDS);
+
+        // Nếu người dùng chủ động click nút OK trên thông báo trước 15s
+        alert.showAndWait().ifPresent(buttonType -> {
+            countdownService.shutdown(); // Tắt luồng đếm ngầm lập tức
+            cleanUpBeforeExit();
+            switchScene(new ActionEvent(btnPlaceBid, null), "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
+        });
+    }
 }

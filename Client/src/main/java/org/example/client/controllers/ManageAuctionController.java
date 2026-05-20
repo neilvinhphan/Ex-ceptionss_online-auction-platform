@@ -189,7 +189,7 @@ public class ManageAuctionController extends BaseController implements Initializ
       boolean matchId = false;
       boolean matchItemName = false;
       String idStr = String.valueOf(auction.getAuctionId());
-      if (idStr.contains(keyword) || String.valueOf(auction.getId()).contains(keyword)) {
+      if (idStr.contains(keyword) || String.valueOf(auction.getAuctionId()).contains(keyword)) {
         matchId = true;
       }
 
@@ -240,7 +240,7 @@ public class ManageAuctionController extends BaseController implements Initializ
     confirm.setTitle("CẢNH BÁO KHẨN CẤP");
     confirm.setHeaderText(
         "Hủy phiên ID: "
-            + selectedAuction.getId()
+            + selectedAuction.getAuctionId()
             + " - "
             + selectedAuction.getItem().getItemName()
             + "?");
@@ -252,8 +252,8 @@ public class ManageAuctionController extends BaseController implements Initializ
             responseBtn -> {
               if (responseBtn == ButtonType.OK) {
                 System.out.println(
-                    "Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getId());
-                Request request = new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getId());
+                    "Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getAuctionId());
+                Request request = new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getAuctionId());
                 String jsonRequest = gson.toJson(request);
 
                 new Thread(

@@ -74,7 +74,7 @@ public class ItemDAO {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -118,7 +118,7 @@ public class ItemDAO {
         ps.setString(2, artItem.getArtist());
         ps.setInt(3, artItem.getCreationYear());
         return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
@@ -133,7 +133,7 @@ public class ItemDAO {
         ps.setInt(3, electronicsItem.getWarrantyMonths());
         ps.setString(4, electronicsItem.getCondition());
         return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
@@ -149,7 +149,7 @@ public class ItemDAO {
         ps.setInt(4, vehicleItem.getManufacturingYear());
         ps.setDouble(5, vehicleItem.getMileage());
         return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
@@ -192,7 +192,7 @@ public class ItemDAO {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -208,7 +208,7 @@ public class ItemDAO {
           return rs.getInt("owner_id");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -226,7 +226,7 @@ public class ItemDAO {
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -239,7 +239,7 @@ public class ItemDAO {
       ps.setInt(1, userId);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -251,7 +251,7 @@ public class ItemDAO {
       ps.setBigDecimal(1, startPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -263,7 +263,7 @@ public class ItemDAO {
       ps.setString(1, description);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -275,7 +275,7 @@ public class ItemDAO {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -287,7 +287,7 @@ public class ItemDAO {
       ps.setString(1, name);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -302,7 +302,7 @@ public class ItemDAO {
       ps.setString(3, item.getAiReason());
       ps.setInt(4, item.getItemId());
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
       return false;
     }
@@ -314,7 +314,7 @@ public class ItemDAO {
          PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -363,7 +363,7 @@ public class ItemDAO {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -405,7 +405,7 @@ public class ItemDAO {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
