@@ -81,7 +81,7 @@ public class AuctionDAO {
 
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return auctions;
@@ -114,7 +114,7 @@ public class AuctionDAO {
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return auctions;
@@ -188,7 +188,7 @@ public class AuctionDAO {
 
         auctions.add(auction);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
 
@@ -213,7 +213,7 @@ public class AuctionDAO {
         pendingPaymentsDTO.setEndDate(rs.getTimestamp("end_time").toLocalDateTime().plusHours(24));
         pendingPaymentsDTOs.add(pendingPaymentsDTO);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return pendingPaymentsDTOs;
@@ -245,7 +245,7 @@ public class AuctionDAO {
         paidHistoryDTOs.add(paidHistoryDTO);
       }
       return paidHistoryDTOs;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return null;
@@ -265,7 +265,7 @@ public class AuctionDAO {
           auctionIds.add(rs.getInt("auction_id"));
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       System.err.println("Lỗi khi lấy danh sách Auction ID: " + e.getMessage());
       e.printStackTrace();
     }
@@ -290,7 +290,7 @@ public class AuctionDAO {
           return rs.getInt(1);
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return -1;
@@ -303,7 +303,7 @@ public class AuctionDAO {
       ps.setString(1, status.name());
       ps.setInt(2, auctionId);
       ps.executeUpdate();
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -351,7 +351,7 @@ public class AuctionDAO {
           return auction;
         }
       }
-    } catch (SQLException | java.io.IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -367,7 +367,7 @@ public class AuctionDAO {
           return rs.getBigDecimal("bid_increment");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -380,7 +380,7 @@ public class AuctionDAO {
       ps.setTimestamp(1, Timestamp.valueOf(endTime));
       ps.setInt(2, auctionId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -395,7 +395,7 @@ public class AuctionDAO {
           return rs.getString("status");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
@@ -408,7 +408,7 @@ public class AuctionDAO {
       ps.setBigDecimal(1, newPrice);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

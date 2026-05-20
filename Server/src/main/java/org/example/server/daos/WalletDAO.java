@@ -47,7 +47,7 @@ public class WalletDAO {
           return balance != null ? balance : BigDecimal.ZERO;
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       e.printStackTrace();
     }
     return BigDecimal.ZERO;
@@ -62,7 +62,7 @@ public class WalletDAO {
       ps.setString(3, String.valueOf(type));
       ps.setInt(4, auctionId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       e.printStackTrace();
     } return false;
   }
