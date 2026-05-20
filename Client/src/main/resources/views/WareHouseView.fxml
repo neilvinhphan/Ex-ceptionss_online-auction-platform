@@ -86,7 +86,6 @@
     </center>
 
     <bottom>
-        <fx:include source="FooterView.fxml" BorderPane.alignment="CENTER" />
-    </bottom>
+        </bottom>
 
 </BorderPane>

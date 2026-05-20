@@ -8,10 +8,10 @@
 <?import javafx.scene.text.*?>
 
 <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0"
-            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8;" stylesheets="@style.css"
-            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"
+            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.client.controllers.CreateAuctionController">
-    <content>
+  <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
 
@@ -185,8 +185,7 @@
                     </center>
                     <bottom>
 
-                        <fx:include source="FooterView.fxml" BorderPane.alignment="CENTER" />
-                    </bottom>
+                         </bottom>
                 </BorderPane>
 
             </children>

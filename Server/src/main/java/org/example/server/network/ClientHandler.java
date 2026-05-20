@@ -582,6 +582,8 @@ public class ClientHandler implements Runnable {
         try {
             List<Auction> runningAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
             List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
+            List<Auction> finishedAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.FINISHED);
+
             List<Auction> activeItems = new ArrayList<>();
 
             if (runningAuctions != null) {
@@ -590,7 +592,9 @@ public class ClientHandler implements Runnable {
             if (openAuctions != null) {
                 activeItems.addAll(openAuctions);
             }
-
+if(finishedAuctions != null){
+    activeItems.addAll(finishedAuctions);
+}
             Response response =
                     new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
             sendMessage(gson.toJson(response));
