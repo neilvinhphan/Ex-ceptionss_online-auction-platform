@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
+import org.example.core.dto.userDTO.SellerDashboardDTO;
 
 public class DashboardDAO {
     private static DashboardDAO instance;
@@ -89,11 +90,14 @@ public class DashboardDAO {
     }
 
     // LẤY THỐNG KÊ DOANH THU CHO NGƯỜI BÁN
-    public org.example.core.dto.userDTO.SellerDashboardDTO getSellerDashboardStats(int sellerId) {
+    public SellerDashboardDTO getSellerDashboardStats(int sellerId) {
         double totalRevenue = 0;
         int totalSold = 0;
         Map<String, Integer> categories = new HashMap<>();
+        // Sử dụng LinkedHashMap để giữ đúng thứ tự đơn hàng từ cũ đến mới khi vẽ biểu đồ
+        Map<String, Double> revenueGrowth = new java.util.LinkedHashMap<>();
 
+        // 1. Lấy dữ liệu KPI
         String sqlKpi = "SELECT SUM(amount), COUNT(transaction_id) FROM wallet_transaction WHERE user_id = ? AND transaction_type = 'SELL_REVENUE'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sqlKpi)) {
@@ -108,13 +112,13 @@ public class DashboardDAO {
 
         // 2. Lấy số liệu Biểu đồ tròn (Ngành hàng)
         String sqlPie = """
-            SELECT i.type, COUNT(wt.transaction_id) 
-            FROM wallet_transaction wt
-            JOIN auction a ON wt.auction_id = a.auction_id
-            JOIN items i ON a.items_id = i.items_id
-            WHERE wt.user_id = ? AND wt.transaction_type = 'SELL_REVENUE'
-            GROUP BY i.type
-        """;
+        SELECT i.type, COUNT(wt.reference_id) 
+        FROM wallet_transaction wt
+        JOIN auction a ON wt.reference_id = a.auction_id
+        JOIN items i ON a.items_id = i.items_id
+        WHERE wt.user_id = ? AND wt.transaction_type = 'SELL_REVENUE'
+        GROUP BY i.type
+    """;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sqlPie)) {
             ps.setInt(1, sellerId);
@@ -125,6 +129,41 @@ public class DashboardDAO {
             }
         } catch (Exception e) { e.printStackTrace(); }
 
-        return new org.example.core.dto.userDTO.SellerDashboardDTO(totalRevenue, totalSold, categories);
+        // 3. BỔ SUNG: Lấy số liệu Biểu đồ đường (Tăng trưởng doanh thu qua từng đơn)
+        String sqlLine = """
+        SELECT reference_id, amount 
+        FROM wallet_transaction 
+        WHERE user_id = ? AND transaction_type = 'SELL_REVENUE'
+        ORDER BY transaction_id ASC
+    """; // Bạn có thể đổi thành ORDER BY created_at ASC nếu bảng có cột thời gian tạo
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlLine)) {
+            ps.setInt(1, sellerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                int orderCount = 1;
+                double cumulativeRevenue = 0; // Biến tích lũy để tính doanh thu cộng dồn (tăng trưởng)
+
+                while (rs.next()) {
+                    // Định dạng nhãn trục X (Ví dụ: "Đơn 1", "Đơn 2",...) để biểu đồ gọn gàng
+                    String label = "Đơn " + orderCount++;
+
+                    // HOẶC nếu muốn hiển thị trực tiếp mã đơn hàng, bạn dùng dòng dưới:
+                    // String label = "ĐH-" + rs.getString("reference_id");
+
+                    double currentAmount = rs.getDouble("amount");
+                    cumulativeRevenue += currentAmount; // Cộng dồn doanh thu đơn này vào tổng từ trước tới giờ
+
+                    // LỰA CHỌN HIỂN THỊ:
+                    // - Để vẽ đường doanh thu LŨY KẾ tăng dần: truyền `cumulativeRevenue` (Khuyên dùng cho từ "Tăng trưởng")
+                    // - Để vẽ doanh thu RIÊNG LẺ của từng đơn: truyền `currentAmount`
+                    revenueGrowth.put(label, cumulativeRevenue);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // 4. Khởi tạo DTO và set map dữ liệu tăng trưởng doanh thu vào
+        SellerDashboardDTO dto = new SellerDashboardDTO(totalRevenue, totalSold, categories, revenueGrowth);
+        return dto;
     }
 }

@@ -57,6 +57,9 @@ public class RevenueController extends BaseController {
                         Platform.runLater(() -> {
                             updateKPIs(dto.getTotalRevenue(), dto.getTotalSold());
                             updatePieChart(dto.getCategoryData());
+
+                            // Gọi hàm cập nhật biểu đồ đường tại đây
+                            updateLineChart(dto.getRevenueGrowthData());
                         });
                     } else {
                         Platform.runLater(() -> showAlert("Lỗi", response.getMessage()));
@@ -85,4 +88,26 @@ public class RevenueController extends BaseController {
         }
         pieChartCategory.setData(pieData);
     }
-}
+    private void updateLineChart(Map<String, Double> revenueGrowthData) {
+        // 1. Xóa dữ liệu cũ trên biểu đồ (nếu có) để tránh bị vẽ đè khi reload
+        lineChartRevenue.getData().clear();
+
+        if (revenueGrowthData == null || revenueGrowthData.isEmpty()) {
+            return;
+        }
+
+        // 2. Tạo một Series (đường biểu diễn) mới cho LineChart
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Doanh thu tích lũy"); // Tên hiển thị của đường này
+
+        // 3. Đổ dữ liệu từ Map vào Series
+        for (Map.Entry<String, Double> entry : revenueGrowthData.entrySet()) {
+            String orderLabel = entry.getKey();   // Tên đơn hàng (ví dụ: "ĐH001", "ĐH002"...)
+            Double revenueValue = entry.getValue(); // Doanh thu tương ứng
+
+            series.getData().add(new XYChart.Data<>(orderLabel, revenueValue));
+        }
+
+        // 4. Thêm Series vừa tạo vào LineChart để hiển thị lên UI
+        lineChartRevenue.getData().add(series);
+}}
