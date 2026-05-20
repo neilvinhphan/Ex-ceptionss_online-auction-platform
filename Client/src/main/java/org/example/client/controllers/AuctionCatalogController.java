@@ -374,14 +374,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     return card;
   }
-
-  /**
-   * Bộ xử lý thiết lập bộ đếm thời gian lặp lại mỗi 1 giây cho từng sản phẩm
-   */
-  /**
-   * Bộ xử lý thiết lập bộ đếm thời gian lặp lại mỗi 1 giây cho từng sản phẩm
-   */
-  /**
+/**
    * Bộ xử lý thiết lập bộ đếm thời gian lặp lại mỗi 1 giây cho từng sản phẩm
    * Đã được cấu hình đổi màu chữ động theo trạng thái đếm ngược
    */
