@@ -41,7 +41,7 @@ public class BidDAO {
 
       int rowsUpdated = ps.executeUpdate();
       return rowsUpdated > 0;
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
@@ -58,7 +58,7 @@ public class BidDAO {
         }
         return null;
       }
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
@@ -72,7 +72,7 @@ public class BidDAO {
       ps.setInt(2, bidderId);
       ps.setInt(3, auctionId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
@@ -97,7 +97,7 @@ public class BidDAO {
         }
       }
       return transactions;
-    } catch (SQLException | IOException e) {
+    } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
