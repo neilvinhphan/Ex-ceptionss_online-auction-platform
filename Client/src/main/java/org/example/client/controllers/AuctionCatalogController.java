@@ -488,7 +488,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
   private void handleJoinAuction(ActionEvent event, Auction auction) {
     try {
       AuctionSession.getInstance().setCurrentAuction(auction);
-      System.out.println(auction.getBidderId());
+      System.out.println(auction.getOwnerId());
       System.out.println(auction.getAuctionId());
       System.out.println(auction.getItem().getItemName());
       AuctionSession.getInstance().setCurrentItem(auction.getItem());
