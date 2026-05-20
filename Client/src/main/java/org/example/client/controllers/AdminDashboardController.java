@@ -84,6 +84,7 @@ public class AdminDashboardController extends BaseController {
     }
 
     private void updateBarChart(Map<String, Integer> statusData) {
+        bcAuctionStatus.setAnimated(false);
         bcAuctionStatus.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Số lượng phiên");

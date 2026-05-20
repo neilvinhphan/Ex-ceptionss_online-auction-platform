@@ -6,16 +6,12 @@
 
 <VBox maxHeight="-Infinity" prefWidth="280.0" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AdminSidebarController">
     <children>
-        <!-- Nút Tổng quan (Đang Active) -->
         <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleDashboard" style="-fx-font-weight: bold; -fx-background-color: #e0e7ff; -fx-text-fill: #4f46e5; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand; -fx-background-radius: 10;" text="📊 Tổng quan hệ thống" />
 
-        <!-- Quản lý tài sản chờ duyệt -->
         <Button fx:id="btnApprove" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleApproveItem" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="📋 Duyệt tài sản" />
 
-        <!-- Quản lý người dùng -->
         <Button fx:id="btnUsers" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleManageUsers" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="👥 Quản lý người dùng" />
 
-        <!-- Quản lý phiên đấu giá -->
         <Button fx:id="btnAuctions" alignment="BASELINE_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleManageAuctions" style="-fx-font-weight: bold; -fx-background-color: transparent; -fx-text-fill: #555555; -fx-font-size: 15; -fx-padding: 15 20; -fx-cursor: hand;" text="⚖ Quản lý phiên đấu giá" />
     </children>
     <padding>

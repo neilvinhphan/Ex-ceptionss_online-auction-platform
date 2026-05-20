@@ -582,6 +582,8 @@ public class ClientHandler implements Runnable {
         try {
             List<Auction> runningAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
             List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
+            List<Auction> finishedAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.FINISHED);
+
             List<Auction> activeItems = new ArrayList<>();
 
             if (runningAuctions != null) {
@@ -590,7 +592,9 @@ public class ClientHandler implements Runnable {
             if (openAuctions != null) {
                 activeItems.addAll(openAuctions);
             }
-
+if(finishedAuctions != null){
+    activeItems.addAll(finishedAuctions);
+}
             Response response =
                     new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
             sendMessage(gson.toJson(response));
@@ -828,15 +832,9 @@ public class ClientHandler implements Runnable {
     private void handleAdminCancelAuction(Request request) {
         try {
             String dataJson = gson.toJson(request.getData());
-            AdminCancelAuctionDTO cancelReq = gson.fromJson(dataJson, AdminCancelAuctionDTO.class);
+            Integer auctionId = gson.fromJson(dataJson, Integer.class);
 
-            User requester = userDAO.getUserByUserId(cancelReq.getAdminId());
-            if (requester == null || requester.getRole() != RoleType.ADMIN) {
-                sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
-                return;
-            }
-
-            AuctionService.forceCancelAuction(cancelReq.getAuctionId(), "Admin hủy khẩn cấp");
+            AuctionService.forceCancelAuction(auctionId, "Admin hủy khẩn cấp");
 
             Response response = new Response("SUCCESS", "Đã HỦY KHẨN CẤP phiên đấu giá!");
             sendMessage(gson.toJson(response));
