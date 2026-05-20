@@ -20,6 +20,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -52,6 +53,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AuctionCatalogController extends BaseController implements Initializable {
 
@@ -62,9 +65,10 @@ public class AuctionCatalogController extends BaseController implements Initiali
   private List<Auction> allAuctionsList = new ArrayList<>();
   // Khai báo một danh sách các Timeline để quản lý và xóa bỏ bộ đếm cũ khi tải lại trang, tránh rò rỉ bộ nhớ
   private List<Timeline> activeTimelines = new ArrayList<>();
-
+  @FXML private RadioButton rbStatusAll, rbStatusOpen, rbStatusRunning, rbStatusFinished;
   @FXML private CheckBox cbTypeAll, cbTypeElectronics, cbTypeVehicle, cbTypeArt;
   @FXML private RadioButton rbPriceAll, rbPrice1, rbPrice2, rbPrice3, rbPrice4, rbPrice5;
+  @FXML private RadioButton rbSortNewest, rbSortOldest;
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
   private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -75,17 +79,15 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     if (currentUser != null) {
       // --- KIỂM TRA ROLE ĐỂ ẨN/HIỆN BANNER NÂNG CẤP ---
-      // (Không còn xử lý text của Menu ở đây nữa vì MenuController đã lo)
       if (currentUser.getRole() == RoleType.ADMIN || currentUser.getRole() == RoleType.SELLER) {
-        // Admin và Seller thì ẩn Banner nâng cấp
         upgradeBanner.setVisible(false);
         upgradeBanner.setManaged(false);
       } else {
-        // Mặc định là BIDDER (Người mua) thì hiện Banner nâng cấp
         upgradeBanner.setVisible(true);
         upgradeBanner.setManaged(true);
       }
     }
+    setupToggleGroups();
     loadActiveAuctions();
   }
   @FXML
@@ -223,21 +225,34 @@ public class AuctionCatalogController extends BaseController implements Initiali
                 .start();
       }
     }
-  }
+//    for (Auction auction : auctionsToDisplay) {
+//      VBox card = createAuctionCard(auction);
+//      auctionFlowPane.getChildren().add(card);
+//
+//      String base64 = auction.getItem().getImage();
+//      if (base64 != null && !base64.isEmpty()) {
+//        new Thread(
+//                () -> {
+//                  Image img = ImageUtils.decodeBase64ToImage(base64);
+//                  Platform.runLater(
+//                          () -> {
+//                            ImageView iv = (ImageView) card.lookup(".auction-image");
+//                            if (iv != null && img != null) iv.setImage(img);
+//                          });
+//                })
+//                .start();
+//      }
+//    }
 
+
+  }
   private void loadActiveAuctions() {
     Request request = new Request("GET_ACTIVE_AUCTIONS", null);
     String jsonRequest = gson.toJson(request);
     new Thread(
             () -> {
               try {
-                System.out.println("Đang xin dữ liệu Các phòng đấu giá...");
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-
-                System.out.println("====== DỮ LIỆU SERVER TRẢ VỀ: ======");
-                System.out.println(jsonResponse);
-                System.out.println("=====================================");
-
+                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
                 Response response = gson.fromJson(jsonResponse, Response.class);
 
                 if ("SUCCESS".equals(response.getStatus())) {
@@ -282,7 +297,8 @@ public class AuctionCatalogController extends BaseController implements Initiali
                   System.out.println("Số lượng Auction lấy được sau khi ép kiểu: " + allAuctionsList.size());
                   Platform.runLater(
                           () -> {
-                            displayAuctions(allAuctionsList);
+                           displayAuctions(allAuctionsList);
+                            handleFilter(new ActionEvent());
                           });
                 }
               } catch (Exception e) {
@@ -493,17 +509,33 @@ public class AuctionCatalogController extends BaseController implements Initiali
       showAlert("Lỗi", "Không thể vào phòng đấu giá: " + ex.getMessage());
     }
   }
+  private void setupToggleGroups() {
+    ToggleGroup statusGroup = new ToggleGroup();
+    rbStatusAll.setToggleGroup(statusGroup);
+    rbStatusOpen.setToggleGroup(statusGroup);
+    rbStatusRunning.setToggleGroup(statusGroup);
+    rbStatusFinished.setToggleGroup(statusGroup);
 
+    ToggleGroup priceGroup = new ToggleGroup();
+    rbPriceAll.setToggleGroup(priceGroup);
+    rbPrice1.setToggleGroup(priceGroup);
+    rbPrice2.setToggleGroup(priceGroup);
+    rbPrice3.setToggleGroup(priceGroup);
+    rbPrice4.setToggleGroup(priceGroup);
+    rbPrice5.setToggleGroup(priceGroup);
+
+    ToggleGroup sortGroup = new ToggleGroup();
+    rbSortNewest.setToggleGroup(sortGroup);
+    rbSortOldest.setToggleGroup(sortGroup);
+  }
   @FXML
   public void handleFilter(ActionEvent event) {
     if (allAuctionsList == null || allAuctionsList.isEmpty()) return;
-
     List<Auction> filteredList = new ArrayList<>();
-
     for (Auction auction : allAuctionsList) {
       Item item = auction.getItem();
       if (item == null) continue;
-
+// LỌC THEO LOẠI TÀI SẢN
       boolean matchType = false;
       if (cbTypeAll.isSelected()) {
         matchType = true;
@@ -512,9 +544,24 @@ public class AuctionCatalogController extends BaseController implements Initiali
         if (cbTypeVehicle.isSelected() && item instanceof VehicleItem) matchType = true;
         if (cbTypeArt.isSelected() && item instanceof ArtItem) matchType = true;
       }
-
       if (!matchType) continue;
-
+// LỌC THEO TRẠNG THÁI
+      boolean matchStatus = false;
+      if (rbStatusAll.isSelected()) {
+        matchStatus = true;
+      } else if (rbStatusOpen.isSelected() && auction.getStatus() == AuctionStatus.OPEN) {
+        matchStatus = true;
+      } else if (rbStatusRunning.isSelected() && auction.getStatus() == AuctionStatus.RUNNING) {
+        matchStatus = true;
+      } else if (rbStatusFinished.isSelected()) {
+        if (auction.getStatus() == AuctionStatus.FINISHED ||
+                auction.getStatus() == AuctionStatus.PAID ||
+                auction.getStatus() == AuctionStatus.CANCELED) {
+          matchStatus = true;
+        }
+      }
+      if (!matchStatus) continue;
+      // LỌC THEO GIÁ
       boolean matchPrice = false;
       double price = auction.getHighestBid() != null ? auction.getHighestBid().doubleValue() : 0;
 
@@ -536,6 +583,21 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
       filteredList.add(auction);
     }
+    // LỌC THEO THỜI GIAN
+    filteredList.sort((a1, a2) -> {
+      LocalDateTime t1 = a1.getStartTime();
+      LocalDateTime t2 = a2.getStartTime();
+
+      if (t1 == null && t2 == null) return Integer.compare(a1.getAuctionId(), a2.getAuctionId());
+      if (t1 == null) return 1;
+      if (t2 == null) return -1;
+
+      if (rbSortNewest.isSelected()) {
+        return t2.compareTo(t1); // Mới nhất trước (Giảm dần)
+      } else {
+        return t1.compareTo(t2); // Cũ nhất trước (Tăng dần)
+      }
+    });
     displayAuctions(filteredList);
   }
 
