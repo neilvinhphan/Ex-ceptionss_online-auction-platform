@@ -36,7 +36,6 @@ import org.example.core.shared.enums.RoleType;
 
 import org.example.server.daos.AuctionDAO;
 import org.example.server.daos.AutoBidDAO;
-import org.example.server.daos.DashboardDAO;
 import org.example.server.daos.ItemDAO;
 
 import org.example.core.models.items.Item;
@@ -224,20 +223,21 @@ public class ClientHandler implements Runnable {
         }
     }
 
-  private void handleGetSellerDashboard(Request request) {
-    try {
-      String dataJson = gson.toJson(request.getData());
-      Integer sellerId = gson.fromJson(dataJson, Integer.class);
-      org.example.core.dto.userDTO.SellerDashboardDTO dto =
-              DashboardDAO.getInstance().getSellerDashboardStats(sellerId);
-      Response response = new Response("SUCCESS", "Lấy dữ liệu thống kê đối tác thành công", dto);
-      sendMessage(gson.toJson(response));
-    } catch (Exception e) {
-      e.printStackTrace();
-      Response errorResponse = new Response("ERROR", "Lỗi xử lý thống kê người bán: " + e.getMessage());
-      sendMessage(gson.toJson(errorResponse));
+    private void handleGetSellerDashboard(Request request) {
+        try {
+            String dataJson = gson.toJson(request.getData());
+            Integer sellerId = gson.fromJson(dataJson, Integer.class);
+
+            org.example.core.dto.userDTO.SellerDashboardDTO dto =
+                    org.example.server.daos.DashboardDAO.getInstance().getSellerDashboardStats(sellerId);
+
+            Response response = new Response("SUCCESS", "Lấy dữ liệu thành công", dto);
+            sendMessage(gson.toJson(response));
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendMessage(gson.toJson(new Response("ERROR", "Lỗi Server: " + e.getMessage())));
+        }
     }
-  }
 
     private void handleGetAdminDashboardStats(Request request) {
         try {
