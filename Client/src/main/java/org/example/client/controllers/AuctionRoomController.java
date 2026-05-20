@@ -190,7 +190,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         String input = tfBidAmount.getText().trim();
         lblBidError.setText("");
 
-        String myUsername = org.example.client.utils.UserSession.getInstance().getCurrentUser().getUserName();
+        String myUsername = UserSession.getInstance().getCurrentUser().getUserName();
         String leadingUsername = lblHighestBidder.getText().trim();
 
         try {
