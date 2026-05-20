@@ -39,6 +39,54 @@ public class AuctionDAO {
     return instance;
   }
 
+  // Lấy tất cả các phiên đấu giá (Không phân biệt trạng thái - Dành cho Admin)
+  public List<Auction> getAllAuctions() {
+    List<Auction> auctions = new ArrayList<>();
+
+    // Câu SQL này tôi copy từ hàm getAllAuctionsByStatus của ông,
+    // nhưng ĐÃ XÓA dòng "WHERE a.status = ?" để kéo toàn bộ dữ liệu lên.
+    String sql =
+            "SELECT a.*, "
+                    + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
+                    + "FROM auction a "
+                    + "JOIN items i ON a.items_id = i.items_id "
+                    + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
+                    + "GROUP BY a.auction_id";
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        Auction auction = new Auction();
+        auction.setAuctionId(rs.getInt("auction_id"));
+        auction.setItemId(rs.getInt("items_id"));
+
+        // Bọc check null cho thời gian phòng trường hợp có phiên nháp chưa set giờ
+        if (rs.getTimestamp("start_time") != null) {
+          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+        }
+        if (rs.getTimestamp("end_time") != null) {
+          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        }
+
+        auction.setHighestBid(rs.getBigDecimal("highest_price"));
+        auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+          auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
+        }
+
+        auctions.add(auction);
+      }
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+    return auctions;
+  }
+
   public List<Auction> getAllAuctionsByStatus(AuctionStatus status) {
     List<Auction> auctions = new ArrayList<>();
     String sql =
@@ -78,14 +126,14 @@ public class AuctionDAO {
     // 1. Cập nhật câu SQL: Lấy thêm tên, loại, và giá khởi điểm của Item
     String sql =
         "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment, a.bidder_id,"
-            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, "
+            + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, i.description, "
             + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price "
             + "FROM auction a "
             + "JOIN items i ON a.items_id = i.items_id "
             + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
             + "WHERE a.status = ? "
             + "GROUP BY a.auction_id, a.items_id, a.start_time, a.end_time, a.status, "
-            + "i.items_name, i.type, i.start_price, i.image";
+            + "i.items_name, i.type, i.start_price, i.image, i.description";
 
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -130,6 +178,7 @@ public class AuctionDAO {
             item.setType(itemType);
             item.setStartingPrice(rs.getBigDecimal("start_price"));
             item.setImage(rs.getString("image"));
+            item.setDescription(rs.getString("description"));
 
             // Gắn Item hoàn chỉnh vào Auction
             auction.setItem(item);
@@ -225,11 +274,8 @@ public class AuctionDAO {
 
   public int createNewAuctionItem(
       Item item, long time, BigDecimal bidIncrement, LocalDateTime startTime) {
-
-    // BỔ SUNG CỘT status VÀO CÂU SQL
     String sql =
-        "INSERT INTO auction (items_id, start_price, bid_increment, end_time, start_time, status) VALUES (?,?,?,?,?,?)";
-
+        "INSERT INTO auction (items_id, start_price, bid_increment, end_time, start_time) VALUES (?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getItemId());
@@ -238,10 +284,6 @@ public class AuctionDAO {
       LocalDateTime endtime = startTime.plusMinutes(time);
       ps.setTimestamp(4, Timestamp.valueOf(endtime));
       ps.setTimestamp(5, Timestamp.valueOf(startTime));
-
-      // ÉP CỨNG TRẠNG THÁI LÀ OPEN (CHỜ TỚI GIỜ MỞ CỬA)
-      ps.setString(6, AuctionStatus.OPEN.name());
-
       try (ResultSet rs = ps.executeUpdate() > 0 ? ps.getGeneratedKeys() : null) {
         if (rs.next()) {
           return rs.getInt(1);
