@@ -828,15 +828,9 @@ public class ClientHandler implements Runnable {
     private void handleAdminCancelAuction(Request request) {
         try {
             String dataJson = gson.toJson(request.getData());
-            AdminCancelAuctionDTO cancelReq = gson.fromJson(dataJson, AdminCancelAuctionDTO.class);
+            Integer auctionId = gson.fromJson(dataJson, Integer.class);
 
-            User requester = userDAO.getUserByUserId(cancelReq.getAdminId());
-            if (requester == null || requester.getRole() != RoleType.ADMIN) {
-                sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
-                return;
-            }
-
-            AuctionService.forceCancelAuction(cancelReq.getAuctionId(), "Admin hủy khẩn cấp");
+            AuctionService.forceCancelAuction(auctionId, "Admin hủy khẩn cấp");
 
             Response response = new Response("SUCCESS", "Đã HỦY KHẨN CẤP phiên đấu giá!");
             sendMessage(gson.toJson(response));

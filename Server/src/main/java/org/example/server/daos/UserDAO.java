@@ -219,7 +219,7 @@ public class UserDAO {
 
   public List<User> getAllUsers() {
     List<User> users = new ArrayList<>();
-    String sql = "SELECT * FROM user";
+    String sql = "SELECT * FROM user WHERE role IN ('SELLER', 'BIDDER')";
 
     try (Connection conn = DBConnection.getConnection();
          PreparedStatement stmt = conn.prepareStatement(sql);

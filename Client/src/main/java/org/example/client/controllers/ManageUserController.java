@@ -25,6 +25,7 @@ import org.example.core.shared.enums.UserStatus;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -54,6 +55,20 @@ public class ManageUserController extends BaseController implements Initializabl
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colBalance.setCellValueFactory(new PropertyValueFactory<>("balance"));
         // Load dữ liệu lần đầu khi mở trang
+        DecimalFormat formatter = new DecimalFormat("#,##0");
+
+        colBalance.setCellFactory(tc -> new TableCell<User, BigDecimal>() {
+            @Override
+            protected void updateItem(BigDecimal price, boolean empty) {
+                super.updateItem(price, empty);
+                if (empty || price == null) {
+                    setText(null);
+                } else {
+                    // Biến đổi số Double thành chuỗi có định dạng tiền tệ rõ ràng
+                    setText(formatter.format(price));
+                }
+            }
+        });
         loadUsersFromServer();
     }
     private void loadUsersFromServer() {

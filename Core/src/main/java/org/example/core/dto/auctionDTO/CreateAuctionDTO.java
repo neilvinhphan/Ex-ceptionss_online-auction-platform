@@ -19,6 +19,9 @@ public class CreateAuctionDTO {
     this.startTime = startTime;
   }
 
+  public CreateAuctionDTO() {
+  }
+
   public LocalDateTime getStartTime() {
     return startTime;
   }
