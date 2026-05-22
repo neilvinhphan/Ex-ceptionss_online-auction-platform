@@ -6,113 +6,75 @@ import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class UserService {
   private final UserDAO userDAO;
+  private static volatile UserService instance = null;
 
-  // SỬA: Thêm Constructor Injection để hỗ trợ Unit Test
-  public UserService(UserDAO userDAO) {
+  UserService(UserDAO userDAO) {
     this.userDAO = userDAO;
   }
 
-  // Default constructor giữ lại để code cũ của em không bị lỗi
-  public UserService() {
-    this.userDAO = UserDAO.getInstance();
+  public static UserService getInstance() {
+    if (instance == null) {
+      synchronized (UserService.class) {
+        if (instance == null) {
+          instance = new UserService(UserDAO.getInstance());
+        }
+      }
+    }
+    return instance;
   }
 
-  // Xem thông tin
-  public User viewProfile(String username) throws Exception {
-    if (username == null || username.trim().isEmpty()) {
-      throw new Exception("Username is required.");
-    }
-
-    User user = userDAO.getUserByUsername(username);
-    if (user == null || user.getUserName() == null) {
-      throw new Exception("User not found.");
-    }
-    return user;
-  }
-
-  // Đổi mật khẩu
-  public void changePassword(String username, String currentPassword, String newPassword) throws Exception {
-    if (username == null || username.trim().isEmpty()) {
-      throw new Exception("Username is required.");
-    }
-    if (currentPassword == null || currentPassword.trim().isEmpty()) {
-      throw new Exception("Current password is required.");
-    }
-    if (newPassword == null || newPassword.trim().isEmpty()) {
-      throw new Exception("New password is required.");
-    }
-    if (newPassword.length() < 6) {
-      throw new Exception("New password must contain at least 6 characters.");
-    }
-
-    User user = userDAO.getUserByUsername(username);
-    if (user == null || user.getUserName() == null) {
-      throw new Exception("User not found.");
-    }
-    if (!BCrypt.checkpw(currentPassword, user.getPassword())) {
-      throw new Exception("Current password is incorrect.");
-    }
-    if (BCrypt.checkpw(newPassword, user.getPassword())) {
-      throw new Exception("New password must be different from current password.");
-    }
-
-    String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
-    boolean success = userDAO.updatePasswordInDB(user.getUserId(), hashedNewPassword);
-    if (!success) {
-      throw new Exception("Cannot change password.");
-    }
-  }
-
-  // Cập nhật rating
-  public User updateSellerRating(String username, double rating) throws Exception {
-    if (username == null || username.trim().isEmpty()) {
-      throw new Exception("Username is required.");
-    }
-    if (rating < 0 || rating > 5) {
-      throw new Exception("Rating must be in range 0 to 5.");
-    }
-
-    User user = userDAO.getUserByUsername(username);
-    if (user == null || user.getUserName() == null) {
-      throw new Exception("User not found.");
-    }
-
-    if (user.getSellerProfile() == null) {
-      user.setSellerProfile(new SellerProfile());
-    }
-    user.getSellerProfile().setRating(rating);
-
-    boolean success = userDAO.updateRatingByUsername(username, rating);
-    if (!success) {
-      throw new Exception("Cannot update seller rating.");
-    }
-    return user;
-  }
-
-  public boolean balanceDeposit(int userId, BigDecimal amount,String password) throws Exception {
-    BigDecimal currentBalance = userDAO.getUserByUserId(userId).getBalance();
-    if (amount.compareTo(BigDecimal.ZERO) < 0) {
-      throw new Exception("Số tiền nạp phải lớn hơn 0");
-    }
+  public BigDecimal balanceDeposit(int userId, BigDecimal amount, String password) throws Exception {
+    // 1. Đưa các chốt chặn chắt lọc dữ liệu lên đầu tiên
     if (userId <= 0) {
       throw new Exception("ID người dùng không hợp lệ");
     }
-    BigDecimal newBalance = currentBalance.add(amount);
-    User user = userDAO.getUserByUserId(userId);
-
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
+      throw new Exception("Số tiền nạp phải lớn hơn 0");
+    }
     if (password == null || password.trim().isEmpty()) {
       throw new Exception("Vui lòng nhập mật khẩu xác nhận.");
+    }
+
+    // 2. Sau khi dữ liệu đầu vào đã sạch mới bắt đầu gọi DAO
+    User user = userDAO.getUserByUserId(userId);
+    if (user == null) {
+      throw new Exception("Người dùng không tồn tại.");
     }
     if (!BCrypt.checkpw(password, user.getPassword())) {
       throw new Exception("Mật khẩu xác nhận không chính xác!");
     }
+
+    BigDecimal currentBalance = user.getBalance();
+    BigDecimal newBalance = currentBalance.add(amount);
+
     boolean isSuccess = userDAO.updateBalanceInDB(userId, newBalance);
     if (!isSuccess) {
       throw new Exception("Đã xảy ra lỗi hệ thống khi cập nhật số dư. Vui lòng thử lại!");
     }
-    return true;
+    return newBalance;
+  }
+
+  public boolean updateRole(int userId) {
+    return userDAO.updateRoleInDB(userId);
+  }
+
+  public User getUserById(int userId) {
+    return userDAO.getUserByUserId(userId);
+  }
+
+  public List<User> getAllUsers() {
+    return userDAO.getAllUsers();
+  }
+
+  public boolean banUser(int userId) {
+    return userDAO.banStatus(userId);
+  }
+
+  public boolean unbanUser(int userId) {
+    return userDAO.unbanStatus(userId);
   }
 }

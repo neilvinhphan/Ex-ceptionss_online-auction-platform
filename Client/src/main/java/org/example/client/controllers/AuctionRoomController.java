@@ -267,7 +267,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         String input = tfBidAmount.getText().trim();
         lblBidError.setText("");
 
-        String myUsername = org.example.client.utils.UserSession.getInstance().getCurrentUser().getUserName();
+        String myUsername = UserSession.getInstance().getCurrentUser().getUserName();
         String leadingUsername = lblHighestBidder.getText().trim();
 
         try {
@@ -285,7 +285,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                 return;
             }
 
-            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
+            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount, myUsername);
             Request requestContainer = new Request("PLACE_BID", bidReq);
 
             if (outToServer != null) {

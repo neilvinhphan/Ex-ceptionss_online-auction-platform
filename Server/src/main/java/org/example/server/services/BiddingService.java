@@ -1,12 +1,17 @@
 package org.example.server.services;
 
+import org.example.core.dto.Response;
+import org.example.core.dto.bidDTO.BidBroadcastDTO;
 import org.example.core.dto.bidDTO.BidRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
+import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.daos.AuctionDAO;
+import org.example.server.daos.AutoBidDAO;
 import org.example.server.daos.BidDAO;
 import org.example.server.daos.UserDAO;
 import org.example.server.daos.WalletDAO;
+import org.example.server.network.AuctionServer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,19 +23,34 @@ public class BiddingService {
 
   private static volatile BiddingService instance;
 
-  private static final BidDAO bidDAO = BidDAO.getInstance();
-  private static final AuctionDAO auctionDAO = AuctionDAO.getInstance();
-  private static final WalletDAO walletDAO = WalletDAO.getInstance();
-  private static final UserDAO userDAO = UserDAO.getInstance();
+  private final BidDAO bidDAO;
+  private final AuctionDAO auctionDAO;
+  private final WalletDAO walletDAO;
+  private final UserDAO userDAO;
+  private final AutoBidDAO autoBidDAO;
 
   // lock theo từng auction để tránh đè giá cùng lúc
-  private final ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
+
+  BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO, WalletDAO walletDAO, UserDAO userDAO, AutoBidDAO autoBidDAO) {
+    this.bidDAO = bidDAO;
+    this.auctionDAO = auctionDAO;
+    this.walletDAO = walletDAO;
+    this.userDAO = userDAO;
+    this.autoBidDAO = autoBidDAO;
+  }
 
   public static BiddingService getInstance() {
     if (instance == null) {
       synchronized (BiddingService.class) {
         if (instance == null) {
-          instance = new BiddingService();
+          instance = new BiddingService(
+                  BidDAO.getInstance(),
+                  AuctionDAO.getInstance(),
+                  WalletDAO.getInstance(),
+                  UserDAO.getInstance(),
+                  AutoBidDAO.getInstance()
+          );
         }
       }
     }
@@ -142,40 +162,52 @@ public class BiddingService {
     auctionDAO.updateAuctionEndTime(auctionId, auction.getEndTime());
   }
 
+  public BigDecimal getMaxAutoBid(int auctionId, int userId) {
+    return autoBidDAO.getMaxAutoBid(auctionId, userId);
+  }
+
+  public void disableAutoBid(int auctionId, int userId) {
+    autoBidDAO.disableAutoBid(auctionId, userId);
+  }
+
+  public void saveOrUpdateAutoBid(int auctionId, int userId, BigDecimal maxBid) {
+    autoBidDAO.saveOrUpdateAutoBid(auctionId, userId, maxBid);
+  }
+
   /** Lấy lịch sử để FE vẽ chart */
   public List<BidTransaction> getBidHistory(int auctionId) {
     return bidDAO.getBidHistoryByAuctionId(auctionId);
   }
 
   // BỔ SUNG THÊM HÀM NÀY VÀO TRONG CLASS BiddingService.java
-  public static synchronized void evaluateDeterministicBidding(int auctionId) {
+  public synchronized void evaluateDeterministicBidding(int auctionId) {
     try {
       // 1. Tải thông tin thực tế của phòng đấu giá lên
-      org.example.core.models.entities.Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-      if (auction == null || auction.getStatus() != org.example.core.shared.enums.AuctionStatus.RUNNING) return;
+      Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+      if (auction == null || auction.getStatus() != AuctionStatus.RUNNING) return;
 
-      java.math.BigDecimal currentPrice = auction.getHighestBid() != null ? auction.getHighestBid() : auction.getItem().getStartingPrice();
-      java.math.BigDecimal increment = auction.getBidIncrement();
+      BigDecimal currentPrice = auction.getHighestBid() != null ? auction.getHighestBid() : auction.getItem().getStartingPrice();
+      BigDecimal increment = auction.getBidIncrement();
 
       // 2. Tải tất cả Bot đang hoạt động (Sắp xếp: trần cao nhất lên đầu)
-      List<org.example.server.daos.AutoBidDAO.AutoBidConfig> activeBots =
-              org.example.server.daos.AutoBidDAO.getInstance().getActiveAutoBidsForAuction(auctionId);
+      List<AutoBidDAO.AutoBidConfig> activeBots =
+              autoBidDAO.getActiveAutoBidsForAuction(auctionId);
 
       if (activeBots.isEmpty()) return; // Không có bot nào gác phòng, giữ nguyên luồng đấu thầu bằng tay
 
-      org.example.server.daos.AutoBidDAO.AutoBidConfig bot1 = activeBots.get(0); // Bot có giá trần cao nhất
+      AutoBidDAO.AutoBidConfig bot1 = activeBots.get(0); // Bot có giá trần cao nhất
 
       // =========================================================================
       // KỊCH BẢN A: CÓ TỪ 2 BOT TRỞ LÊN ĐỤNG ĐỘ SÁT PHẠT NHAU
       // =========================================================================
       if (activeBots.size() >= 2) {
-        org.example.server.daos.AutoBidDAO.AutoBidConfig bot2 = activeBots.get(1); // Bot có giá trần cao thứ nhì
+        AutoBidDAO.AutoBidConfig bot2 = activeBots.get(1); // Bot có giá trần cao thứ nhì
 
         // Trường hợp biên (Edge Case): Hai tài khoản cài giá trần giống hệt nhau
         if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) == 0) {
           // Nếu giá phòng hiện tại chưa chạm tới mức trần này
           if (currentPrice.compareTo(bot1.getMaxBid()) < 0) {
-            java.math.BigDecimal finalPrice = bot1.getMaxBid();
+            BigDecimal finalPrice = bot1.getMaxBid();
             // Thằng nào đặt cấu hình Bot trước (createdAt nhỏ hơn) sẽ dành chiến thắng dẫn đầu!
             int winnerId = bot1.getCreatedAt().isBefore(bot2.getCreatedAt()) ? bot1.getUserId() : bot2.getUserId();
 
@@ -185,7 +217,7 @@ public class BiddingService {
         // Trường hợp thông thường: Trần Bot 1 lớn hơn hẳn trần Bot 2
         else if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) > 0) {
           // Công thức thép: Giá nhảy vọt lên bằng Trần thằng thua + 1 Bước giá thầu
-          java.math.BigDecimal finalPrice = bot2.getMaxBid().add(increment);
+          BigDecimal finalPrice = bot2.getMaxBid().add(increment);
 
           // Chốt chặn an toàn: Nếu tính ra vượt quá trần Bot 1, ép lùi về kịch trần Bot 1
           if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
@@ -204,7 +236,7 @@ public class BiddingService {
       else {
         // Nếu giá trần của Bot đủ lớn để nuốt chửng giá hiện tại và người dẫn đầu phòng không phải chủ Bot
         if (bot1.getMaxBid().compareTo(currentPrice) > 0 && auction.getBidderId() != bot1.getUserId()) {
-          java.math.BigDecimal finalPrice = currentPrice.add(increment);
+          BigDecimal finalPrice = currentPrice.add(increment);
           if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
             finalPrice = bot1.getMaxBid();
           }
@@ -218,12 +250,12 @@ public class BiddingService {
   }
 
   // Hàm phụ trợ ghi Log lịch sử và phát sóng thông báo giá nhảy vọt do Bot
-  private static void executeAutoBidTransaction(int auctionId, java.math.BigDecimal finalPrice, int winnerId, org.example.core.models.entities.Auction auction) throws Exception {
+  private void executeAutoBidTransaction(int auctionId, BigDecimal finalPrice, int winnerId, Auction auction) throws Exception {
     // 1. Trích xuất tên hiển thị của tài khoản Bot chiến thắng từ hệ thống
     String winnerName = userDAO.getUserByUserId(winnerId).getUserName();
 
     // 2. ĐÓNG GÓI CHUẨN ĐỒNG BỘ: Khởi tạo thực thể BidTransaction dành cho luồng AutoBid
-    BidTransaction autoBidTx = new BidTransaction(finalPrice, java.time.LocalDateTime.now(), winnerId, winnerName);
+    BidTransaction autoBidTx = new BidTransaction(finalPrice, LocalDateTime.now(), winnerId, winnerName);
     autoBidTx.setAuctionId(auctionId);
 
     // 3. Gọi chung một hàm insert thực thể của DAO giống hệt luồng đặt giá bằng tay
@@ -233,7 +265,7 @@ public class BiddingService {
     auctionDAO.updateHighestPriceByItemId(winnerId, finalPrice);
 
     // 4. Đóng gói gói tin phát sóng thời gian thực (Bật cờ true báo hiệu giá nhảy do AutoBid)
-    org.example.core.dto.bidDTO.BidBroadcastDTO broadcastData = new org.example.core.dto.bidDTO.BidBroadcastDTO(
+    BidBroadcastDTO broadcastData = new BidBroadcastDTO(
             auctionId,
             finalPrice.doubleValue(),
             winnerName,
@@ -241,8 +273,8 @@ public class BiddingService {
             true // 🔥 ĐÁNH DẤU: Cờ báo hiệu nhảy giá do AutoBid!
     );
 
-    org.example.core.dto.Response broadcastResponse = new org.example.core.dto.Response("NEW_BID", "Hệ thống tự động đẩy giá!", broadcastData);
-    org.example.server.network.AuctionServer.broadcastToRoom(auctionId, broadcastResponse);
+    Response broadcastResponse = new Response("NEW_BID", "Hệ thống tự động đẩy giá!", broadcastData);
+    AuctionServer.broadcastToRoom(auctionId, broadcastResponse);
     System.out.println("🚀 [AUTOBID BROADCAST] Giá phòng " + auctionId + " tự động tăng vọt lên " + finalPrice + " đ bởi Bot của " + winnerName);
   }
 }

@@ -27,14 +27,38 @@ import java.util.concurrent.TimeUnit;
 
 public class AuctionService {
 
-  private static final AuctionDAO auctionDAO = AuctionDAO.getInstance();
-  private static final UserDAO userDAO = UserDAO.getInstance();
-  private static final ItemDAO itemDAO = ItemDAO.getInstance();
-  private static final WalletDAO walletDAO = WalletDAO.getInstance();
+  private final Object lock = new Object();
+  private final AuctionDAO auctionDAO;
+  private final UserDAO userDAO;
+  private final ItemDAO itemDAO;
+  private final WalletDAO walletDAO;
+  private static volatile AuctionService instance;
 
-  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+  AuctionService(AuctionDAO auctionDAO, UserDAO userDAO, ItemDAO itemDAO, WalletDAO walletDAO) {
+    this.walletDAO =  walletDAO;
+    this.auctionDAO = auctionDAO;
+    this.userDAO = userDAO;
+    this.itemDAO = itemDAO;
+  }
 
-  public static Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
+  public static AuctionService getInstance() {
+    if(instance == null) {
+      synchronized (AuctionService.class) {
+        if(instance == null) {
+          instance = new AuctionService(
+                  AuctionDAO.getInstance(),
+                  UserDAO.getInstance(),
+                  ItemDAO.getInstance(),
+                  WalletDAO.getInstance()
+          );
+        }
+      }
+    } return instance;
+  }
+
+  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
+
+  public Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
     BigDecimal bidIncrement = requestPayLoad.getBidIncrement();
@@ -62,7 +86,7 @@ public class AuctionService {
     return newAuction;
   }
 
-  private static void startAuction(int auctionId) {
+  private void startAuction(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.OPEN) {
@@ -88,7 +112,7 @@ public class AuctionService {
     }
   }
 
-  private static void endAuction(int auctionId) {
+  private void endAuction(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.RUNNING) {
@@ -112,7 +136,7 @@ public class AuctionService {
     }
   }
 
-  private static void cancelIfNotPaid(int auctionId) {
+  private void cancelIfNotPaid(int auctionId) {
     try {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.FINISHED) {
@@ -124,7 +148,7 @@ public class AuctionService {
     }
   }
 
-  public static void reloadScheduledTasksOnStartup() {
+  public void reloadScheduledTasksOnStartup() {
     try {
       LocalDateTime now = LocalDateTime.now();
 
@@ -155,58 +179,67 @@ public class AuctionService {
     }
   }
 
-  public static List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
+  public List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
     return auctionDAO.getAllAuctionsByStatusForCatalog(status);
   }
 
-  public static void forceCancelAuction(int auctionId, String reason) throws Exception {
+  public List<Integer> getAllItemPaidPending(int userId) {
+    return auctionDAO.getAllAuctionIdFinishedByUserId(userId);
+  }
+
+  public void forceCancelAuction(int auctionId, String reason) throws Exception {
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
     if (auction.getStatus() == AuctionStatus.CANCELED)
       throw new Exception("Phiên đấu giá đã bị hủy!");
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
   }
 
-  public static Auction getAuctionById(int auctionId) throws Exception {
+  public Auction getAuctionById(int auctionId) throws Exception {
     return auctionDAO.getAuctionByAuctionId(auctionId);
   }
 
-  public static void updateHighestBid(int auctionId, BidTransaction newBid) throws Exception {
-    BigDecimal newPrice = newBid.getAmount();
-    int bidderId = newBid.getBidderId();
-    boolean isUpdated = auctionDAO.updateHighestPriceByItemId(bidderId, newPrice);
-    if (!isUpdated) throw new Exception("Cập nhật giá thất bại!");
-  }
+  public boolean checkoutAuction(int auctionId, int winnerId) throws Exception {
+    // Sử dụng khối synchronized để đảm bảo tại một thời điểm chỉ có 1 luồng được xử lý thanh toán giao dịch này
+    synchronized (lock) {
+      Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+      if (auction == null) throw new Exception("Phiên đấu giá không tồn tại!");
 
-  public static boolean checkoutAuction(int auctionId, int winnerId) throws Exception {
-    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-    int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
-    User winner = userDAO.getUserByUserId(winnerId);
-    User seller = userDAO.getUserByUserId(sellerId);
+      if (auction.getStatus() == AuctionStatus.PAID)
+        throw new Exception("Phiên đấu giá đã được thanh toán trước đó!");
 
-    if (auction.getStatus() == AuctionStatus.PAID)
-      throw new Exception("Phiên đấu giá đã được thanh toán!");
-    if (auction.getBidderId() != winnerId) throw new Exception("Bạn không phải người thắng!");
-    if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
-      throw new Exception("Số dư không đủ!");
+      if (auction.getBidderId() != winnerId)
+        throw new Exception("Bạn không phải người thắng phiên đấu giá này!");
+
+      int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
+      User winner = userDAO.getUserByUserId(winnerId);
+      User seller = userDAO.getUserByUserId(sellerId);
+
+      if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
+        throw new Exception("Số dư tài khoản không đủ để thanh toán!");
+      }
+
+      BigDecimal bidPrice = auction.getHighestBid();
+
+      // Thực hiện trừ/cộng tiền và ghi log giao dịch
+      userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
+      userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
+
+      walletDAO.insertWalletTransaction(winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
+      walletDAO.insertWalletTransaction(sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
+
+      // Chuyển trạng thái và đổi chủ sở hữu vật phẩm
+      auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
+      itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
+
+      return true;
     }
-
-    BigDecimal bidPrice = auction.getHighestBid();
-    userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
-    userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
-
-    walletDAO.insertWalletTransaction(winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
-    walletDAO.insertWalletTransaction(sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
-
-    auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
-    itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
-    return true;
   }
 
-  public static List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) throws Exception {
+  public List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) throws Exception {
     return auctionDAO.getAllAuctionsFinished(userId);
   }
 
-  public static List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
+  public List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
     return auctionDAO.getAllAuctionsPaid(userId);
   }
 } 

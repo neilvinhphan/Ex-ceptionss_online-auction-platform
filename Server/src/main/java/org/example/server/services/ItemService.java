@@ -15,17 +15,30 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemService {
-  private static final ItemDAO itemDAO = ItemDAO.getInstance();
+  private final ItemDAO itemDAO;
+  private static volatile ItemService instance = null;
+
+  ItemService(ItemDAO itemDAO) {
+    this.itemDAO = itemDAO;
+  }
+
+  public static ItemService getInstance() {
+    if (instance == null) {
+      synchronized (ItemService.class) {
+        if (instance == null) {
+          instance = new ItemService(ItemDAO.getInstance());
+        }
+      }
+    }
+    return instance;
+  }
 
   /** TẠO SẢN PHẨM MỚI TÍCH HỢP AI KIỂM DUYỆT */
-  public static Item createItem(CreateItemRequestDTO requestPayload) throws Exception {
+  public Item createItem(CreateItemRequestDTO requestPayload) throws Exception {
 
     validateItemData(requestPayload);
 
     Item newItem = ItemFactory.createItemDTO(requestPayload);
-
-    // 1. Mặc định để trạng thái là PENDING (Chờ duyệt)
-    newItem.setStatus(ItemStatus.PENDING);
 
     Integer itemId = itemDAO.insertIntoItemTable(newItem);
     if (itemId == null || itemId <= 0) {
@@ -70,7 +83,7 @@ public class ItemService {
     return newItem;
   }
 
-  public static boolean updateItemFull(EditProductRequestDTO requestPayload) {
+  public boolean updateItemFull(EditProductRequestDTO requestPayload) {
     int itemId = requestPayload.getItemId();
     String newName = requestPayload.getItemEditName();
     String newDescription = requestPayload.getDescription();
@@ -85,7 +98,7 @@ public class ItemService {
     }
   }
 
-  public static List<Item> getAllItem(PendingItemsDTO requestPayload) throws Exception {
+  public List<Item> getAllItem(PendingItemsDTO requestPayload) throws Exception {
     int sellerId = requestPayload.getSellerId();
     if (sellerId <= 0) {
       throw new Exception("Invalid seller ID.");
@@ -94,7 +107,16 @@ public class ItemService {
     return items;
   }
 
-  public static boolean deleteItem(DeleteRequestDTO requestPayload) throws Exception {
+  public List<Item> getAllItemByStatus(ItemStatus status) throws Exception {
+    List<Item> items = itemDAO.getItemsByStatus(status);
+    return items;
+  }
+
+  public List<Item> getApprovedItemsByUserId(int userId) {
+    return itemDAO.getApprovedItemsByUserId(userId);
+  }
+
+  public boolean deleteItem(DeleteRequestDTO requestPayload) throws Exception {
     int itemId = requestPayload.getItemId();
     if (itemId <= 0) {
       throw new Exception("Invalid item ID.");
@@ -106,7 +128,32 @@ public class ItemService {
     return true;
   }
 
-  private static void validateItemData(CreateItemRequestDTO item) throws Exception {
+  public Item getItemById(int itemId) throws Exception {
+    if (itemId <= 0) {
+      throw new Exception("Invalid item ID.");
+    }
+    Item item = itemDAO.getItemById(itemId);
+    if (item == null) {
+      throw new Exception("Item not found.");
+    }
+    return item;
+  }
+
+  public boolean updateItemStatus(int itemId, ItemStatus newStatus) throws Exception {
+    if (itemId <= 0) {
+      throw new Exception("Invalid item ID.");
+    }
+    if (newStatus == null) {
+      throw new Exception("New status is required.");
+    }
+    boolean success = itemDAO.updateItemStatus(itemId, newStatus);
+    if (!success) {
+      throw new Exception("Cannot update item status.");
+    }
+    return true;
+  }
+
+  private void validateItemData(CreateItemRequestDTO item) throws Exception {
     if (item == null) {
       throw new Exception("Item data is required.");
     }

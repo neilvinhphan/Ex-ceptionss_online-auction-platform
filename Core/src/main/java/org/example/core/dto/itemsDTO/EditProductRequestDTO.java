@@ -18,7 +18,11 @@ public class EditProductRequestDTO {
     this.itemType = type;
   }
 
-  public int getItemId() {
+    public EditProductRequestDTO() {
+
+    }
+
+    public int getItemId() {
     return itemId;
   }
 

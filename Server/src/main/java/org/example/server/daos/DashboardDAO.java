@@ -10,7 +10,7 @@ import java.util.Map;
 import org.example.core.dto.userDTO.SellerDashboardDTO;
 
 public class DashboardDAO {
-    private static DashboardDAO instance;
+    private static volatile DashboardDAO instance;
 
     private DashboardDAO() {}
 
