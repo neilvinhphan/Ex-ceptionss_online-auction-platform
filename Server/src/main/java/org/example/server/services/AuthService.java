@@ -1,7 +1,7 @@
 package org.example.server.services;
 
-import org.example.core.dto.LoginRequestDTO;
-import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.dto.userDTO.LoginRequestDTO;
+import org.example.core.dto.userDTO.RegisterRequestDTO;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.UserStatus;
 import org.example.server.daos.UserDAO;

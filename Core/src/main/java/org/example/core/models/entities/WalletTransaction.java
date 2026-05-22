@@ -54,35 +54,11 @@ public class WalletTransaction {
     this.userId = userId;
   }
 
-  public BigDecimal getAmount() {
-    return amount;
-  }
-
-  public void setAmount(BigDecimal amount) {
-    this.amount = amount;
-  }
-
   public WalletTransactionType getType() {
     return type;
   }
 
   public void setType(WalletTransactionType type) {
     this.type = type;
-  }
-
-  public int getReferenceId() {
-    return referenceId;
-  }
-
-  public void setReferenceId(int referenceId) {
-    this.referenceId = referenceId;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
   }
 }

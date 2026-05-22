@@ -1,25 +1,24 @@
 package org.example.server.services;
 
-import org.example.core.dto.PaidHistoryDTO;
 import org.example.core.models.users.SellerProfile;
 import org.example.core.models.users.User;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class UserService {
-  private final UserDAO userDAO = UserDAO.getInstance();
+  private final UserDAO userDAO;
 
-  public int getUserId(User user) {
-    return userDAO.getUserIdInDB(user.getUserName());
+  // SỬA: Thêm Constructor Injection để hỗ trợ Unit Test
+  public UserService(UserDAO userDAO) {
+    this.userDAO = userDAO;
   }
 
-  //
-  //  public static List<PaidHistoryDTO> getAllPaidHistory(int userId) throws Exception {
-  //    return UserDAO.getAllPaidHistoryByUsername(userId);
-  //  }
+  // Default constructor giữ lại để code cũ của em không bị lỗi
+  public UserService() {
+    this.userDAO = UserDAO.getInstance();
+  }
 
   // Xem thông tin
   public User viewProfile(String username) throws Exception {
@@ -103,7 +102,7 @@ public class UserService {
     }
     BigDecimal newBalance = currentBalance.add(amount);
     User user = userDAO.getUserByUserId(userId);
-    //return userDAO.updateBalanceInDB(userId, newBalance);
+
     if (password == null || password.trim().isEmpty()) {
       throw new Exception("Vui lòng nhập mật khẩu xác nhận.");
     }

@@ -13,7 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
-import org.example.core.dto.PaidHistoryDTO;
+import org.example.core.dto.paymentDTO.PaidHistoryDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import java.lang.reflect.Type;

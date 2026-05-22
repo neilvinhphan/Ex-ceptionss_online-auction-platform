@@ -13,11 +13,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0"
-            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"
-            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.client.controllers.AuctionCatalogController">
-   <content>
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.AuctionCatalogController">
+    <content>
         <VBox>
             <children>
                 <BorderPane style="-fx-background-color: #F8F9FA;" VBox.vgrow="ALWAYS">
@@ -33,6 +30,7 @@
                                         <Insets bottom="20.0" />
                                     </VBox.margin>
                                 </Label>
+
                                 <Label text="Tài sản đấu giá">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
@@ -50,6 +48,7 @@
                                     </children>
                                     <VBox.margin><Insets bottom="25.0" /></VBox.margin>
                                 </VBox>
+
                                 <Label text="Trạng thái tài sản">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
@@ -63,11 +62,13 @@
                                         <RadioButton fx:id="rbStatusAll" mnemonicParsing="false" onAction="#handleFilter" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Tất cả" />
                                         <RadioButton fx:id="rbStatusOpen" mnemonicParsing="false" onAction="#handleFilter" style="-fx-cursor: hand;" text="Sắp diễn ra" />
                                         <RadioButton fx:id="rbStatusRunning" mnemonicParsing="false" onAction="#handleFilter" style="-fx-cursor: hand;" text="Đang diễn ra" />
+                                        <RadioButton fx:id="rbStatusFinished" mnemonicParsing="false" onAction="#handleFilter" style="-fx-cursor: hand;" text="Đã kết thúc" />
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="25.0" />
                                     </VBox.margin>
                                 </VBox>
+
                                 <Label text="Giá khởi điểm (đ)">
                                     <font>
                                         <Font name="System Bold" size="14.0" />
@@ -87,6 +88,25 @@
                                     </children>
                                     <VBox.margin><Insets bottom="25.0" /></VBox.margin>
                                 </VBox>
+
+                                <Label text="Sắp xếp thời gian">
+                                    <font>
+                                        <Font name="System Bold" size="14.0" />
+                                    </font>
+                                    <VBox.margin>
+                                        <Insets bottom="10.0" />
+                                    </VBox.margin>
+                                </Label>
+                                <VBox spacing="12.0">
+                                    <children>
+                                        <RadioButton fx:id="rbSortNewest" mnemonicParsing="false" onAction="#handleFilter" selected="true" style="-fx-text-fill: #28a745; -fx-cursor: hand;" text="Mới -&gt; cũ" />
+                                        <RadioButton fx:id="rbSortOldest" mnemonicParsing="false" onAction="#handleFilter" style="-fx-cursor: hand;" text="Cũ -&gt; mới" />
+                                    </children>
+                                    <VBox.margin>
+                                        <Insets bottom="25.0" />
+                                    </VBox.margin>
+                                </VBox>
+
                                 <Region VBox.vgrow="ALWAYS" />
                                 <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleFilter" style="-fx-font-weight: bold; -fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 12 15; -fx-font-size: 15; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;" text="LỌC TÀI SẢN" />
                             </children>
@@ -163,7 +183,7 @@
                     </top>
 
                     <bottom>
-                      </bottom>
+                    </bottom>
                 </BorderPane>
             </children>
         </VBox>
