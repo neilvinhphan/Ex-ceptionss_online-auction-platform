@@ -150,6 +150,9 @@ public class ManageUserController extends BaseController implements Initializabl
     @FXML
     public void handleRefresh(ActionEvent event) {
         searchField.clear();
+        if (userTable.getItems() != userList) {
+            userTable.setItems(userList);
+        }
         loadUsersFromServer();
         System.out.println("Đã làm mới danh sách!");
     }

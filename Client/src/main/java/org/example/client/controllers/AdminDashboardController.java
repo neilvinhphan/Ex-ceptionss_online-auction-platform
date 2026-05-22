@@ -67,6 +67,9 @@ public class AdminDashboardController extends BaseController {
     }
 
     private void updateKPIs(Map<String, String> kpis) {
+        System.out.println("=== DEBUG KPIS MAP ===");
+        kpis.forEach((key, value) -> System.out.println(key + " : " + value));
+        System.out.println("======================");
         lblTotalUsers.setText(kpis.getOrDefault("totalUsers", "0"));
         lblActiveAuctions.setText(kpis.getOrDefault("activeAuctions", "0"));
         lblPendingItems.setText(kpis.getOrDefault("pendingCount", "0"));
