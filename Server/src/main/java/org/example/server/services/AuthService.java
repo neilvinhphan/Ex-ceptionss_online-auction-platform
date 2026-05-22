@@ -1,21 +1,19 @@
 package org.example.server.services;
 
-import org.example.core.dto.LoginRequestDTO;
-import org.example.core.dto.RegisterRequestDTO;
+import org.example.core.dto.userDTO.LoginRequestDTO;
+import org.example.core.dto.userDTO.RegisterRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.UserStatus;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
-  static UserDAO userDAO = UserDAO.getInstance();
+  protected static UserDAO userDAO = UserDAO.getInstance();
 
   public static User register(RegisterRequestDTO requestPayLoad) throws Exception {
 
     String nameInCheck = requestPayLoad.getUsername();
     String passInCheck = requestPayLoad.getPassword();
-    String rePassword = requestPayLoad.getRePassword();
-    String passInCheckHide = requestPayLoad.getPassword();
-    String rePasswordHide = requestPayLoad.getRePassword();
     String mailInCheck = requestPayLoad.getEmail();
     String phoneInCheck = requestPayLoad.getPhone();
 
@@ -41,17 +39,6 @@ public class AuthService {
     String phoneRegex = "^0\\d{9}$";
     if (!phoneInCheck.matches(phoneRegex)) {
       throw new Exception("Invalid phone number format (must be 10 digits starting with 0).");
-    }
-
-    // Check password & repassword
-    if (!passInCheck.equals(rePassword) || (!passInCheckHide.equals(rePasswordHide))) {
-      throw new Exception("Passwords do not matched.");
-    }
-
-    // Check Terms and Conditions tick
-    boolean tickCheck = requestPayLoad.isTickCheck();
-    if (!tickCheck) {
-      throw new Exception("Please accept the terms and conditions to proceed");
     }
 
     // Check username
@@ -87,13 +74,14 @@ public class AuthService {
 
     // Check username
     User userDB = userDAO.getUserByUsername(nameInCheck);
+    System.out.println(userDB.getStatus());
     if (userDB == null) {
       throw new Exception("Wrong username or password.");
     }
 
     // Check status
-    if (userDB.getStatus().equals("BANNED")) {
-      throw new Exception("Your accound has banned.");
+    if (UserStatus.BANNED.equals(userDB.getStatus())) {
+      throw new Exception("Your account has banned.");
     }
 
     // Check password

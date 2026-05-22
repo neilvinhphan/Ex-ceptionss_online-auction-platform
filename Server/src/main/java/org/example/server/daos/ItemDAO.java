@@ -1,17 +1,15 @@
 package org.example.server.daos;
 
-import org.example.core.models.items.AntiqueItem;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
-import org.example.core.models.items.JewelryItem;
-import org.example.core.models.items.OtherItem;
-import org.example.core.models.items.RealEstateItem;
+import org.example.core.models.items.ItemFactory;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.server.config.DBConnection;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,59 +33,65 @@ public class ItemDAO {
     return instance;
   }
 
-  public List<Item> getAllItemByUserId(int id) {
+  public List<Item> getAllItemByUserId(int userId) {
     String sql =
-        "SELECT \n"
-            + "    i.*, \n"
-            + "    ant.era, ant.material AS antique_material, ant.item_condition AS antique_condition, ant.is_certified,\n"
-            + "    art.artist, art.creation_year,\n"
-            + "    ele.brand AS ele_brand, ele.warranty_months, ele.item_condition AS ele_condition,\n"
-            + "    jew.material AS jew_material, jew.gemstone, jew.weight AS jew_weight, jew.certification,\n"
-            + "    re.location, re.area, re.property_type, re.legal_status,\n"
-            + "    veh.brand AS veh_brand, veh.model, veh.manufacturing_year, veh.mileage,\n"
-            + "    oth.category, oth.origin, oth.weight AS oth_weight\n"
-            + "FROM items i\n"
-            + "LEFT JOIN antique_items ant ON i.item_id = ant.item_id\n"
-            + "LEFT JOIN art_items art ON i.item_id = art.item_id\n"
-            + "LEFT JOIN electronics_items ele ON i.item_id = ele.item_id\n"
-            + "LEFT JOIN jewelry_items jew ON i.item_id = jew.item_id\n"
-            + "LEFT JOIN real_estate_items re ON i.item_id = re.item_id\n"
-            + "LEFT JOIN vehicle_items veh ON i.item_id = veh.item_id\n"
-            + "LEFT JOIN other_items oth ON i.item_id = oth.item_id\n"
-            + "WHERE i.owner_id = ?;";
+            """
+        SELECT
+            i.*,
+            art.artist, art.creation_year,
+            ele.ele_brand, ele.warranty_months, ele.item_condition,
+            veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+        FROM items i
+        LEFT JOIN art_items art ON i.items_id = art.items_id
+        LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+        LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+        WHERE i.owner_id = ?
+        """;
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
       try (ResultSet rs = ps.executeQuery()) {
         List<Item> items = new java.util.ArrayList<>();
         while (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setId(rs.getInt("item_id"));
+          item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
           item.setSellerID(rs.getInt("owner_id"));
           item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
           item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
           items.add(item);
         }
         return items;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public int insertintoItemTable(Item item) {
+  public int insertIntoItemTable(Item item) {
     String sql =
-        "INSERT INTO items (owner_id, items_name, description, start_price, type) VALUES (?,?,?,?,?)";
+            "INSERT INTO items (owner_id, items_name, description, start_price, type, image,status) VALUES (?,?,?,?,?,?,?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, item.getSellerID());
       ps.setString(2, item.getItemName());
       ps.setString(3, item.getDescription());
       ps.setBigDecimal(4, item.getStartingPrice());
       ps.setString(5, item.getType());
+      ps.setString(6, item.getImage());
+      ps.setString(7, item.getStatus().name());
+
       int affectedRows = ps.executeUpdate();
       if (affectedRows != 0) {
         try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -103,226 +107,305 @@ public class ItemDAO {
     return -1;
   }
 
-  public boolean insertintoChildTable(Item item) {
-    int itemId = insertintoItemTable(item);
-    if (itemId == -1) {
-      return false;
-    }
-    if (item.getType().equals("AntiqueItem")) {
-      AntiqueItem antiqueItem = (AntiqueItem) item;
-      String sql1 =
-          "INSERT INTO antique_items (items_id, era, material, item_condition, is_certified) VALUES (?,?,?,?,?)";
+  public boolean insertIntoChildTable(Item item, int itemId) {
+
+    if (item.getType().equals("ART")) {
+      ArtItem artItem = (ArtItem) item;
+      String sql2 = "INSERT INTO art_items (items_id, artist, creation_year) VALUES (?,?,?)";
       try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql1)) {
+           PreparedStatement ps = connection.prepareStatement(sql2)) {
         ps.setInt(1, itemId);
-        ps.setString(2, antiqueItem.getEra());
-        ps.setString(3, antiqueItem.getMaterial());
-        ps.setString(4, antiqueItem.getCondition());
-        ps.setBoolean(5, antiqueItem.isCertified());
+        ps.setString(2, artItem.getArtist());
+        ps.setInt(3, artItem.getCreationYear());
         return ps.executeUpdate() > 0;
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
-    if (item.getType().equals("ArtItem")) {
-      ArtItem artItem = (ArtItem) item;
-      String sql2 = "INSERT INTO art_items (items_id, artist, creation_year) VALUES (?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql2)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, artItem.getArtist());
-        ps.setInt(3, artItem.getCreationYear());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("ElectronicsItem")) {
+    if (item.getType().equals("ELECTRONICS")) {
       ElectronicsItem electronicsItem = (ElectronicsItem) item;
       String sql3 =
-          "INSERT INTO electronics_items (items_id, brand, warranty_months, item_condition) VALUES (?,?,?,?)";
+              "INSERT INTO electronics_items (items_id, ele_brand, warranty_months, item_condition) VALUES (?,?,?,?)";
       try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql3)) {
+           PreparedStatement ps = connection.prepareStatement(sql3)) {
         ps.setInt(1, itemId);
         ps.setString(2, electronicsItem.getBrand());
         ps.setInt(3, electronicsItem.getWarrantyMonths());
         ps.setString(4, electronicsItem.getCondition());
         return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
-    if (item.getType().equals("JewelryItem")) {
-      JewelryItem jewelryItem = (JewelryItem) item;
-      String sql4 =
-          "INSERT INTO jewelry_items (items_id, material, gemstone, weight, certification) VALUES (?,?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql4)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, jewelryItem.getMaterial());
-        ps.setString(3, jewelryItem.getGemstone());
-        ps.setDouble(4, jewelryItem.getWeight());
-        ps.setString(5, jewelryItem.getCertification());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("RealEstateItem")) {
-      RealEstateItem realEstateItem = (RealEstateItem) item;
-      String sql5 =
-          "INSERT INTO real_estate_items (items_id, location, area, property_type) VALUES (?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql5)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, realEstateItem.getLocation());
-        ps.setDouble(3, realEstateItem.getArea());
-        ps.setString(4, realEstateItem.getPropertyType());
-        ps.setString(5, realEstateItem.getLegalStatus());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("VehicleItem")) {
+    if (item.getType().equals("VEHICLE")) {
       VehicleItem vehicleItem = (VehicleItem) item;
       String sql6 =
-          "INSERT INTO vehicle_items (items_id, brand, model, manufacturing_year, mileage) VALUES (?,?,?,?,?)";
+              "INSERT INTO vehicle_items (items_id, veh_brand, model, manufacturing_year, mileage) VALUES (?,?,?,?,?)";
       try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql6)) {
+           PreparedStatement ps = connection.prepareStatement(sql6)) {
         ps.setInt(1, itemId);
         ps.setString(2, vehicleItem.getBrand());
         ps.setString(3, vehicleItem.getModel());
         ps.setInt(4, vehicleItem.getManufacturingYear());
         ps.setDouble(5, vehicleItem.getMileage());
         return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    if (item.getType().equals("OtherItem")) {
-      OtherItem otherItem = (OtherItem) item;
-      String sql7 = "INSERT INTO other_items (items_id, category, origin, weight) VALUES (?,?,?,?)";
-      try (Connection connection = DBConnection.getConnection();
-          PreparedStatement ps = connection.prepareStatement(sql7)) {
-        ps.setInt(1, itemId);
-        ps.setString(2, otherItem.getCategory());
-        ps.setString(3, otherItem.getOrigin());
-        ps.setDouble(4, otherItem.getWeight());
-        return ps.executeUpdate() > 0;
-      } catch (SQLException | IOException e) {
+      } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
     return false;
   }
 
-  public Item getItemById(int itemId) throws Exception {
+  public Item getItemById(int itemId) {
     String sql =
-        "SELECT item_id, item_type, item_name, description, starting_price FROM item WHERE item_id = ?";
+            """
+        SELECT
+            i.*,
+            a.artist, a.creation_year,
+            e.ele_brand, e.warranty_months, e.item_condition,
+            v.veh_brand, v.model, v.manufacturing_year, v.mileage
+        FROM items i
+        LEFT JOIN art_items a ON i.items_id = a.items_id
+        LEFT JOIN electronics_items e ON i.items_id = e.items_id
+        LEFT JOIN vehicle_items v ON i.items_id = v.items_id
+        WHERE i.items_id = ?
+        """;
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           Item item = ItemFactory.takeItemFromDB(rs);
-          //          item.setId(rs.getInt("item_id"));
-          item.setItemName(rs.getString("item_name"));
+          item.setItemId(rs.getInt("items_id"));
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
           item.setDescription(rs.getString("description"));
-          item.setStartingPrice(rs.getBigDecimal("starting_price"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setImage(rs.getString("image"));
+
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
           return item;
         }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
     return null;
   }
 
   public Integer getOwnerIdByItemId(int itemId) {
-    String sql = "SELECT user_id FROM item WHERE item_id = ?";
+    String sql = "SELECT owner_id FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getInt("seller_id");
+          return rs.getInt("owner_id");
         }
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
   }
 
-  public String getItemStatusById(int itemId) {
-    String sql = "SELECT status FROM items WHERE item_id = ?";
+  public String getItemNameByItemId(int itemId) {
+    String sql = "SELECT items_name FROM items WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
-          return rs.getString("status");
+          return rs.getString("items_name");
         }
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
       }
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return null;
   }
 
-  public boolean updateOwnerIdInDB(int itemId, int ownerId) {
-    String sql = "UPDATE items SET owner_id = ? WHERE item_id = ?";
+  public boolean updateOwnerIdByItemId(int itemId, int userId) {
+    String sql = "UPDATE items SET owner_id = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, ownerId);
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return false;
   }
 
-  public boolean updateFinalPriceByItemId(int id) {
-    String sql = "UPDATE items SET final_price = ? WHERE item_id = ?";
+  public boolean updateStartPriceByItemId(int itemId, BigDecimal startPrice) {
+    String sql = "UPDATE items SET start_price = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
-      ps.setInt(1, id);
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setBigDecimal(1, startPrice);
+      ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return false;
   }
 
-  public boolean updateItemDescription(int itemId, String description) {
-    String sql = "UPDATE items SET description = ? WHERE item_id = ?";
+  public boolean updateItemDescriptionByItemId(int itemId, String description) {
+    String sql = "UPDATE items SET description = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, description);
       ps.setInt(2, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void updateItemStatus(int itemId, ItemStatus status) {
-    String sql = "UPDATE items SET status = ? WHERE item_id = ?";
+  public boolean updateItemStatus(int itemId, ItemStatus status) {
+    String sql = "UPDATE items SET status = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setString(1, status.name());
       ps.setInt(2, itemId);
-      ps.executeUpdate();
-    } catch (SQLException | IOException e) {
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean deleteItem(int itemId) {
-    String sql = "DELETE FROM items WHERE item_id = ?";
+  public boolean updateItemNameByItemId(int itemId, String name) {
+    String sql = "UPDATE items SET items_name = ? WHERE items_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setString(1, name);
+      ps.setInt(2, itemId);
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public boolean updateAiEvaluation(Item item) {
+    String sql =
+            "UPDATE items SET status = ?, suggested_price = ?, ai_reason = ? WHERE items_id = ?";
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, item.getStatus().name());
+      ps.setBigDecimal(2, item.getSuggestedPrice());
+      ps.setString(3, item.getAiReason());
+      ps.setInt(4, item.getItemId());
+      return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean deleteItemByItemId(int itemId) {
+    String sql = "DELETE FROM items WHERE items_id = ?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, itemId);
       return ps.executeUpdate() > 0;
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<Item> getItemsByStatus(ItemStatus status) {
+    String sql =
+            """
+            SELECT
+                i.*,
+                art.artist, art.creation_year,
+                ele.ele_brand, ele.warranty_months, ele.item_condition,
+                veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+            FROM items i
+            LEFT JOIN art_items art ON i.items_id = art.items_id
+            LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+            LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+            WHERE i.status = ?
+            """;
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      // Truyền trạng thái vào SQL (chuyển Enum thành String)
+      ps.setString(1, status.name());
+
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+
+          String imageBase64 = rs.getString("image");
+          item.setImage(imageBase64);
+
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(ItemStatus.valueOf(rs.getString("status")));
+
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<Item> getApprovedItemsByUserId(int userId) {
+    String sql =
+            """
+                SELECT
+                    i.*,
+                    art.artist, art.creation_year,
+                    ele.ele_brand, ele.warranty_months, ele.item_condition,
+                    veh.veh_brand, veh.model, veh.manufacturing_year, veh.mileage
+                FROM items i
+                LEFT JOIN art_items art ON i.items_id = art.items_id
+                LEFT JOIN electronics_items ele ON i.items_id = ele.items_id
+                LEFT JOIN vehicle_items veh ON i.items_id = veh.items_id
+                WHERE i.owner_id = ? AND i.status = 'APPROVED'
+                """; // 🎯 CHỐT CHẶN: Chỉ lấy đồ APPROVED của chính User này
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      try (ResultSet rs = ps.executeQuery()) {
+        List<Item> items = new java.util.ArrayList<>();
+        while (rs.next()) {
+          Item item = ItemFactory.takeItemFromDB(rs);
+          item.setItemId(rs.getInt("items_id"));
+          item.setImage(rs.getString("image"));
+          item.setSellerID(rs.getInt("owner_id"));
+          item.setItemName(rs.getString("items_name"));
+          item.setDescription(rs.getString("description"));
+          item.setStartingPrice(rs.getBigDecimal("start_price"));
+          item.setStatus(org.example.core.shared.enums.ItemStatus.valueOf(rs.getString("status")));
+          item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
+          item.setAiReason(rs.getString("ai_reason"));
+
+          items.add(item);
+        }
+        return items;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;" stylesheets="@style.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateItemController">
+  <content>
+        <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
+            <children>
+
+                <BorderPane VBox.vgrow="ALWAYS">
+
+                    <top>
+                        <VBox BorderPane.alignment="CENTER">
+                            <BorderPane.margin>
+                                <Insets bottom="20.0" left="75.0" right="75.0" top="35.0" />
+                            </BorderPane.margin>
+                            <fx:include source="UserMenuView.fxml" />
+                        </VBox>
+                    </top>
+
+                    <left>
+                        <VBox BorderPane.alignment="TOP_LEFT">
+                            <BorderPane.margin>
+                                <Insets bottom="40.0" left="40.0" right="20.0" />
+                            </BorderPane.margin>
+                            <fx:include source="UserSidebarView.fxml" />
+                        </VBox>
+                    </left>
+
+                    <center>
+                        <VBox BorderPane.alignment="CENTER">
+                            <BorderPane.margin>
+                                <Insets bottom="40.0" right="40.0" />
+                            </BorderPane.margin>
+                            <children>
+                                <VBox spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
+                                    <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo Sản Phẩm Đấu Giá Mới " />
+
+                                    <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                           <TextField fx:id="tfStartingPrice" layoutX="50.0" layoutY="108.0" promptText="Giá khởi điểm " style="-fx-padding: 10;" styleClass="custom-text-field" />
+
+                                    <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;" styleClass="custom-text-field">
+                                        <items>
+                                            <FXCollections fx:factory="observableArrayList">
+                                                <String fx:value="ART" />
+                                                <String fx:value="ELECTRONICS" />
+                                                <String fx:value="VEHICLE" />
+                                            </FXCollections>
+                                        </items>
+                                    </ComboBox>
+
+                                    <TextField fx:id="tfDescription" promptText="Mô tả chi tiết" style="-fx-padding: 10;" styleClass="custom-text-field" />
+
+                                    <VBox fx:id="vbArtAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfArtist" promptText="Nghệ sĩ" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfCreationYear" promptText="Năm sáng tác" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
+                                    </VBox>
+
+                                    <VBox fx:id="vbElectronicAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfBrand" promptText="Thương hiệu" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfWarranty" promptText="Tháng bảo hành" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfCondition" promptText="Tình trạng (Mới/Cũ)" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
+                                    </VBox>
+
+                                    <VBox fx:id="vbVehicleAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfVehicleBrand" promptText="Hãng xe" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfModel" promptText="Dòng xe" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfMfgYear" promptText="Năm sản xuất" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfMileage" promptText="Số km đã đi" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
+                                    </VBox>
+
+                                    <VBox spacing="8.0">
+                                        <children>
+                                            <Label style="-fx-font-weight: bold; -fx-text-fill: #444;" text="Hình ảnh tài sản" />
+                                            <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-border-style: dashed; -fx-padding: 20; -fx-background-color: #FAFAFA; -fx-background-radius: 8;">
+                                                <children>
+                                                    <Button fx:id="btnChooseImage" mnemonicParsing="false" onAction="#handleChooseImage" style="-fx-background-color: #E9ECEF; -fx-text-fill: #495057; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="📁 Chọn ảnh từ máy tính" />
+                                                    <ImageView fx:id="imagePreview" fitHeight="120" fitWidth="120" preserveRatio="true" />
+                                                </children>
+                                            </HBox>
+                                        </children>
+                                    </VBox>
+
+                                    <Button fx:id="btnSubmit" onAction="#handleSubmit" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 10 30; -fx-font-weight: bold;" text="LƯU SẢN PHẨM" />
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </center>
+
+                    <bottom>
+                      </bottom>
+                </BorderPane>
+
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>

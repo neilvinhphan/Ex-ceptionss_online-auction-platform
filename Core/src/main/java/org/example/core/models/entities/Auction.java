@@ -8,21 +8,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Auction extends Entity {
+  private int itemId;
+  private int auctionId;
+  private int bidderId;
   private Item item;
   private AuctionStatus status;
   private LocalDateTime startTime;
   private long durationMinutes;
   private LocalDateTime endTime;
   private List<BidTransaction> bidHistory;
-  private BidTransaction highestBid;
+  private BigDecimal highestBid;
+  private BigDecimal bidIncrement;
+  private int ownerId;
+  private String itemName;
+  private String type;
 
   // Constructor tạo mới đấu giá
-  public Auction(Item item, long durationMinutes) {
-    super(0, LocalDateTime.now());
+  public Auction(
+      Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
+    super(LocalDateTime.now());
     this.item = item;
-    this.status = AuctionStatus.WAREHOUSE;
-    this.startTime = LocalDateTime.now();
+    this.status = AuctionStatus.RUNNING;
+    this.startTime = startTime;
     this.durationMinutes = durationMinutes;
+    this.bidIncrement = bidIncrement;
   }
 
   // Constructor from DB
@@ -34,36 +43,19 @@ public class Auction extends Entity {
       LocalDateTime startTime,
       long durationMinutes,
       List<BidTransaction> bidHistory,
-      BidTransaction highestBid) {
-    super(id, createdAt);
+      BigDecimal highestBid,
+      int bidderId) {
+    super(createdAt);
     this.item = item;
     this.status = status;
     this.startTime = startTime;
     this.durationMinutes = durationMinutes;
     this.bidHistory = bidHistory;
     this.highestBid = highestBid;
+    this.bidderId = bidderId;
   }
 
-  // Phiên trong kho --> Chỉnh sửa --> Xác nhận --> Start
-  public void start(LocalDateTime now) {
-    if (this.status == AuctionStatus.WAREHOUSE) {
-      this.status = AuctionStatus.RUNNING;
-      this.startTime = LocalDateTime.now();
-      this.endTime = this.startTime.plusMinutes(this.durationMinutes);
-    } else if (this.status == AuctionStatus.RUNNING) {
-      throw new RuntimeException("Phiên đấu giá đang diễn ra!");
-    } else {
-      throw new RuntimeException("Phiên đấu giá đã kết thúc!");
-    }
-  }
-
-  // Hết time --> Đóng phiên
-  public void close(LocalDateTime now) {
-    if (this.status == AuctionStatus.RUNNING
-        && (now.isEqual(this.endTime) || now.isAfter(this.endTime))) {
-      this.status = AuctionStatus.FINISHED;
-    }
-  }
+  public Auction() {}
 
   public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
     // Check trạng thái
@@ -76,8 +68,6 @@ public class Auction extends Entity {
       throw new Exception("Đã hết thời gian đặt giá!");
     }
   }
-
-  //  public BidTransaction getHighestBid() {}
 
   // Anti-Sniping
   public void extendEndTime(long seconds) {
@@ -99,6 +89,38 @@ public class Auction extends Entity {
     return rangeCheck;
   }
 
+  public long getDurationMinutes() {
+    return durationMinutes;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
+  }
+
+  public int getBidderId() {
+    return bidderId;
+  }
+
+  public void setBidderId(int bidderId) {
+    this.bidderId = bidderId;
+  }
+
+  public int getItemId() {
+    return itemId;
+  }
+
+  public void setItemId(int itemId) {
+    this.itemId = itemId;
+  }
+
+  public int getAuctionId() {
+    return auctionId;
+  }
+
+  public void setAuctionId(int auctionId) {
+    this.auctionId = auctionId;
+  }
+
   public Item getItem() {
     return item;
   }
@@ -112,6 +134,9 @@ public class Auction extends Entity {
   }
 
   public void setStatus(AuctionStatus status) {
+    if (status == null) {
+      System.out.println("WARNING: Đang cố tình set Status thành NULL cho Auction ID: " + this.auctionId);
+    }
     this.status = status;
   }
 
@@ -121,14 +146,6 @@ public class Auction extends Entity {
 
   public void setStartTime(LocalDateTime startTime) {
     this.startTime = startTime;
-  }
-
-  public long getDurationMinutes() {
-    return durationMinutes;
-  }
-
-  public void setDurationMinutes(long durationMinutes) {
-    this.durationMinutes = durationMinutes;
   }
 
   public LocalDateTime getEndTime() {
@@ -147,11 +164,28 @@ public class Auction extends Entity {
     this.bidHistory = bidHistory;
   }
 
-  public BidTransaction getHighestBid() {
+  public BigDecimal getHighestBid() {
     return highestBid;
   }
 
-  public void setHighestBid(BidTransaction highestBid) {
+  public void setHighestBid(BigDecimal highestBid) {
     this.highestBid = highestBid;
   }
+
+  public BigDecimal getBidIncrement() {
+    return bidIncrement;
+  }
+
+  public void setBidIncrement(BigDecimal bidIncrement) {
+    this.bidIncrement = bidIncrement;
+  }
+
+  public void setItemName(String itemName) {this.itemName = itemName;}
+
+  public String getItemName() {return itemName;}
+  public void setType(String type) {this.type = type;}
+  public String getType() {return type;}
+  public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
+
+  public int getOwnerId() {return ownerId;}
 }

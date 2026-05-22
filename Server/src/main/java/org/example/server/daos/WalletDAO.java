@@ -1,0 +1,69 @@
+package org.example.server.daos;
+
+import org.example.core.shared.enums.WalletTransactionType;
+import org.example.server.config.DBConnection;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class WalletDAO {
+  private static WalletDAO instance = null;
+
+  private WalletDAO() {}
+
+  public static WalletDAO getInstance() {
+    if (instance == null) {
+      synchronized (WalletDAO.class) {
+        if (instance == null) {
+          instance = new WalletDAO();
+        }
+      }
+    }
+    return instance;
+  }
+
+  public BigDecimal getAvailableBalance(int userId) {
+    // Sử dụng IN ('RUNNING', 'FINISHED') để chặn tiền ở cả 2 trạng thái
+    String sql = """
+      SELECT (balance - (SELECT COALESCE(SUM(highest_price), 0)
+      FROM auction
+      WHERE bidder_id = ? AND status IN ('RUNNING', 'FINISHED'))) AS available_balance 
+      FROM `user` 
+      WHERE user_id = ?""";
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      preparedStatement.setInt(1, userId);
+      preparedStatement.setInt(2, userId);
+
+      try (ResultSet rs = preparedStatement.executeQuery()) {
+        if (rs.next()) {
+          BigDecimal balance = rs.getBigDecimal("available_balance");
+          // Tránh trả về null nếu có lỗi logic, mặc định là 0
+          return balance != null ? balance : BigDecimal.ZERO;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return BigDecimal.ZERO;
+  }
+
+  public boolean insertWalletTransaction(int userId, BigDecimal amount, WalletTransactionType type, int auctionId) {
+    String sql = "INSERT INTO wallet_transaction (user_id, amount, transaction_type, reference_id) VALUES (?,?,?,?)";
+    try (Connection connection = DBConnection.getConnection();
+    PreparedStatement ps = connection.prepareStatement(sql)) {
+      ps.setInt(1, userId);
+      ps.setBigDecimal(2, amount);
+      ps.setString(3, String.valueOf(type));
+      ps.setInt(4, auctionId);
+      return ps.executeUpdate() > 0;
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } return false;
+  }
+}

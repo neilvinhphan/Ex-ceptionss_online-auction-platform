@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0"
+            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"
+            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.client.controllers.RevenueController">
+  <content>
+        <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
+            <children>
+
+                <BorderPane VBox.vgrow="ALWAYS">
+
+                    <top>
+                        <VBox BorderPane.alignment="CENTER">
+                            <BorderPane.margin>
+                                <Insets bottom="20.0" left="75.0" right="75.0" top="35.0" />
+                            </BorderPane.margin>
+                            <fx:include source="UserMenuView.fxml" />
+                        </VBox>
+                    </top>
+
+                    <left>
+                        <VBox BorderPane.alignment="TOP_LEFT">
+                            <BorderPane.margin>
+                                <Insets bottom="40.0" left="40.0" right="20.0" />
+                            </BorderPane.margin>
+                            <fx:include source="UserSidebarView.fxml" />
+                        </VBox>
+                    </left>
+
+                    <center>
+                        <VBox spacing="20.0" BorderPane.alignment="TOP_LEFT">
+                            <BorderPane.margin>
+                                <Insets bottom="40.0" right="40.0" />
+                            </BorderPane.margin>
+
+                            <Label style="-fx-font-weight: Bold; -fx-font-size: 24; -fx-text-fill: #333;" text="Thống Kê Doanh Thu">
+                                <VBox.margin>
+                                    <Insets bottom="10.0" />
+                                </VBox.margin>
+                            </Label>
+
+                            <HBox spacing="20.0">
+                                <VBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                    <padding>
+                                        <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
+                                    </padding>
+                                    <children>
+                                        <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="💰 Tổng Doanh Thu" />
+                                        <Label fx:id="lblTotalRevenue" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #28a745;" text="0 đ" />
+                                    </children>
+                                </VBox>
+
+                                <VBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                    <padding>
+                                        <Insets bottom="20.0" left="25.0" right="25.0" top="20.0" />
+                                    </padding>
+                                    <children>
+                                        <Label style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #666;" text="📦 Sản Phẩm Đã Bán" />
+                                        <Label fx:id="lblTotalSold" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #3498db;" text="0" />
+                                    </children>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="20.0" VBox.vgrow="ALWAYS">
+                                <VBox spacing="10.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                    <children>
+                                        <Label style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;" text="📈 Tăng trưởng doanh thu qua các đơn hàng" />
+                                        <LineChart fx:id="lineChartRevenue" animated="true" legendVisible="false" VBox.vgrow="ALWAYS">
+                                            <xAxis>
+                                                <CategoryAxis label="Đơn hàng" />
+                                            </xAxis>
+                                            <yAxis>
+                                                <NumberAxis label="Doanh thu (VNĐ)" />
+                                            </yAxis>
+                                        </LineChart>
+                                    </children>
+                                </VBox>
+
+                                <VBox prefWidth="350.0" spacing="10.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
+                                    <padding>
+                                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                                    </padding>
+                                    <children>
+                                        <Label style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;" text="📊 Tỷ lệ bán theo danh mục" />
+                                        <PieChart fx:id="pieChartCategory" labelsVisible="true" legendSide="BOTTOM" VBox.vgrow="ALWAYS" />
+                                    </children>
+                                </VBox>
+                            </HBox>
+
+                        </VBox>
+                    </center>
+
+                </BorderPane>
+
+
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>

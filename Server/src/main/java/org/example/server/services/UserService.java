@@ -5,6 +5,8 @@ import org.example.core.models.users.User;
 import org.example.server.daos.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.math.BigDecimal;
+
 public class UserService {
   private final UserDAO userDAO;
 
@@ -32,8 +34,7 @@ public class UserService {
   }
 
   // Đổi mật khẩu
-  public void changePassword(String username, String currentPassword, String newPassword)
-      throws Exception {
+  public void changePassword(String username, String currentPassword, String newPassword) throws Exception {
     if (username == null || username.trim().isEmpty()) {
       throw new Exception("Username is required.");
     }
@@ -89,5 +90,29 @@ public class UserService {
       throw new Exception("Cannot update seller rating.");
     }
     return user;
+  }
+
+  public boolean balanceDeposit(int userId, BigDecimal amount,String password) throws Exception {
+    BigDecimal currentBalance = userDAO.getUserByUserId(userId).getBalance();
+    if (amount.compareTo(BigDecimal.ZERO) < 0) {
+      throw new Exception("Số tiền nạp phải lớn hơn 0");
+    }
+    if (userId <= 0) {
+      throw new Exception("ID người dùng không hợp lệ");
+    }
+    BigDecimal newBalance = currentBalance.add(amount);
+    User user = userDAO.getUserByUserId(userId);
+
+    if (password == null || password.trim().isEmpty()) {
+      throw new Exception("Vui lòng nhập mật khẩu xác nhận.");
+    }
+    if (!BCrypt.checkpw(password, user.getPassword())) {
+      throw new Exception("Mật khẩu xác nhận không chính xác!");
+    }
+    boolean isSuccess = userDAO.updateBalanceInDB(userId, newBalance);
+    if (!isSuccess) {
+      throw new Exception("Đã xảy ra lỗi hệ thống khi cập nhật số dư. Vui lòng thử lại!");
+    }
+    return true;
   }
 }

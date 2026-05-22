@@ -17,15 +17,15 @@ import javafx.stage.Stage;
 
 public class BaseController {
 
-    protected void PasswordDisplayLogic(PasswordField pass_an, TextField pass_hien) {
-        if (pass_an.isVisible()) {
-            pass_hien.setText(pass_an.getText());
-            pass_hien.setVisible(true);
-            pass_an.setVisible(false);
+    protected void PasswordDisplayLogic(PasswordField passHidden, TextField passShow) {
+        if (passHidden.isVisible()) {
+            passShow.setText(passHidden.getText());
+            passShow.setVisible(true);
+            passHidden.setVisible(false);
         } else {
-            pass_an.setText(pass_hien.getText());
-            pass_an.setVisible(true);
-            pass_hien.setVisible(false);
+            passHidden.setText(passShow.getText());
+            passHidden.setVisible(true);
+            passShow.setVisible(false);
         }
     }
 
@@ -36,7 +36,12 @@ public class BaseController {
             Object source = event.getSource();
             if (source instanceof Node) {
                 currentScene = ((Node) source).getScene();
-                stage = (Stage) currentScene.getWindow();
+                if(currentScene != null) {
+                    stage = (Stage) currentScene.getWindow();
+                } else {
+                    System.err.println("Loi: Node source chua duoc gan vao Scene");
+                    return;
+                }
             } else if (source instanceof MenuItem) {
                 MenuItem menuItem = (MenuItem) source;
                 stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
