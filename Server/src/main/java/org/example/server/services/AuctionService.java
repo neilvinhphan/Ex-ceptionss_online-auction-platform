@@ -59,17 +59,40 @@ public class AuctionService {
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
 
   public Auction createAuction(CreateAuctionDTO requestPayLoad) throws Exception {
+    if (requestPayLoad == null) {
+      throw new Exception("Dữ liệu yêu cầu tạo phiên đấu giá không được để trống!");
+    }
+
     Item checkItem = requestPayLoad.getItem();
     long durationMinutes = requestPayLoad.getDurationMinutes();
     BigDecimal bidIncrement = requestPayLoad.getBidIncrement();
     LocalDateTime startTime = requestPayLoad.getStartTime();
 
-    if (checkItem == null) throw new Exception("Vật phẩm không tồn tại!");
-    if (checkItem.getStatus() == ItemStatus.LISTED)
-      throw new Exception("Vật phẩm đang được đấu giá!");
+    if (checkItem == null) {
+      throw new Exception("Vật phẩm đấu giá không tồn tại hoặc chưa được chọn!");
+    }
+    if (checkItem.getStatus() == ItemStatus.LISTED) {
+      throw new Exception("Vật phẩm này hiện đang trong một phiên đấu giá khác!");
+    }
+    if (durationMinutes <= 0) {
+      throw new Exception("Thời gian diễn ra phiên đấu giá phải lớn hơn 0 phút!");
+    }
+    if (bidIncrement == null || bidIncrement.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new Exception("Bước giá thầu phải lớn hơn 0 VNĐ!");
+    }
+    if (startTime == null) {
+      throw new Exception("Thời gian bắt đầu phiên đấu giá không được để trống!");
+    }
+    if (startTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
+      throw new Exception("Thời gian bắt đầu phiên đấu giá không được ở trong quá khứ!");
+    }
 
     int auction_id =
             auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
+
+    if (auction_id <= 0) {
+      throw new Exception("Lỗi hệ thống: Không thể khởi tạo phiên đấu giá mới trong cơ sở dữ liệu!");
+    }
 
     Auction newAuction = auctionDAO.getAuctionByAuctionId(auction_id);
 
@@ -180,42 +203,87 @@ public class AuctionService {
   }
 
   public List<Auction> getAuctionsByStatus(AuctionStatus status) throws Exception {
+    if (status == null) {
+      throw new Exception("Trạng thái phiên đấu giá cần tra cứu không được để trống!");
+    }
     return auctionDAO.getAllAuctionsByStatusForCatalog(status);
   }
 
-  public List<Integer> getAllItemPaidPending(int userId) {
+  public List<Integer> getAllItemPaidPending(int userId) throws Exception {
+    if (userId <= 0) {
+      throw new Exception("Mã người dùng không hợp lệ để tra cứu danh sách chờ thanh toán!");
+    }
     return auctionDAO.getAllAuctionIdFinishedByUserId(userId);
   }
 
   public void forceCancelAuction(int auctionId, String reason) throws Exception {
+    if (auctionId <= 0) {
+      throw new Exception("Mã phiên đấu giá không hợp lệ!");
+    }
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-    if (auction.getStatus() == AuctionStatus.CANCELED)
-      throw new Exception("Phiên đấu giá đã bị hủy!");
+    if (auction == null) {
+      throw new Exception("Không tìm thấy phiên đấu giá cần hủy có mã: " + auctionId);
+    }
+    if (auction.getStatus() == AuctionStatus.CANCELED) {
+      throw new Exception("Phiên đấu giá này đã bị hủy bỏ từ trước đó!");
+    }
+    if (auction.getStatus() == AuctionStatus.PAID) {
+      throw new Exception("Không thể hủy phiên đấu giá vì giao dịch đã được thanh toán hoàn tất!");
+    }
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
   }
 
   public Auction getAuctionById(int auctionId) throws Exception {
-    return auctionDAO.getAuctionByAuctionId(auctionId);
+    if (auctionId <= 0) {
+      throw new Exception("Mã phiên đấu giá không hợp lệ!");
+    }
+    Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+    if (auction == null) {
+      throw new Exception("Không tìm thấy thông tin chi tiết của phiên đấu giá có mã: " + auctionId);
+    }
+    return auction;
   }
 
   public boolean checkoutAuction(int auctionId, int winnerId) throws Exception {
+    if (auctionId <= 0) {
+      throw new Exception("Mã phiên đấu giá thực hiện thanh toán không hợp lệ!");
+    }
+    if (winnerId <= 0) {
+      throw new Exception("Mã người mua/người thắng cuộc không hợp lệ!");
+    }
+
     // Sử dụng khối synchronized để đảm bảo tại một thời điểm chỉ có 1 luồng được xử lý thanh toán giao dịch này
     synchronized (lock) {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-      if (auction == null) throw new Exception("Phiên đấu giá không tồn tại!");
+      if (auction == null) {
+        throw new Exception("Phiên đấu giá không tồn tại trên hệ thống!");
+      }
 
-      if (auction.getStatus() == AuctionStatus.PAID)
-        throw new Exception("Phiên đấu giá đã được thanh toán trước đó!");
+      if (auction.getStatus() == AuctionStatus.PAID) {
+        throw new Exception("Phiên đấu giá này đã được thực hiện thanh toán hoàn tất trước đó!");
+      }
 
-      if (auction.getBidderId() != winnerId)
-        throw new Exception("Bạn không phải người thắng phiên đấu giá này!");
+      if (auction.getStatus() != AuctionStatus.FINISHED) {
+        throw new Exception("Phiên đấu giá chưa kết thúc, không thể tiến hành thủ tục thanh toán!");
+      }
+
+      if (auction.getBidderId() != winnerId) {
+        throw new Exception("Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp của phiên đấu giá này!");
+      }
 
       int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
       User winner = userDAO.getUserByUserId(winnerId);
       User seller = userDAO.getUserByUserId(sellerId);
 
+      if (winner == null) {
+        throw new Exception("Không tìm thấy tài khoản thông tin của người mua trên hệ thống!");
+      }
+      if (seller == null) {
+        throw new Exception("Không tìm thấy tài khoản thông tin của người bán (chủ vật phẩm) trên hệ thống!");
+      }
+
       if (auction.getHighestBid().compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
-        throw new Exception("Số dư tài khoản không đủ để thanh toán!");
+        throw new Exception("Số dư khả dụng trong ví tài khoản không đủ để thực hiện thanh toán!");
       }
 
       BigDecimal bidPrice = auction.getHighestBid();
@@ -236,10 +304,16 @@ public class AuctionService {
   }
 
   public List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) throws Exception {
+    if (userId <= 0) {
+      throw new Exception("Mã người dùng không hợp lệ để lấy danh sách hóa đơn chờ thanh toán!");
+    }
     return auctionDAO.getAllAuctionsFinished(userId);
   }
 
   public List<PaidHistoryDTO> getAllAuctionsPaid(int userId) throws Exception {
+    if (userId <= 0) {
+      throw new Exception("Mã người dùng không hợp lệ để tra cứu lịch sử mua hàng thành công!");
+    }
     return auctionDAO.getAllAuctionsPaid(userId);
   }
-} 
+}

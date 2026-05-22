@@ -30,7 +30,6 @@ class BiddingServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Khởi tạo mới Mock độc lập trước mỗi phương thức test để tránh xung đột dữ liệu ngầm
         bidDAOMock = mock(BidDAO.class);
         auctionDAOMock = mock(AuctionDAO.class);
         walletDAOMock = mock(WalletDAO.class);
@@ -52,24 +51,23 @@ class BiddingServiceTest {
         when(auctionDAOMock.getAuctionByAuctionId(1)).thenReturn(null);
 
         Exception exception = assertThrows(Exception.class, () -> biddingService.placeBid(request));
-        assertEquals("Không tìm thấy phiên đấu giá.", exception.getMessage());
+        assertEquals("Không tìm thấy dữ liệu của phiên đấu giá này trên hệ thống.", exception.getMessage());
     }
 
     @Test
     @Order(2)
     @DisplayName("2. Đặt giá thất bại do số tiền đặt nhỏ hơn mức chấp nhận tối thiểu")
     void testPlaceBid_BidAmountLessThanMinAcceptable_ThrowsException() throws Exception {
-        BidRequestDTO request = new BidRequestDTO(1, 10, new BigDecimal("120000"), "HoangThong"); // Đặt 120k
+        BidRequestDTO request = new BidRequestDTO(1, 10, new BigDecimal("120000"), "HoangThong");
 
         Auction mockAuction = mock(Auction.class);
         when(auctionDAOMock.getAuctionByAuctionId(1)).thenReturn(mockAuction);
 
-        // Giá hiện tại là 100k, bước giá là 30k -> Mức chấp nhận tối thiểu phải là 130k
         when(bidDAOMock.getCurrentPrice(1)).thenReturn(new BigDecimal("100000"));
         when(auctionDAOMock.getBidIncrementByAuctionId(1)).thenReturn(new BigDecimal("30000"));
 
         Exception exception = assertThrows(Exception.class, () -> biddingService.placeBid(request));
-        assertTrue(exception.getMessage().contains("Giá đặt phải >="));
+        assertTrue(exception.getMessage().contains("Mức giá đặt thầu tối thiểu tiếp theo phải lớn hơn hoặc bằng:"));
     }
 
     @Test
@@ -83,11 +81,10 @@ class BiddingServiceTest {
         when(bidDAOMock.getCurrentPrice(1)).thenReturn(new BigDecimal("100000"));
         when(auctionDAOMock.getBidIncrementByAuctionId(1)).thenReturn(new BigDecimal("10000"));
 
-        // Số dư ví chỉ còn 50k, không đủ trả mức giá 200k
         when(walletDAOMock.getAvailableBalance(10)).thenReturn(new BigDecimal("50000"));
 
         Exception exception = assertThrows(Exception.class, () -> biddingService.placeBid(request));
-        assertEquals("Sô dư khả dụng không đủ!", exception.getMessage());
+        assertEquals("Số dư khả dụng trong tài khoản ví của bạn không đủ để thực hiện lượt trả giá này!", exception.getMessage());
     }
 
     @Test
@@ -100,7 +97,7 @@ class BiddingServiceTest {
         mockAuction.setAuctionId(1);
         mockAuction.setStatus(AuctionStatus.RUNNING);
         mockAuction.setStartTime(LocalDateTime.now().minusMinutes(5));
-        mockAuction.setEndTime(LocalDateTime.now().plusSeconds(30)); // Đang nằm trong khung giờ Sniping (30s < 120s)
+        mockAuction.setEndTime(LocalDateTime.now().plusSeconds(30));
 
         User mockUser = new User();
         mockUser.setUserName("HoangThong");
@@ -119,11 +116,11 @@ class BiddingServiceTest {
         assertTrue(result);
         verify(bidDAOMock, times(1)).insertBid(any(BidTransaction.class));
         verify(bidDAOMock, times(1)).updateCurrentPrice(1, 10, new BigDecimal("150000"));
-        verify(auctionDAOMock, times(1)).updateAuctionEndTime(eq(1), any(LocalDateTime.class)); // Đảm bảo có gọi hàm gia hạn thời gian
+        verify(auctionDAOMock, times(1)).updateAuctionEndTime(eq(1), any(LocalDateTime.class));
     }
 
     // =========================================================================
-    // NHÓM 2: KIỂM THỬ LUỒNG TÍNH TOÁN TOÁN HỌC AUTOBID (evaluateDeterministicBidding)
+    // NHÓM 2: KIỂM THỬ LUỒNG TÍNH TOÁN TOÁN HỌC AUTOBID
     // =========================================================================
 
     @Test
@@ -131,13 +128,12 @@ class BiddingServiceTest {
     @DisplayName("5. AutoBid kết thúc sớm nếu phòng đấu giá không ở trạng thái RUNNING")
     void testEvaluateAutoBid_AuctionNotRunning_ReturnsImmediately() throws Exception {
         Auction mockAuction = new Auction();
-        mockAuction.setStatus(AuctionStatus.FINISHED); // Phòng đấu giá đã kết thúc
+        mockAuction.setStatus(AuctionStatus.FINISHED);
 
         when(auctionDAOMock.getAuctionByAuctionId(1)).thenReturn(mockAuction);
 
         biddingService.evaluateDeterministicBidding(1);
 
-        // Đảm bảo không có bất kỳ logic tải Bot hay ghi nhận giao dịch nào được thực thi
         verify(autoBidDAOMock, never()).getActiveAutoBidsForAuction(anyInt());
         verify(bidDAOMock, never()).insertBid(any(BidTransaction.class));
     }
@@ -151,12 +147,11 @@ class BiddingServiceTest {
         mockAuction.setStatus(AuctionStatus.RUNNING);
         mockAuction.setHighestBid(new BigDecimal("100000"));
         mockAuction.setBidIncrement(new BigDecimal("20000"));
-        mockAuction.setBidderId(99); // Người dẫn đầu hiện tại không phải chủ Bot
+        mockAuction.setBidderId(99);
 
-        org.example.core.models.users.User mockUser = new org.example.core.models.users.User();
+        User mockUser = new User();
         mockUser.setUserName("BotThong");
 
-        // Giả lập danh sách chỉ có duy nhất 1 bot gác phòng với giá trần kịch sàn là 500k
         List<AutoBidDAO.AutoBidConfig> activeBots = new ArrayList<>();
         AutoBidDAO.AutoBidConfig bot = new AutoBidDAO.AutoBidConfig();
         bot.setUserId(10);
@@ -169,7 +164,6 @@ class BiddingServiceTest {
 
         biddingService.evaluateDeterministicBidding(1);
 
-        // Công thức tính toán: 100,000 (Giá hiện tại) + 20,000 (Bước giá) = 120,000
         BigDecimal expectedFinalPrice = new BigDecimal("120000");
 
         verify(bidDAOMock, times(1)).insertBid(argThat(tx -> tx.getAmount().compareTo(expectedFinalPrice) == 0 && tx.getBidderId() == 10));
@@ -187,10 +181,9 @@ class BiddingServiceTest {
         mockAuction.setBidIncrement(new BigDecimal("15000"));
         mockAuction.setBidderId(99);
 
-        org.example.core.models.users.User mockUser = new org.example.core.models.users.User();
+        User mockUser = new User();
         mockUser.setUserName("KingBot");
 
-        // Bot 1 đặt trần 600k, Bot 2 đặt trần 400k
         List<AutoBidDAO.AutoBidConfig> activeBots = new ArrayList<>();
         AutoBidDAO.AutoBidConfig bot1 = new AutoBidDAO.AutoBidConfig();
         bot1.setUserId(10);
@@ -209,7 +202,6 @@ class BiddingServiceTest {
 
         biddingService.evaluateDeterministicBidding(1);
 
-        // Công thức thép: Trần thằng thua (Bot 2: 400,000) + 1 Bước giá (15,000) = 415,000. Chủ Bot 1 thắng.
         BigDecimal expectedFinalPrice = new BigDecimal("415000");
 
         verify(bidDAOMock, times(1)).insertBid(argThat(tx -> tx.getAmount().compareTo(expectedFinalPrice) == 0 && tx.getBidderId() == 10));

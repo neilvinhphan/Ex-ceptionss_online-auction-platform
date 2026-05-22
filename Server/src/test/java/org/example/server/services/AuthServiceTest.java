@@ -19,7 +19,6 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Đảm bảo tạo mới Mock độc lập trước mỗi hàm test để tránh lây lan dữ liệu stubbing
         userDAOMock = mock(UserDAO.class);
         authService = new AuthService(userDAOMock);
     }
@@ -35,7 +34,7 @@ class AuthServiceTest {
         RegisterRequestDTO dto = new RegisterRequestDTO("", "password123", "test@gmail.com", "0987654321");
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Please enter an username", exception.getMessage());
+        assertEquals("Vui lòng nhập tên tài khoản (Username)!", exception.getMessage());
     }
 
     @Test
@@ -45,44 +44,42 @@ class AuthServiceTest {
         RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "password123", "sai-dinh-dang-email", "0987654321");
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Invalid email format (e.g., example@gmail.com).", exception.getMessage());
+        assertEquals("Định dạng thư điện tử không hợp lệ (Ví dụ chính xác: tennguoidung@gmail.com).", exception.getMessage());
     }
 
     @Test
     @Order(3)
-    @DisplayName("3. Đăng ký thất bại do sai định dạng số điện thoại VN (thiếu số)")
+    @DisplayName("3. Đăng ký thất bại do sai định dạng số điện thoại VN")
     void testRegister_InvalidPhoneFormat_ThrowsException() {
         RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "password123", "test@gmail.com", "123456");
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Invalid phone number format (must be 10 digits starting with 0).", exception.getMessage());
+        assertEquals("Số điện thoại không hợp lệ (Phải bao gồm chính xác 10 chữ số và bắt đầu bằng đầu số 0).", exception.getMessage());
     }
 
     @Test
     @Order(4)
     @DisplayName("4. Đăng ký thất bại do tài khoản Username đã tồn tại trong DB")
     void testRegister_UsernameExisted_ThrowsException() throws Exception {
-        RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "0123456789", "test@gmail.com", "password123");
+        RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "0987654321", "test@gmail.com", "password123");
 
-        // Giả lập DB tìm thấy một User trùng tên từ trước
         when(userDAOMock.getUserByUsername("thongnh")).thenReturn(new User());
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Username existed.", exception.getMessage());
+        assertEquals("Tên tài khoản này đã được sử dụng bởi người khác trong hệ thống!", exception.getMessage());
     }
 
     @Test
     @Order(5)
     @DisplayName("5. Đăng ký thất bại do lỗi ghi nhận dữ liệu phía Database")
     void testRegister_DatabaseFailure_ThrowsException() throws Exception {
-        RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "0123456789", "test@gmail.com", "password123");
+        RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "0987654321", "test@gmail.com", "password123");
 
         when(userDAOMock.getUserByUsername("thongnh")).thenReturn(null);
-        // Giả lập hàm insert vào DB trả về false do sự cố hệ thống kết nối
         when(userDAOMock.registerUser(any(User.class))).thenReturn(false);
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Something went wrong in DB.", exception.getMessage());
+        assertEquals("Đã xảy ra lỗi hệ thống khi đồng bộ lưu trữ thông tin đăng ký vào cơ sở dữ liệu.", exception.getMessage());
     }
 
     @Test
@@ -99,8 +96,6 @@ class AuthServiceTest {
         assertNotNull(result);
         assertEquals("thongnh", result.getUsername());
         assertEquals("test@gmail.com", result.getEmail());
-
-        // Kiểm tra xem mật khẩu lưu trữ đã được BCrypt băm (hash) bảo mật chưa
         assertTrue(BCrypt.checkpw("password123", result.getPassword()));
 
         verify(userDAOMock, times(1)).registerUser(any(User.class));
@@ -117,7 +112,7 @@ class AuthServiceTest {
         LoginRequestDTO dto = new LoginRequestDTO("", "password123");
 
         Exception exception = assertThrows(Exception.class, () -> authService.login(dto));
-        assertEquals("Please enter the username.", exception.getMessage());
+        assertEquals("Tên tài khoản đăng nhập không được bỏ trống.", exception.getMessage());
     }
 
     @Test
@@ -126,11 +121,10 @@ class AuthServiceTest {
     void testLogin_WrongUsername_ThrowsException() throws Exception {
         LoginRequestDTO dto = new LoginRequestDTO("unknownUser", "password123");
 
-        // Giả lập không tìm thấy tài khoản
         when(userDAOMock.getUserByUsername("unknownUser")).thenReturn(null);
 
         Exception exception = assertThrows(Exception.class, () -> authService.login(dto));
-        assertEquals("Wrong username or password.", exception.getMessage());
+        assertEquals("Tên tài khoản hoặc mật khẩu bạn nhập không chính xác.", exception.getMessage());
     }
 
     @Test
@@ -146,7 +140,7 @@ class AuthServiceTest {
         when(userDAOMock.getUserByUsername("bannedUser")).thenReturn(mockUser);
 
         Exception exception = assertThrows(Exception.class, () -> authService.login(dto));
-        assertEquals("Your account has banned.", exception.getMessage());
+        assertEquals("Tài khoản của bạn đã bị khóa (Ban) hoặc đình chỉ hoạt động bởi ban quản trị hệ thống.", exception.getMessage());
     }
 
     @Test
@@ -158,13 +152,12 @@ class AuthServiceTest {
         User mockUser = new User();
         mockUser.setUsername("thongnh");
         mockUser.setStatus(UserStatus.ACTIVE);
-        // Mật khẩu mã hóa thực tế trong DB tương ứng với chuỗi "password123"
         mockUser.setPassword(BCrypt.hashpw("password123", BCrypt.gensalt()));
 
         when(userDAOMock.getUserByUsername("thongnh")).thenReturn(mockUser);
 
         Exception exception = assertThrows(Exception.class, () -> authService.login(dto));
-        assertEquals("Wrong username or password.", exception.getMessage());
+        assertEquals("Tên tài khoản hoặc mật khẩu bạn nhập không chính xác.", exception.getMessage());
     }
 
     @Test

@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// 🛠️ Kích hoạt tính năng sắp xếp thứ tự chạy theo Annotation @Order
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AuctionServiceTest {
 
@@ -34,7 +33,6 @@ class AuctionServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Mỗi test case đều nhận một tập hợp Mock hoàn toàn mới, triệt tiêu 100% xung đột dữ liệu ngầm
         auctionDAOMock = mock(AuctionDAO.class);
         userDAOMock = mock(UserDAO.class);
         itemDAOMock = mock(ItemDAO.class);
@@ -55,7 +53,7 @@ class AuctionServiceTest {
         dto.setItem(null);
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.createAuction(dto));
-        assertEquals("Vật phẩm không tồn tại!", exception.getMessage());
+        assertEquals("Vật phẩm đấu giá không tồn tại hoặc chưa được chọn!", exception.getMessage());
     }
 
     @Test
@@ -69,14 +67,14 @@ class AuctionServiceTest {
         dto.setItem(mockItem);
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.createAuction(dto));
-        assertEquals("Vật phẩm đang được đấu giá!", exception.getMessage());
+        assertEquals("Vật phẩm này hiện đang trong một phiên đấu giá khác!", exception.getMessage());
     }
 
     @Test
     @Order(3)
     @DisplayName("3. Tạo phòng Đấu giá thành công")
     void testCreateAuction_ValidData_Success() throws Exception {
-    Item mockItem = new ArtItem();
+        Item mockItem = new ArtItem();
         mockItem.setStatus(ItemStatus.APPROVED);
 
         CreateAuctionDTO dto = new CreateAuctionDTO();
@@ -87,7 +85,7 @@ class AuctionServiceTest {
 
         Auction expectedAuction = new Auction();
         expectedAuction.setAuctionId(99);
-        expectedAuction.setStartTime(LocalDateTime.now().plusMinutes(5));
+        expectedAuction.setStartTime(dto.getStartTime());
 
         when(auctionDAOMock.createNewAuctionItem(any(), anyLong(), any(), any())).thenReturn(99);
         when(auctionDAOMock.getAuctionByAuctionId(99)).thenReturn(expectedAuction);
@@ -113,7 +111,7 @@ class AuctionServiceTest {
         Auction mockAuction = new Auction();
         mockAuction.setAuctionId(auctionId);
         mockAuction.setItemId(itemId);
-        mockAuction.setBidderId(bidderId); // Gán người thắng cuộc
+        mockAuction.setBidderId(bidderId);
         mockAuction.setHighestBid(highestBid);
         mockAuction.setStatus(status);
 
@@ -136,56 +134,49 @@ class AuctionServiceTest {
     @Order(4)
     @DisplayName("4. Thanh toán thất bại do Phòng đã hoàn tất thanh toán trước đó")
     void testCheckout_AlreadyPaid_ThrowsException() throws Exception {
-        // Giả lập phòng đã ở trạng thái PAID
         prepareMockForCheckout(AuctionStatus.PAID, winnerId, new BigDecimal("1000000"));
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.checkoutAuction(auctionId, winnerId));
-        assertEquals("Phiên đấu giá đã được thanh toán trước đó!", exception.getMessage());
+        assertEquals("Phiên đấu giá này đã được thực hiện thanh toán hoàn tất trước đó!", exception.getMessage());
     }
 
     @Test
     @Order(5)
     @DisplayName("5. Thanh toán thất bại do Sai ID người thắng cuộc")
     void testCheckout_WrongWinner_ThrowsException() throws Exception {
-        // Người thắng thực tế trong DB là winnerId (10), nhưng kẻ yêu cầu là 999
         prepareMockForCheckout(AuctionStatus.FINISHED, winnerId, new BigDecimal("1000000"));
         int wrongWinnerId = 999;
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.checkoutAuction(auctionId, wrongWinnerId));
-        assertEquals("Bạn không phải người thắng phiên đấu giá này!", exception.getMessage());
+        assertEquals("Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp của phiên đấu giá này!", exception.getMessage());
     }
 
     @Test
     @Order(6)
     @DisplayName("6. Thanh toán thất bại do Số dư tài khoản ví không đủ")
     void testCheckout_InsufficientBalance_ThrowsException() throws Exception {
-        // Số dư khả dụng trong ví chỉ có 10,000, không đủ trả giá 500,000
         prepareMockForCheckout(AuctionStatus.FINISHED, winnerId, new BigDecimal("10000"));
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.checkoutAuction(auctionId, winnerId));
-        assertEquals("Số dư tài khoản không đủ để thanh toán!", exception.getMessage());
+        assertEquals("Số dư khả dụng trong ví tài khoản không đủ để thực hiện thanh toán!", exception.getMessage());
     }
 
     @Test
     @Order(7)
     @DisplayName("7. Thanh toán thành công (Luồng chuẩn)")
     void testCheckout_Success() throws Exception {
-        // Tài khoản đủ 1,000,000 để chi trả cho vật phẩm 500,000
         prepareMockForCheckout(AuctionStatus.FINISHED, winnerId, new BigDecimal("1000000"));
 
         boolean result = auctionService.checkoutAuction(auctionId, winnerId);
 
         assertTrue(result);
 
-        // Khảo sát sự thay đổi tài khoản
         verify(userDAOMock, times(1)).updateBalanceInDB(winnerId, new BigDecimal("500000"));
         verify(userDAOMock, times(1)).updateBalanceInDB(sellerId, new BigDecimal("700000"));
 
-        // Khảo sát việc tạo lịch sử giao dịch
         verify(walletDAOMock, times(1)).insertWalletTransaction(winnerId, highestBid, WalletTransactionType.PAY_AUCTION, auctionId);
         verify(walletDAOMock, times(1)).insertWalletTransaction(sellerId, highestBid, WalletTransactionType.SELL_REVENUE, auctionId);
 
-        // Khảo sát cập nhật thực thể
         verify(auctionDAOMock, times(1)).setAuctionStatus(auctionId, AuctionStatus.PAID);
         verify(itemDAOMock, times(1)).updateOwnerIdByItemId(itemId, winnerId);
     }

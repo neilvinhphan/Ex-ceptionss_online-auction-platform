@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// 🛠️ Kích hoạt tính năng sắp xếp thứ tự chạy nghiêm ngặt để kiểm soát luồng test
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ItemServiceTest {
 
@@ -24,7 +23,6 @@ class ItemServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Khởi tạo mới Mock độc lập trước mỗi hàm test để triệt tiêu 100% xung đột dữ liệu ngầm
         itemDAOMock = mock(ItemDAO.class);
         itemService = new ItemService(itemDAOMock);
     }
@@ -38,7 +36,7 @@ class ItemServiceTest {
     @DisplayName("1. Tạo vật phẩm thất bại do dữ liệu Payload đầu vào bị null")
     void testCreateItem_PayloadNull_ThrowsException() {
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(null));
-        assertEquals("Item data is required.", exception.getMessage());
+        assertEquals("Dữ liệu khai báo thông tin vật phẩm bắt buộc phải có.", exception.getMessage());
     }
 
     @Test
@@ -48,13 +46,13 @@ class ItemServiceTest {
         CreateItemRequestDTO dto = new CreateVehicleItemDTO();
         dto.setSellerID(1);
         dto.setType("VEHICLE");
-        dto.setItemName(""); // Cố tình để trống tên
+        dto.setItemName("");
         dto.setDescription("Xe máy chính chủ ít sử dụng");
         dto.setStartingPrice(new BigDecimal("15000000"));
         dto.setBase64Image("data:image/png;base64,...");
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Item name is required.", exception.getMessage());
+        assertEquals("Tên gọi hiển thị của vật phẩm không được phép để trống!", exception.getMessage());
     }
 
     @Test
@@ -66,11 +64,11 @@ class ItemServiceTest {
         dto.setType("VEHICLE");
         dto.setItemName("Xe máy Honda Vision");
         dto.setDescription("Xe máy chính chủ");
-        dto.setStartingPrice(new BigDecimal("-500000")); // Giá khởi điểm bị âm
+        dto.setStartingPrice(new BigDecimal("-500000"));
         dto.setBase64Image("data:image/png;base64,...");
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Starting price must be greater than zero.", exception.getMessage());
+        assertEquals("Số tiền giá sàn khởi điểm đấu giá (Starting Price) buộc phải lớn hơn 0 VNĐ!", exception.getMessage());
     }
 
     @Test
@@ -85,11 +83,10 @@ class ItemServiceTest {
         dto.setStartingPrice(new BigDecimal("15000000"));
         dto.setBase64Image("data:image/png;base64,...");
 
-        // Giả lập bảng Item của DB bị lỗi, trả ra ID không hợp lệ (null)
         when(itemDAOMock.insertIntoItemTable(any(Item.class))).thenReturn(0);
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Cannot create item.", exception.getMessage());
+        assertEquals("Ghi nhận thất bại: Hệ thống cơ sở dữ liệu từ chối cấp phép lưu vật phẩm mới.", exception.getMessage());
     }
 
     // =========================================================================
@@ -99,14 +96,17 @@ class ItemServiceTest {
     @Test
     @Order(5)
     @DisplayName("5. Cập nhật toàn bộ thông tin sản phẩm thành công")
-    void testUpdateItemFull_Success() {
+    void testUpdateItemFull_Success() throws Exception {
         EditProductRequestDTO dto = new EditProductRequestDTO();
         dto.setItemId(100);
         dto.setItemEditName("Honda Vision 2013 Đã Độ");
         dto.setDescription("Xe máy cũ chạy êm, đã bảo dưỡng bộ nồi");
         dto.setPrice(new BigDecimal("12500000"));
 
-        // Cấu hình mock cho cả 3 hàm update thành phần trong DAO đều hoạt động trơn tru
+        Item mockItem = new VehicleItem();
+        mockItem.setStatus(ItemStatus.APPROVED);
+        when(itemDAOMock.getItemById(100)).thenReturn(mockItem);
+
         when(itemDAOMock.updateItemDescriptionByItemId(100, "Xe máy cũ chạy êm, đã bảo dưỡng bộ nồi")).thenReturn(true);
         when(itemDAOMock.updateItemNameByItemId(100, "Honda Vision 2013 Đã Độ")).thenReturn(true);
         when(itemDAOMock.updateStartPriceByItemId(100, new BigDecimal("12500000"))).thenReturn(true);
@@ -122,19 +122,21 @@ class ItemServiceTest {
     @Test
     @Order(6)
     @DisplayName("6. Cập nhật thông tin sản phẩm thất bại do lỗi ghi nhận một bảng thành phần")
-    void testUpdateItemFull_Failure() {
+    void testUpdateItemFull_Failure() throws Exception {
         EditProductRequestDTO dto = new EditProductRequestDTO();
         dto.setItemId(100);
         dto.setItemEditName("Sản phẩm lỗi");
         dto.setDescription("Mô tả lỗi");
         dto.setPrice(new BigDecimal("100000"));
 
-        // Giả lập hàm cập nhật mô tả bị thất bại (trả về false) khiến toàn bộ tiến trình báo lỗi theo
+        Item mockItem = new VehicleItem();
+        mockItem.setStatus(ItemStatus.APPROVED);
+        when(itemDAOMock.getItemById(100)).thenReturn(mockItem);
+
         when(itemDAOMock.updateItemDescriptionByItemId(anyInt(), anyString())).thenReturn(false);
 
-        boolean result = itemService.updateItemFull(dto);
-
-        assertFalse(result);
+        Exception exception = assertThrows(Exception.class, () -> itemService.updateItemFull(dto));
+        assertEquals("Lỗi hệ thống: Quá trình cập nhật thuộc tính vật phẩm vào Database thất bại.", exception.getMessage());
     }
 
     @Test
@@ -144,7 +146,7 @@ class ItemServiceTest {
         DeleteRequestDTO dto = new DeleteRequestDTO(0);
 
         Exception exception = assertThrows(Exception.class, () -> itemService.deleteItem(dto));
-        assertEquals("Invalid item ID.", exception.getMessage());
+        assertEquals("Mã vật phẩm yêu cầu xóa bỏ không hợp lệ.", exception.getMessage());
     }
 
     @Test
@@ -153,6 +155,9 @@ class ItemServiceTest {
     void testDeleteItem_Success() throws Exception {
         DeleteRequestDTO dto = new DeleteRequestDTO(50);
 
+        Item mockItem = new VehicleItem();
+        mockItem.setStatus(ItemStatus.APPROVED);
+        when(itemDAOMock.getItemById(50)).thenReturn(mockItem);
         when(itemDAOMock.deleteItemByItemId(50)).thenReturn(true);
 
         boolean result = itemService.deleteItem(dto);
@@ -169,7 +174,6 @@ class ItemServiceTest {
     @Order(9)
     @DisplayName("9. Tìm kiếm sản phẩm theo ID thành công (Trả về đúng thực thể loại Vehicle)")
     void testGetItemById_Success() throws Exception {
-    // Dựng một thực thể con thực tế để khớp với ItemFactory của bạn
         Item expectedItem = new VehicleItem();
         expectedItem.setItemId(10);
         expectedItem.setItemName("Xe máy Honda Vision 2013");
@@ -181,7 +185,7 @@ class ItemServiceTest {
         assertNotNull(result);
         assertEquals(10, result.getItemId());
         assertEquals("Xe máy Honda Vision 2013", result.getItemName());
-        assertTrue(result instanceof VehicleItem, "Thực thể trả về phải là một instance của lớp Vehicle");
+        assertTrue(result instanceof VehicleItem);
     }
 
     @Test

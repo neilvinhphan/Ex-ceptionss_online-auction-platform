@@ -12,7 +12,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// 🛠️ Sắp xếp thứ tự chạy để dễ dàng theo dõi luồng kiểm thử nghiệp vụ
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserServiceTest {
 
@@ -21,7 +20,6 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Tạo mới Mock độc lập trước từng test case để triệt tiêu xung đột dữ liệu ngầm
         userDAOMock = mock(UserDAO.class);
         userService = new UserService(userDAOMock);
     }
@@ -37,7 +35,7 @@ class UserServiceTest {
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(0, new BigDecimal("100000"), "password123")
         );
-        assertEquals("ID người dùng không hợp lệ", exception.getMessage());
+        assertEquals("Mã số tài khoản định danh người dùng không hợp lệ!", exception.getMessage());
     }
 
     @Test
@@ -47,7 +45,7 @@ class UserServiceTest {
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(2, new BigDecimal("-50000"), "password123")
         );
-        assertEquals("Số tiền nạp phải lớn hơn 0", exception.getMessage());
+        assertEquals("Số tiền yêu cầu nạp vào tài khoản ví phải lớn hơn 0 VNĐ!", exception.getMessage());
     }
 
     @Test
@@ -57,7 +55,7 @@ class UserServiceTest {
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(1, new BigDecimal("50000"), "")
         );
-        assertEquals("Vui lòng nhập mật khẩu xác nhận.", exception.getMessage());
+        assertEquals("Vui lòng nhập mật khẩu xác nhận danh tính để phê duyệt nạp tiền.", exception.getMessage());
     }
 
     @Test
@@ -67,7 +65,6 @@ class UserServiceTest {
         int userId = 1;
         User mockUser = new User();
         mockUser.setBalance(new BigDecimal("200000"));
-        // Cài mật khẩu băm gốc trong DB là "securePassword"
         mockUser.setPassword(BCrypt.hashpw("securePassword", BCrypt.gensalt()));
 
         when(userDAOMock.getUserByUserId(userId)).thenReturn(mockUser);
@@ -75,7 +72,7 @@ class UserServiceTest {
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(userId, new BigDecimal("50000"), "wrongPassword")
         );
-        assertEquals("Mật khẩu xác nhận không chính xác!", exception.getMessage());
+        assertEquals("Mật khẩu tài khoản xác nhận không chính xác! Vui lòng kiểm tra lại.", exception.getMessage());
     }
 
     @Test
@@ -90,13 +87,12 @@ class UserServiceTest {
         mockUser.setPassword(BCrypt.hashpw(pass, BCrypt.gensalt()));
 
         when(userDAOMock.getUserByUserId(userId)).thenReturn(mockUser);
-        // Giả lập DB cập nhật thất bại trả về false
         when(userDAOMock.updateBalanceInDB(eq(userId), any(BigDecimal.class))).thenReturn(false);
 
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(userId, new BigDecimal("50000"), pass)
         );
-        assertEquals("Đã xảy ra lỗi hệ thống khi cập nhật số dư. Vui lòng thử lại!", exception.getMessage());
+        assertEquals("Đã xảy ra lỗi hệ thống cục bộ khi cập nhật tăng số dư ví. Vui lòng thử lại sau ít phút!", exception.getMessage());
     }
 
     @Test
@@ -105,14 +101,13 @@ class UserServiceTest {
     void testBalanceDeposit_Success() throws Exception {
         int userId = 1;
         String pass = "password123";
-        BigDecimal depositAmount = new BigDecimal("50000"); // Nạp 50k
+        BigDecimal depositAmount = new BigDecimal("50000");
 
         User mockUser = new User();
-        mockUser.setBalance(new BigDecimal("200000")); // Gốc có 200k
+        mockUser.setBalance(new BigDecimal("200000"));
         mockUser.setPassword(BCrypt.hashpw(pass, BCrypt.gensalt()));
 
         when(userDAOMock.getUserByUserId(userId)).thenReturn(mockUser);
-        // Định vị giá trị kỳ vọng sau nạp: 200,000 + 50,000 = 250,000
         BigDecimal expectedBalance = new BigDecimal("250000");
         when(userDAOMock.updateBalanceInDB(userId, expectedBalance)).thenReturn(true);
 
@@ -130,8 +125,11 @@ class UserServiceTest {
     @Test
     @Order(7)
     @DisplayName("7. Cập nhật vai trò người dùng (updateRole) thành công")
-    void testUpdateRole_Success() {
+    void testUpdateRole_Success() throws Exception {
+        User mockUser = new User();
+        when(userDAOMock.getUserByUserId(10)).thenReturn(mockUser);
         when(userDAOMock.updateRoleInDB(10)).thenReturn(true);
+
         assertTrue(userService.updateRole(10));
         verify(userDAOMock, times(1)).updateRoleInDB(10);
     }
@@ -139,8 +137,11 @@ class UserServiceTest {
     @Test
     @Order(8)
     @DisplayName("8. Khóa tài khoản người dùng (banUser) thành công")
-    void testBanUser_Success() {
+    void testBanUser_Success() throws Exception {
+        User mockUser = new User();
+        when(userDAOMock.getUserByUserId(10)).thenReturn(mockUser);
         when(userDAOMock.banStatus(10)).thenReturn(true);
+
         assertTrue(userService.banUser(10));
         verify(userDAOMock, times(1)).banStatus(10);
     }
@@ -148,8 +149,11 @@ class UserServiceTest {
     @Test
     @Order(9)
     @DisplayName("9. Mở khóa tài khoản người dùng (unbanUser) thành công")
-    void testUnbanUser_Success() {
+    void testUnbanUser_Success() throws Exception {
+        User mockUser = new User();
+        when(userDAOMock.getUserByUserId(10)).thenReturn(mockUser);
         when(userDAOMock.unbanStatus(10)).thenReturn(true);
+
         assertTrue(userService.unbanUser(10));
         verify(userDAOMock, times(1)).unbanStatus(10);
     }
@@ -161,7 +165,7 @@ class UserServiceTest {
     @Test
     @Order(10)
     @DisplayName("10. Lấy thông tin User theo ID thành công")
-    void testGetUserById_Success() {
+    void testGetUserById_Success() throws Exception {
         User expectedUser = new User();
         expectedUser.setUserId(5);
         when(userDAOMock.getUserByUserId(5)).thenReturn(expectedUser);
@@ -174,7 +178,7 @@ class UserServiceTest {
     @Test
     @Order(11)
     @DisplayName("11. Lấy toàn bộ danh sách người dùng thành công")
-    void testGetAllUsers_Success() {
+    void testGetAllUsers_Success() throws Exception {
         List<User> list = new ArrayList<>();
         list.add(new User());
         list.add(new User());
