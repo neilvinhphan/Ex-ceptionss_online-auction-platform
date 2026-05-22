@@ -6,20 +6,14 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0"
-            style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;"
-            stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.client.controllers.CreateItemController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;" stylesheets="@style.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.CreateItemController">
   <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
@@ -50,13 +44,13 @@
                                 <Insets bottom="40.0" right="40.0" />
                             </BorderPane.margin>
                             <children>
-                                <VBox spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
+                                <VBox spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);">
                                     <Label style="-fx-font-size: 26; -fx-font-weight: bold;" text="Tạo Sản Phẩm Đấu Giá Mới " />
 
-                                    <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" />
-                           <TextField fx:id="tfStartingPrice" layoutX="50.0" layoutY="108.0" promptText="Giá khởi điểm " style="-fx-padding: 10;" />
+                                    <TextField fx:id="tfItemName" promptText="Tên sản phẩm" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                           <TextField fx:id="tfStartingPrice" layoutX="50.0" layoutY="108.0" promptText="Giá khởi điểm " style="-fx-padding: 10;" styleClass="custom-text-field" />
 
-                                    <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;">
+                                    <ComboBox fx:id="cbCategory" maxWidth="Infinity" promptText="Chọn phân loại sản phẩm" style="-fx-padding: 5;" styleClass="custom-text-field">
                                         <items>
                                             <FXCollections fx:factory="observableArrayList">
                                                 <String fx:value="ART" />
@@ -66,24 +60,30 @@
                                         </items>
                                     </ComboBox>
 
-                                    <TextField fx:id="tfDescription" promptText="Mô tả chi tiết" style="-fx-padding: 10;" />
+                                    <TextField fx:id="tfDescription" promptText="Mô tả chi tiết" style="-fx-padding: 10;" styleClass="custom-text-field" />
 
-                                    <VBox fx:id="vbArtAttributes" managed="false" spacing="10" visible="false">
-                                        <TextField fx:id="tfArtist" promptText="Nghệ sĩ" />
-                                        <TextField fx:id="tfCreationYear" promptText="Năm sáng tác" />
+                                    <VBox fx:id="vbArtAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfArtist" promptText="Nghệ sĩ" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfCreationYear" promptText="Năm sáng tác" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
                                     </VBox>
 
-                                    <VBox fx:id="vbElectronicAttributes" managed="false" spacing="10" visible="false">
-                                        <TextField fx:id="tfBrand" promptText="Thương hiệu" />
-                                        <TextField fx:id="tfWarranty" promptText="Tháng bảo hành" />
-                                        <TextField fx:id="tfCondition" promptText="Tình trạng (Mới/Cũ)" />
+                                    <VBox fx:id="vbElectronicAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfBrand" promptText="Thương hiệu" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfWarranty" promptText="Tháng bảo hành" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfCondition" promptText="Tình trạng (Mới/Cũ)" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
                                     </VBox>
 
-                                    <VBox fx:id="vbVehicleAttributes" managed="false" spacing="10" visible="false">
-                                        <TextField fx:id="tfVehicleBrand" promptText="Hãng xe" />
-                                        <TextField fx:id="tfModel" promptText="Dòng xe" />
-                                        <TextField fx:id="tfMfgYear" promptText="Năm sản xuất" />
-                                        <TextField fx:id="tfMileage" promptText="Số km đã đi" />
+                                    <VBox fx:id="vbVehicleAttributes" managed="false" spacing="20.0" visible="false">
+                                        <children>
+                                            <TextField fx:id="tfVehicleBrand" promptText="Hãng xe" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfModel" promptText="Dòng xe" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfMfgYear" promptText="Năm sản xuất" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                            <TextField fx:id="tfMileage" promptText="Số km đã đi" style="-fx-padding: 10;" styleClass="custom-text-field" />
+                                        </children>
                                     </VBox>
 
                                     <VBox spacing="8.0">
