@@ -8,7 +8,7 @@ public class ServerMain {
     AuctionServer server = new AuctionServer();
     // Khôi phục các tiến trình hẹn giờ nếu server vừa bị restart
     System.out.println("Đang nạp lại tiến trình đấu giá ngầm...");
-    AuctionService.reloadScheduledTasksOnStartup();
+    AuctionService.getInstance().reloadScheduledTasksOnStartup();
     server.start();
   }
 }

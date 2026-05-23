@@ -114,6 +114,8 @@ public class WareHouseController extends BaseController implements Initializable
                 System.out.println("Đang xin dữ liệu Kho hàng cho user: " + sellerId);
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
 
+                System.out.println("DEBUG Dữ liệu gốc từ Server: " + jsonResponse); // Thêm dòng này
+
                 Response response = gson.fromJson(jsonResponse, Response.class);
                 Platform.runLater(
                     () -> {

@@ -285,7 +285,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                 return;
             }
 
-            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
+            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount, myUsername);
             Request requestContainer = new Request("PLACE_BID", bidReq);
 
             if (outToServer != null) {
