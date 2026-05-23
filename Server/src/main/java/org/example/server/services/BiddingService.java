@@ -93,21 +93,48 @@ public class BiddingService {
       // check trạng thái + thời gian
       auction.validateBid(now, request.getBidAmount());
 
+      // 1. Tải giá thầu cao nhất hiện tại từ bảng giao dịch
       BigDecimal currentPrice = bidDAO.getCurrentPrice(request.getAuctionId());
-      if (currentPrice == null) {
-        currentPrice = BigDecimal.ZERO;
+      if (currentPrice == null || currentPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        currentPrice = auction.getItem().getStartingPrice(); // Nếu chưa có ai đặt, lấy giá khởi điểm thực tế
       }
 
+      // --- 🔥 FIX LỖI 2: NỚI LỎNG BIẾN VALIDATE CHẶN CHÍNH MÌNH ---
+      // Kiểm tra xem người đặt hiện tại có phải người dẫn đầu không
+      Integer highestBidderId = auction.getBidderId(); // Lấy ID người dẫn đầu phòng hiện tại
+
+      // Nếu chính mình đang dẫn đầu, nhưng số tiền muốn đặt thủ công lớn hơn giá hiện tại -> Hợp lệ!
+      if (highestBidderId != null && highestBidderId == request.getUserId()) {
+        if (request.getBidAmount().compareTo(currentPrice) <= 0) {
+          throw new Exception("Bạn đang là người dẫn đầu phòng! Số tiền đặt mới phải lớn hơn giá hiện tại: " + currentPrice);
+        }
+      } else {
+        // Nếu là người khác đặt, bọc hàm kiểm tra trạng thái thời gian phòng mặc định của ông
+        auction.validateBid(now, request.getBidAmount());
+      }
+
+      // 2. Tính toán bước giá tối thiểu tiếp theo
       BigDecimal bidIncrement = auctionDAO.getBidIncrementByAuctionId(request.getAuctionId());
       if (bidIncrement == null || bidIncrement.compareTo(BigDecimal.ZERO) <= 0) {
         bidIncrement = BigDecimal.ONE;
       }
 
-      BigDecimal minAcceptable = currentPrice.add(bidIncrement);
+      // Xác định mức giá chấp nhận tối thiểu
+      BigDecimal minAcceptable;
+      BigDecimal checkDbPrice = bidDAO.getCurrentPrice(request.getAuctionId());
+      if (checkDbPrice == null || checkDbPrice.compareTo(BigDecimal.ZERO) == 0) {
+        // Nếu phòng trống trơn bóc tem: Người đầu tiên đặt bằng đúng giá khởi điểm là hợp lệ!
+        minAcceptable = auction.getItem().getStartingPrice();
+      } else {
+        // Từ lượt thứ 2 trở đi bắt buộc phải >= Giá hiện tại + Bước giá
+        minAcceptable = currentPrice.add(bidIncrement);
+      }
+
       if (request.getBidAmount().compareTo(minAcceptable) < 0) {
         throw new Exception("Mức giá đặt thầu tối thiểu tiếp theo phải lớn hơn hoặc bằng: " + minAcceptable + " VNĐ");
       }
 
+      // 3. Kiểm tra số dư ví
       BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
       if (request.getBidAmount().compareTo(availableBalance) > 0) {
         throw new Exception("Số dư khả dụng trong tài khoản ví của bạn không đủ để thực hiện lượt trả giá này!");
@@ -122,9 +149,8 @@ public class BiddingService {
 
       // 2. Khởi tạo thực thể theo constructor 4 tham số có sẵn trong Core
       BidTransaction manualBidTx = new BidTransaction(request.getBidAmount(), now, request.getUserId(), bidderName);
-      manualBidTx.setAuctionId(request.getAuctionId()); // Gán mã phòng thông qua setter
+      manualBidTx.setAuctionId(request.getAuctionId());
 
-      // 3. Truyền trọn gói thực thể xuống hàm insertBid mới của DAO
       boolean inserted = bidDAO.insertBid(manualBidTx);
       if (!inserted) {
         throw new Exception("Lỗi hệ thống: Không thể ghi nhận lịch sử lượt đặt giá mới vào cơ sở dữ liệu.");
@@ -155,9 +181,7 @@ public class BiddingService {
     if (endTime == null || !endTime.isAfter(now)) {
       return;
     }
-
     long antiSnipingSeconds = 120;
-
     boolean inSnipingWindow = auction.isAntiSniping(now, antiSnipingSeconds);
     if (!inSnipingWindow) return;
     auction.extendEndTime(antiSnipingSeconds);
@@ -222,7 +246,10 @@ public class BiddingService {
             BigDecimal finalPrice = bot1.getMaxBid();
             int winnerId = bot1.getCreatedAt().isBefore(bot2.getCreatedAt()) ? bot1.getUserId() : bot2.getUserId();
 
-            executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
+            // Chỉ kích hoạt nếu giá mới thực sự đẩy căn phòng lên cao hơn hoặc đổi ngôi dẫn đầu
+            if (isFirstBid || finalPrice.compareTo(dbPrice) > 0 || auction.getBidderId() != winnerId) {
+              executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
+            }
           }
         }
         else if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) > 0) {
@@ -243,7 +270,6 @@ public class BiddingService {
           if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
             finalPrice = bot1.getMaxBid();
           }
-          executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
         }
       }
     } catch (Exception e) {

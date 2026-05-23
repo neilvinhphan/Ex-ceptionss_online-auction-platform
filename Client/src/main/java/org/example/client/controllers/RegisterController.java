@@ -37,6 +37,7 @@ public class RegisterController extends BaseController {
    // boolean checkCommit = cbCommit.isSelected();
     if (!password.equals(repassword)) {
       showAlert("Error", "Passwords do not matched ");
+      return;
     }
 //      else if (!cbCommit.isSelected()) {
 //      showAlert("Thông báo", "Please accept the terms and conditions to proceed!");
