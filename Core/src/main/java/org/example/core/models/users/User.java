@@ -123,4 +123,12 @@ public class User extends Entity {
   public UserStatus getStatus() {
     return status;
   }
+
+  public String getUsername() {
+    return userName;
+  }
+
+  public void setUsername(String userName) {
+    this.userName = userName;
+  }
 }

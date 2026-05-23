@@ -285,7 +285,7 @@ public class AuctionRoomController extends BaseController implements Initializab
                 return;
             }
 
-            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount);
+            BidRequestDTO bidReq = new BidRequestDTO(currentAuctionId, currentUserId, bidAmount, myUsername);
             Request requestContainer = new Request("PLACE_BID", bidReq);
 
             if (outToServer != null) {
@@ -564,6 +564,19 @@ public class AuctionRoomController extends BaseController implements Initializab
 
                                     if (duration.isNegative() || duration.isZero()) {
                                         lblTimer.setText("00:00:00");
+
+                                        if (currentAuction.getStatus() == org.example.core.shared.enums.AuctionStatus.RUNNING) {
+                                            currentAuction.setStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+                                            lblStatus.setText("FINISHED");
+                                            updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+                                            String currentWinner = lblHighestBidder.getText().trim();
+                                            if (currentWinner.equals("Chưa có") || currentWinner.equals("--")) {
+                                                showWinnerBox("Không có ai");
+                                            } else {
+                                                showWinnerBox(currentWinner);
+                                            }
+                                        }
+                                        stopTimer(); // Tắt luôn cái vòng lặp đếm ngược này đi cho đỡ tốn RAM
                                     } else {
                                         long h = duration.toHours();
                                         long m = duration.toMinutesPart();

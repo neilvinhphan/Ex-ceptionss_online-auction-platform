@@ -22,7 +22,6 @@ public class Auction extends Entity {
   private int ownerId;
   private String itemName;
   private String type;
-
   // Constructor tạo mới đấu giá
   public Auction(
       Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {

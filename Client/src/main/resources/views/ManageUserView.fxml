@@ -43,12 +43,9 @@
                                 <HBox alignment="CENTER_LEFT" spacing="20.0">
                                     <children>
                                         <VBox>
-                                            <Label style="-fx-text-fill: #2c3e50; -fx-font-weight: bold;" text="Quản Lý Người Dùng">
-                                                <font>
-                                                    <Font size="24.0" />
-                                                </font>
-                                            </Label>
-                                            <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 13;" text="Theo dõi, tìm kiếm và xử lý vi phạm tài khoản thành viên." />
+                                            <Label style="-fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 26;" text="Quản Lý Người Dùng" />
+
+                                            <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;" text="Theo dõi, tìm kiếm và xử lý vi phạm tài khoản thành viên." />
                                         </VBox>
                                     </children>
                                 </HBox>

@@ -163,6 +163,7 @@ public class WareHouseController extends BaseController implements Initializable
 
   @FXML
   public void handleAddProduct(ActionEvent event) {
+    UserSidebarController.currentView = "CreateItemView.fxml";
     switchScene(event, "/views/CreateItemView.fxml", "Thêm sản phẩm đấu giá");
   }
 

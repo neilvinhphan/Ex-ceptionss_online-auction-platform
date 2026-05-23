@@ -10,6 +10,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.admin.AdminBanUserDTO;
 import org.example.core.dto.admin.AdminCancelAuctionDTO;
+import org.example.core.dto.admin.AdminDashboardDTO;
 import org.example.core.dto.admin.AdminProcessItemDTO;
 import org.example.core.dto.auctionDTO.CreateAuctionDTO;
 import org.example.core.dto.bidDTO.AutoBidRequestDTO;
@@ -27,6 +28,7 @@ import org.example.core.dto.paymentDTO.PendingPaymentsDTO;
 import org.example.core.dto.userDTO.DepositRequestDTO;
 import org.example.core.dto.userDTO.LoginRequestDTO;
 import org.example.core.dto.userDTO.RegisterRequestDTO;
+import org.example.core.dto.userDTO.SellerDashboardDTO;
 import org.example.core.dto.userDTO.UpdateRoleRequestDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
@@ -34,39 +36,42 @@ import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.core.shared.enums.RoleType;
 
-import org.example.server.daos.AuctionDAO;
-import org.example.server.daos.AutoBidDAO;
-import org.example.server.daos.ItemDAO;
-
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
-import org.example.server.daos.UserDAO;
 import org.example.server.services.AuctionService;
 import org.example.server.services.AuthService;
+import org.example.server.services.BiddingService;
+import org.example.server.services.DashBoardService;
+import org.example.server.services.ItemService;
+import org.example.server.services.UserService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.example.core.network.LocalDateTimeAdapter;
-import org.example.server.services.BiddingService;
-import org.example.server.services.ItemService;
-import org.example.server.services.UserService;
 
 public class ClientHandler implements Runnable {
     public static final List<ClientHandler> connectedClients = new CopyOnWriteArrayList<>();
-    UserDAO userDAO = UserDAO.getInstance();
-    ItemDAO itemDAO = ItemDAO.getInstance();
+
+    private static final AuthService authService = AuthService.getInstance();
+    private static final UserService userService = UserService.getInstance();
+    private static final ItemService itemService = ItemService.getInstance();
+    private static final AuctionService auctionService = AuctionService.getInstance();
+    private static final BiddingService biddingService = BiddingService.getInstance();
+    private static final DashBoardService dashBoardService = DashBoardService.getInstance();
 
     private final Socket clientSocket;
     private BufferedReader in;
@@ -228,8 +233,7 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             Integer sellerId = gson.fromJson(dataJson, Integer.class);
 
-            org.example.core.dto.userDTO.SellerDashboardDTO dto =
-                    org.example.server.daos.DashboardDAO.getInstance().getSellerDashboardStats(sellerId);
+            SellerDashboardDTO dto = dashBoardService.getSellerDashboard(sellerId);
 
             Response response = new Response("SUCCESS", "Lấy dữ liệu thành công", dto);
             sendMessage(gson.toJson(response));
@@ -241,13 +245,11 @@ public class ClientHandler implements Runnable {
 
     private void handleGetAdminDashboardStats(Request request) {
         try {
-            Map<String, String> kpis = org.example.server.daos.DashboardDAO.getInstance().getKPIs();
-            Map<String, Integer> categories =
-                    org.example.server.daos.DashboardDAO.getInstance().getCategoryDistribution();
-            Map<String, Integer> auctionStatus =
-                    org.example.server.daos.DashboardDAO.getInstance().getAuctionStatusDistribution();
-            org.example.core.dto.admin.AdminDashboardDTO dashboardDTO =
-                    new org.example.core.dto.admin.AdminDashboardDTO(kpis, categories, auctionStatus);
+            Map<String, String> kpis = dashBoardService.getKPIs();
+            Map<String, Integer> categories = dashBoardService.getCategoryDistribution();
+            Map<String, Integer> auctionStatus = dashBoardService.getAuctionStatusDistribution();
+            AdminDashboardDTO dashboardDTO =
+                    new AdminDashboardDTO(kpis, categories, auctionStatus);
             Response response = new Response("SUCCESS", "Lấy dữ liệu Dashboard thành công", dashboardDTO);
             sendMessage(gson.toJson(response));
 
@@ -264,8 +266,7 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             RegisterRequestDTO registerRequest = gson.fromJson(dataJson, RegisterRequestDTO.class);
 
-            System.out.println("Registering user: " + registerRequest.getUsername());
-            User newUser = AuthService.register(registerRequest);
+            User newUser = authService.register(registerRequest);
 
             Response response;
             if (newUser != null) {
@@ -286,11 +287,10 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             LoginRequestDTO loginRequest = gson.fromJson(dataJson, LoginRequestDTO.class);
 
-            User newUser = AuthService.login(loginRequest);
+            User newUser = authService.login(loginRequest);
 
             Response response;
             if (newUser != null) {
-                // 🔥 [ĐÃ VÁ LỖI]: Ghi nhớ ngay userId vào session của Socket kết nối này khi login thành công!
                 this.userId = newUser.getUserId();
 
                 response = new Response("SUCCESS", "Login success!", newUser);
@@ -327,7 +327,7 @@ public class ClientHandler implements Runnable {
                     finalDTO = gson.fromJson(rawDataJson, CreateItemRequestDTO.class);
             }
 
-            Item newItem = ItemService.createItem(finalDTO);
+            Item newItem = itemService.createItem(finalDTO);
 
             if (newItem != null) {
                 Response response = new Response("SUCCESS", "Item created successfully!", newItem);
@@ -349,7 +349,7 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             DeleteRequestDTO deleteRequest = gson.fromJson(dataJson, DeleteRequestDTO.class);
 
-            boolean success = ItemService.deleteItem(deleteRequest);
+            boolean success = itemService.deleteItem(deleteRequest);
             Response response;
             if (success) {
                 response = new Response("SUCCESS", "Item deleted successfully.");
@@ -365,18 +365,13 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleEditProduct(Request request) {
-        EditProductRequestDTO editRequest;
         try {
-            if (request.getData() instanceof EditProductRequestDTO) {
-                editRequest = (EditProductRequestDTO) request.getData();
-            } else {
-                String dataJson = gson.toJson(request.getData());
-                editRequest = gson.fromJson(dataJson, EditProductRequestDTO.class);
-            }
-            boolean success = ItemService.updateItemFull(editRequest);
+            String dataJson = gson.toJson(request.getData());
+            EditProductRequestDTO editRequest = gson.fromJson(dataJson, EditProductRequestDTO.class);
+            boolean success = itemService.updateItemFull(editRequest);
             Response response;
             if (success) {
-                Item item = ItemDAO.getInstance().getItemById(editRequest.getItemId());
+                Item item = itemService.getItemById(editRequest.getItemId());
                 response = new Response("SUCCESS", "Item updated successfully!", item);
             } else {
                 response = new Response("ERROR", "Failed to update item.");
@@ -399,7 +394,7 @@ public class ClientHandler implements Runnable {
             pendingRequest = gson.fromJson(dataJson, PendingItemsDTO.class);
         }
         try {
-            List<Item> items = ItemService.getAllItem(pendingRequest);
+            List<Item> items = itemService.getAllItem(pendingRequest);
             Response response = new Response("SUCCESS", "Fetched pending items successfully!", items);
             sendMessage(gson.toJson(response));
 
@@ -416,8 +411,8 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             CreateAuctionDTO auctionReq = gson.fromJson(dataJson, CreateAuctionDTO.class);
 
-            Auction newAuction = AuctionService.createAuction(auctionReq);
-            ItemDAO.getInstance().updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
+            Auction newAuction = auctionService.createAuction(auctionReq);
+            itemService.updateItemStatus(auctionReq.getItem().getItemId(), ItemStatus.LISTED);
 
             Response response = new Response("SUCCESS", "Đã lên sàn đấu giá thành công!", newAuction);
             sendMessage(gson.toJson(response));
@@ -441,14 +436,12 @@ public class ClientHandler implements Runnable {
             Response response = new Response("SUCCESS", "Đã tham gia phòng " + auctionId);
             sendMessage(gson.toJson(response));
 
-            // 🔥 [ĐÃ KHỚP NỐI]: Sử dụng thuộc tính `this.userId` vừa được bóc lưu ở session an toàn!
             if (this.userId != -1) {
                 try {
-                    java.math.BigDecimal savedMaxBid = org.example.server.daos.AutoBidDAO.getInstance()
-                            .getUserActiveAutoBid(auctionId, this.userId);
+                    BigDecimal savedMaxBid = biddingService.getMaxAutoBid(auctionId, this.userId);
 
                     if (savedMaxBid != null) {
-                        java.util.Map<String, Object> autoBidState = new java.util.HashMap<>();
+                        Map<String, Object> autoBidState = new HashMap<>();
                         autoBidState.put("maxBid", savedMaxBid.doubleValue());
 
                         Response stateResponse = new Response("MY_AUTOBID_STATUS", "Khôi phục trạng thái Bot", autoBidState);
@@ -486,23 +479,14 @@ public class ClientHandler implements Runnable {
         try {
             String dataJson = gson.toJson(request.getData());
             BidRequestDTO bidReq = gson.fromJson(dataJson, BidRequestDTO.class);
+            String realUsername = bidReq.getUserName();
 
-            boolean success = BiddingService.getInstance().placeBid(bidReq);
+            boolean success = biddingService.placeBid(bidReq);
 
             if (success) {
-                String realUsername = "Unknown";
-                try {
-                    User user = userDAO.getUserByUserId(bidReq.getUserId());
-                    if (user != null) {
-                        realUsername = user.getUserName();
-                    }
-                } catch (Exception e) {
-                    System.out.println("Lỗi truy vấn tên người dùng: " + e.getMessage());
-                }
                 LocalDateTime currentEndTime = null;
                 try {
-                    Auction updatedAuction =
-                            AuctionDAO.getInstance().getAuctionByAuctionId(bidReq.getAuctionId());
+                    Auction updatedAuction = auctionService.getAuctionById(bidReq.getAuctionId());
                     if (updatedAuction != null) {
                         currentEndTime = updatedAuction.getEndTime();
                     }
@@ -521,7 +505,7 @@ public class ClientHandler implements Runnable {
                         new Response("NEW_BID", "Có người vừa đặt giá mới", broadcastDTO);
                 broadcastMessage(gson.toJson(broadcastResponse));
 
-                BiddingService.evaluateDeterministicBidding(bidReq.getAuctionId());
+                biddingService.evaluateDeterministicBidding(bidReq.getAuctionId());
             } else {
                 Response errorResponse = new Response("ERROR_BID", "Đặt giá không thành công.");
                 sendMessage(gson.toJson(errorResponse));
@@ -539,7 +523,7 @@ public class ClientHandler implements Runnable {
             String dataJson = gson.toJson(request.getData());
             Integer auctionId = gson.fromJson(dataJson, Integer.class);
 
-            List<BidTransaction> history = BiddingService.getInstance().getBidHistory(auctionId);
+            List<BidTransaction> history = biddingService.getBidHistory(auctionId);
 
             Response response = new Response("SUCCESS", "Lấy lịch sử thành công", history);
             sendMessage(gson.toJson(response));
@@ -552,19 +536,16 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleDeposit(Request request) {
-        UserService userService = new UserService();
         try {
             String dataJson = gson.toJson(request.getData());
             DepositRequestDTO depositRequest = gson.fromJson(dataJson, DepositRequestDTO.class);
 
-            boolean success =
+            BigDecimal newBalance =
                     userService.balanceDeposit(
                             depositRequest.getUserId(), depositRequest.getAmount(), depositRequest.getPassword());
 
             Response response;
-            if (success) {
-                java.math.BigDecimal newBalance =
-                        userDAO.getUserByUserId(depositRequest.getUserId()).getBalance();
+            if (newBalance != null) {
                 response = new Response("SUCCESS", "Nạp tiền thành công!", newBalance);
             } else {
                 response = new Response("ERROR", "Nạp tiền thất bại.");
@@ -580,9 +561,9 @@ public class ClientHandler implements Runnable {
 
     private void handleGetActiveAuctions() {
         try {
-            List<Auction> runningAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
-            List<Auction> openAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.OPEN);
-            List<Auction> finishedAuctions = AuctionService.getAuctionsByStatus(AuctionStatus.FINISHED);
+            List<Auction> runningAuctions = auctionService.getAuctionsByStatus(AuctionStatus.RUNNING);
+            List<Auction> openAuctions = auctionService.getAuctionsByStatus(AuctionStatus.OPEN);
+            List<Auction> finishedAuctions = auctionService.getAuctionsByStatus(AuctionStatus.FINISHED);
 
             List<Auction> activeItems = new ArrayList<>();
 
@@ -610,9 +591,9 @@ if(finishedAuctions != null){
     private void handleUpdateRole(Request request) {
         try {
             String dataJson = gson.toJson(request.getData());
-            UpdateRoleRequestDTO update = gson.fromJson(dataJson, UpdateRoleRequestDTO.class);
+            UpdateRoleRequestDTO requestDTO = gson.fromJson(dataJson, UpdateRoleRequestDTO.class);
 
-            boolean success = userDAO.updateRoleInDB(update.getUserId());
+            boolean success = userService.updateRole(requestDTO.getUserId());
             if (success) {
                 Response response = new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!");
                 sendMessage(gson.toJson(response));
@@ -635,7 +616,7 @@ if(finishedAuctions != null){
         try {
             String dataJson = gson.toJson(request.getData());
             int userId = gson.fromJson(dataJson, Integer.class);
-            List<PendingPaymentsDTO> pendingPaymentsDTOS = AuctionService.getAllAuctionsFinished(userId);
+            List<PendingPaymentsDTO> pendingPaymentsDTOS = auctionService.getAllAuctionsFinished(userId);
             Response response = new Response("SUCCESS", "Thanh cong!!!", pendingPaymentsDTOS);
             sendMessage(gson.toJson(response));
         } catch (Exception e) {
@@ -649,14 +630,9 @@ if(finishedAuctions != null){
         try {
             String dataJson = gson.toJson(request.getData());
             PendingPaymentsDTO pendingPaymentsDTO = gson.fromJson(dataJson, PendingPaymentsDTO.class);
-            System.out.println(
-                    "Thong tin pendingPaymentsDTO "
-                            + pendingPaymentsDTO.getAuctionId()
-                            + " "
-                            + pendingPaymentsDTO.getUserId());
             int auctionId = pendingPaymentsDTO.getAuctionId();
             int bidderId = pendingPaymentsDTO.getUserId();
-            boolean success = AuctionService.checkoutAuction(auctionId, bidderId);
+            boolean success = auctionService.checkoutAuction(auctionId, bidderId);
             Response response;
             if (success) {
                 response = new Response("SUCCESS", "Thanh toan thanh cong!!!");
@@ -676,9 +652,9 @@ if(finishedAuctions != null){
         try {
             String dataJson = gson.toJson(request.getData());
             int userId = gson.fromJson(dataJson, Integer.class);
-            List<Integer> auctionIds = AuctionDAO.getInstance().getAllAuctionIdFinishedByUserId(userId);
+            List<Integer> auctionIds = auctionService.getAllItemPaidPending(userId);
             for (Integer x : auctionIds) {
-                AuctionService.checkoutAuction(x, userId);
+                auctionService.checkoutAuction(x, userId);
             }
             Response response = new Response("SUCCESS", "Thanh toan toan bo thanh cong!!!");
             sendMessage(gson.toJson(response));
@@ -694,7 +670,7 @@ if(finishedAuctions != null){
             String dataJson = gson.toJson(request.getData());
             Integer userId = gson.fromJson(dataJson, Integer.class);
 
-            List<PaidHistoryDTO> paidHistoryDTO = AuctionService.getAllAuctionsPaid(userId);
+            List<PaidHistoryDTO> paidHistoryDTO = auctionService.getAllAuctionsPaid(userId);
 
             Response response =
                     new Response("SUCCESS", "Lấy lịch sử thanh toán thành công", paidHistoryDTO);
@@ -712,12 +688,7 @@ if(finishedAuctions != null){
         try {
             String dataJson = gson.toJson(request.getData());
             AdminProcessItemDTO processReq = gson.fromJson(dataJson, AdminProcessItemDTO.class);
-            User requester = userDAO.getUserByUserId(processReq.getAdminId());
-            if (requester == null || requester.getRole() != RoleType.ADMIN) {
-                sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
-                return;
-            }
-            Item checkItem = itemDAO.getItemById(processReq.getItemId());
+            Item checkItem = itemService.getItemById(processReq.getItemId());
             if (checkItem == null) {
                 sendMessage(
                         gson.toJson(
@@ -735,7 +706,7 @@ if(finishedAuctions != null){
                 return;
             }
             ItemStatus newStatus = processReq.isApproved() ? ItemStatus.APPROVED : ItemStatus.REJECTED;
-            boolean success = ItemDAO.getInstance().updateItemStatus(processReq.getItemId(), newStatus);
+            boolean success = itemService.updateItemStatus(processReq.getItemId(), newStatus);
             if (success) {
                 String msg =
                         processReq.isApproved() ? "Đã DUYỆT tài sản thành công!" : "Đã TỪ CHỐI tài sản!";
@@ -757,13 +728,13 @@ if(finishedAuctions != null){
             String dataJson = gson.toJson(request.getData());
             Integer adminId = gson.fromJson(dataJson, Integer.class);
 
-            User requester = userDAO.getUserByUserId(adminId);
+            User requester = userService.getUserById(adminId);
             if (requester == null || requester.getRole() != RoleType.ADMIN) {
                 sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
                 return;
             }
 
-            List<User> users = userDAO.getAllUsers();
+            List<User> users = UserService.getInstance().getAllUsers();
             Response response = new Response("SUCCESS", "Lấy danh sách User thành công", users);
             sendMessage(gson.toJson(response));
 
@@ -779,7 +750,7 @@ if(finishedAuctions != null){
         try {
             List<Auction> allAuctions = new java.util.ArrayList<>();
             for (AuctionStatus status : AuctionStatus.values()) {
-                List<Auction> listByStatus = AuctionService.getAuctionsByStatus(status);
+                List<Auction> listByStatus = auctionService.getAuctionsByStatus(status);
                 if (listByStatus != null) {
                     allAuctions.addAll(listByStatus);
                 }
@@ -799,7 +770,7 @@ if(finishedAuctions != null){
             String dataJson = gson.toJson(request.getData());
             AdminBanUserDTO banReq = gson.fromJson(dataJson, AdminBanUserDTO.class);
 
-            User requester = userDAO.getUserByUserId(banReq.getAdminId());
+            User requester = userService.getUserById(banReq.getAdminId());
             if (requester == null || requester.getRole() != RoleType.ADMIN) {
                 sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
                 return;
@@ -807,9 +778,9 @@ if(finishedAuctions != null){
 
             boolean success;
             if (banReq.isBanned()) {
-                success = userDAO.banStatus(banReq.getUserId());
+                success = userService.banUser(banReq.getUserId());
             } else {
-                success = userDAO.unbanStatus(banReq.getUserId());
+                success = userService.unbanUser(banReq.getUserId());
             }
 
             if (success) {
@@ -834,7 +805,7 @@ if(finishedAuctions != null){
             String dataJson = gson.toJson(request.getData());
             Integer auctionId = gson.fromJson(dataJson, Integer.class);
 
-            AuctionService.forceCancelAuction(auctionId, "Admin hủy khẩn cấp");
+            auctionService.forceCancelAuction(auctionId, "Admin hủy khẩn cấp");
 
             Response response = new Response("SUCCESS", "Đã HỦY KHẨN CẤP phiên đấu giá!");
             sendMessage(gson.toJson(response));
@@ -855,15 +826,15 @@ if(finishedAuctions != null){
             String dataJson = gson.toJson(request.getData());
             Integer adminId = gson.fromJson(dataJson, Integer.class);
 
-            User requester = userDAO.getUserByUserId(adminId);
+            User requester = userService.getUserById(adminId);
             if (requester == null || requester.getRole() != RoleType.ADMIN) {
                 sendMessage(gson.toJson(new Response("ERROR", "Báo động: Mày không phải Admin!")));
                 return;
             }
 
-            List<Item> daftItems = itemDAO.getItemsByStatus(ItemStatus.PENDING);
+            List<Item> pendingItems = itemService.getAllItemByStatus(ItemStatus.PENDING);
 
-            Response response = new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", daftItems);
+            Response response = new Response("SUCCESS", "Lấy danh sách chờ duyệt thành công", pendingItems);
             sendMessage(gson.toJson(response));
 
         } catch (Exception e) {
@@ -879,7 +850,7 @@ if(finishedAuctions != null){
             org.example.core.dto.itemsDTO.PendingItemsDTO dto =
                     gson.fromJson(gson.toJson(request.getData()), PendingItemsDTO.class);
 
-            List<Item> approvedItems = ItemDAO.getInstance().getApprovedItemsByUserId(dto.getSellerId());
+            List<Item> approvedItems = itemService.getApprovedItemsByUserId(dto.getSellerId());
 
             Response response =
                     new Response("SUCCESS", "Tải danh sách sản phẩm thành công", approvedItems);
@@ -898,12 +869,12 @@ if(finishedAuctions != null){
             AutoBidRequestDTO regDto = gson.fromJson(
                     gson.toJson(request.getData()), AutoBidRequestDTO.class);
 
-            org.example.server.daos.AutoBidDAO.getInstance().saveOrUpdateAutoBid(
+            biddingService.saveOrUpdateAutoBid(
                     regDto.getAuctionId(), regDto.getUserId(), regDto.getMaxBid());
 
             sendMessage(gson.toJson(new Response("SUCCESS", "Kích hoạt hệ thống AutoBid gác phòng thành công!", null)));
 
-            BiddingService.evaluateDeterministicBidding(regDto.getAuctionId());
+            biddingService.evaluateDeterministicBidding(regDto.getAuctionId());
         } catch (Exception e) {
             sendMessage(gson.toJson(new Response("ERROR", "Lỗi kích hoạt AutoBid: " + e.getMessage(), null)));
         }
@@ -914,7 +885,7 @@ if(finishedAuctions != null){
             AutoBidRequestDTO cancelDto = gson.fromJson(
                     gson.toJson(request.getData()), AutoBidRequestDTO.class);
 
-            AutoBidDAO.getInstance().disableAutoBid(
+            biddingService.disableAutoBid(
                     cancelDto.getAuctionId(), cancelDto.getUserId());
 
             sendMessage(gson.toJson(new Response("SUCCESS", "Đã hủy hệ thống tự động trả giá thành công!", null)));
