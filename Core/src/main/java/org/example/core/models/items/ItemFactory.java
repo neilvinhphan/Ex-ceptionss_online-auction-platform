@@ -97,6 +97,8 @@ public class ItemFactory {
     trueItem.setStartingPrice(itemDTO.getStartingPrice());
     trueItem.setImage(itemDTO.getBase64Image());
 
+    trueItem.setStatus(ItemStatus.PENDING);
+
     return trueItem;
   }
 }
