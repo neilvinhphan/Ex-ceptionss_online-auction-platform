@@ -246,8 +246,8 @@ public class BiddingService {
             BigDecimal finalPrice = bot1.getMaxBid();
             int winnerId = bot1.getCreatedAt().isBefore(bot2.getCreatedAt()) ? bot1.getUserId() : bot2.getUserId();
 
-            // Chỉ kích hoạt nếu giá mới thực sự đẩy căn phòng lên cao hơn hoặc đổi ngôi dẫn đầu
-            if (isFirstBid || finalPrice.compareTo(dbPrice) > 0 || auction.getBidderId() != winnerId) {
+            // 🔥 FIX LỖI 2: Loại bỏ biến rác không tồn tại, check trực tiếp với currentPrice của phòng đấu giá
+            if (finalPrice.compareTo(currentPrice) > 0 || auction.getBidderId() != winnerId) {
               executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
             }
           }
@@ -265,11 +265,15 @@ public class BiddingService {
         }
       }
       else {
+        // 🔥 FIX LỖI 1: Luồng xử lý cho 1 Bot cô đơn đặt giá thành công
         if (bot1.getMaxBid().compareTo(currentPrice) > 0 && auction.getBidderId() != bot1.getUserId()) {
           BigDecimal finalPrice = currentPrice.add(increment);
           if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
             finalPrice = bot1.getMaxBid();
           }
+
+          // Chốt hạ: Phải gọi hàm này thì Mockito mới bắt được transaction và DB mới lưu!
+          executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
         }
       }
     } catch (Exception e) {
