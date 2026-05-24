@@ -20,7 +20,7 @@
                 <BorderPane style="-fx-background-color: #F8F9FA;" VBox.vgrow="ALWAYS">
 
                     <left>
-                        <VBox spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="CENTER">
+                        <VBox maxHeight="-Infinity" spacing="10.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);" BorderPane.alignment="TOP_CENTER">
                             <children>
                                 <Label text="Lọc kết quả">
                                     <font>

@@ -41,7 +41,7 @@ public class DashboardDAO {
 
         // Đếm tài sản chờ duyệt (DAFT)
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'DRAFT'");
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'PENDING'");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) kpis.put("pendingCount", String.valueOf(rs.getInt(1)));
         } catch (Exception e) { kpis.put("pendingCount", "0"); }

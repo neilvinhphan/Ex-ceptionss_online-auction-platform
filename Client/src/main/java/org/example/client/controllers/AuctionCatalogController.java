@@ -434,7 +434,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
               lblCountdown.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #78909C;"); // Màu xám bế mạc
               lblState.setText("🏁 ĐÃ KẾT THÚC");
               lblState.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #78909C;");
-              btnJoin.setDisable(true);
+           //   btnJoin.setDisable(true);
               btnJoin.setText("PHÒNG ĐÃ ĐÓNG");
               btnJoin.setStyle("-fx-background-color: #B0BEC5; -fx-text-fill: white; -fx-background-radius: 5;");
             }
@@ -462,7 +462,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
             lblCountdown.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #78909C;");
             lblState.setText("🏁 ĐÃ KẾT THÚC");
             lblState.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #78909C;");
-            btnJoin.setDisable(true);
+          //  btnJoin.setDisable(true);
             btnJoin.setText("PHÒNG ĐÃ ĐÓNG");
             btnJoin.setStyle("-fx-background-color: #B0BEC5; -fx-text-fill: white; -fx-background-radius: 5;");
           }
@@ -474,7 +474,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
         // Các trạng thái đóng cửa hoàn toàn (FINISHED, PAID, CANCELED) -> Chuyển màu XÁM
         lblCountdown.setText("🏁 Phiên đấu giá đã đóng cửa");
         lblCountdown.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #78909C;");
-        btnJoin.setDisable(true);
+      //  btnJoin.setDisable(true);
         lblState.setText("🏁 ĐÃ KẾT THÚC");
         lblState.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #78909C;");
         btnJoin.setText("PHÒNG ĐÃ ĐÓNG");

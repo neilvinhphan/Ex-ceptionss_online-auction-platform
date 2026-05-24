@@ -66,14 +66,14 @@ public class ManageAuctionController extends BaseController implements Initializ
     colId.setCellValueFactory(new PropertyValueFactory<>("auctionId"));
 
     // 2. Cột Tên sản phẩm: Phải  vào trong Item để lấy ra
-//    colItemName.setCellValueFactory(
-//        cellData -> {
-//          if (cellData.getValue().getItem() != null) {
-//            return new SimpleStringProperty(cellData.getValue().getItem().getItemName());
-//          }
-//          return new SimpleStringProperty("Sản phẩm bị lỗi");
-//        });
-    colItemName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
+    colItemName.setCellValueFactory(
+        cellData -> {
+          if (cellData.getValue().getItem() != null) {
+            return new SimpleStringProperty(cellData.getValue().getItem().getItemName());
+          }
+          return new SimpleStringProperty("Sản phẩm bị lỗi");
+        });
+   // colItemName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
 
     // 3. Cột Người bán: Lấy SellerID từ Item
 //    colSeller.setCellValueFactory(
@@ -216,14 +216,12 @@ public class ManageAuctionController extends BaseController implements Initializ
   @FXML
   public void handleRefresh(ActionEvent event) {
     searchField.clear();
+    if (auctionTable.getItems() != auctionList) {
+      auctionTable.setItems(auctionList);
+    }
     loadAuctionsFromServer();
   }
 
-
-  @FXML
-  public void handleGoToApproval(ActionEvent event) {
-    switchScene(event, "/views/AuctionApprovalView.fxml", "Kiểm duyệt phiên đấu giá");
-  }
 
   @FXML
   public void handleCancelAuction(ActionEvent event) {
