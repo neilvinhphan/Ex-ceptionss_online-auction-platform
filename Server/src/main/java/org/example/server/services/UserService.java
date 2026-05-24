@@ -84,6 +84,7 @@ public class UserService {
     return user;
   }
 
+
   public List<User> getAllUsers() throws Exception {
     List<User> list = userDAO.getAllUsers();
     if (list == null) {

@@ -141,8 +141,55 @@ public class AuctionRoomController extends BaseController implements Initializab
         Auction sessionAuction = AuctionSession.getInstance().getCurrentAuction();
         Item sessionItem = AuctionSession.getInstance().getCurrentItem();
 
+        // ========================================================================
+        // 🔥 CƠ CHẾ TỰ SỬA SAI TRẠNG THÁI DỰA TRÊN ĐỒNG HỒ HỆ THỐNG
+        // ========================================================================
+        if (sessionAuction != null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            // Nếu đối tượng mang từ Catalog bảo là OPEN, nhưng giờ thực tế đã vượt quá giờ mở cửa
+            if ("OPEN".equals(sessionAuction.getStatus().name()) && now.isAfter(sessionAuction.getStartTime())) {
+
+                if (now.isBefore(sessionAuction.getEndTime())) {
+                    // Thực tế đang trong khung giờ đấu giá -> Ép sang RUNNING
+                    sessionAuction.setStatus(org.example.core.shared.enums.AuctionStatus.RUNNING);
+                    System.out.println("⚡ [UI SYNC] Đã tự động ép trạng thái phòng sang RUNNING.");
+                } else {
+                    // Thực tế đã lỡ qua cả giờ đóng cửa -> Ép sang FINISHED
+                    sessionAuction.setStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+                    System.out.println("⚡ [UI SYNC] Đã tự động ép trạng thái phòng sang FINISHED.");
+                }
+            }
+        }
+        // ========================================================================
+
         if (sessionAuction != null && sessionItem != null) {
             setupRoom(sessionAuction, sessionItem);
+            Auction currentAuction = AuctionSession.getInstance().getCurrentAuction();
+            if (currentAuction != null && "FINISHED".equals(currentAuction.getStatus().name())) {
+                Platform.runLater(() -> {
+                    // 1. Khóa cứng toàn bộ các ô nhập và nút bấm (Cả đặt giá tay lẫn AutoBid)
+                    tfMaxBid.setDisable(true);
+                    btnToggleAutoBid.setDisable(true);
+                    tfBidAmount.setDisable(true);
+                    btnPlaceBid.setDisable(true);
+
+                    // 2. Chuyển nút kích hoạt thành màu xám đóng phòng
+                    btnToggleAutoBid.setText("PHÒNG ĐÃ ĐÓNG");
+                    btnToggleAutoBid.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                    // 3. Đổ tên người thắng cuộc (nếu có) lên màn hình công khai
+                    if (currentAuction.getHighestBidderName() != null && !currentAuction.getHighestBidderName().isEmpty()) {
+                        lblHighestBidder.setText("Người thắng cuộc: " + currentAuction.getHighestBidderName());
+                    } else {
+                        lblHighestBidder.setText("Người thắng cuộc: Không có ai tham gia");
+                    }
+
+                    // 4. Ghim cứng mức giá thắng cuộc cuối cùng lên màn hình giá hiện tại
+                    BigDecimal finalPrice = currentAuction.getHighestBid() != null ? currentAuction.getHighestBid() : currentAuction.getItem().getStartingPrice();
+                    lblCurrentPrice.setText(String.format("%,d VNĐ", finalPrice.longValue()));
+                });
+            }
             listenFromServer();
         } else {
             showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
@@ -478,11 +525,82 @@ public class AuctionRoomController extends BaseController implements Initializab
                                         System.err.println("Lỗi parse trạng thái AutoBid cũ: " + e.getMessage());
                                     }
                                 }
+
+                                // 🔥 BỔ SUNG LUỒNG NGHE TÍN HIỆU TẮT BOT TỪ SERVER
+                                else if ("AUTOBID_DISABLED".equals(response.getStatus())) {
+                                    try {
+                                        // Gson thường ép kiểu số nguyên thành Double khi truyền raw object, nên ép qua Number trước cho an toàn
+                                        int disabledUserId = (int) Double.parseDouble(response.getData().toString());
+                                        // Chỉ cập nhật giao diện nếu ID bị tắt chính là ID của người đang cầm máy
+                                        if (currentUserId == disabledUserId) {
+                                            Platform.runLater(() -> {
+                                                // 1. Trả lại cờ hiệu và mở khóa ô nhập
+                                                isAutoBidActive = false;
+                                                tfMaxBid.setDisable(false);
+                                                tfMaxBid.clear();
+                                                tfMaxBid.setPromptText("Nhập hạn mức trần...");
+
+                                                // 2. Trả lại nút màu Cam ban đầu
+                                                btnToggleAutoBid.setText("KÍCH HOẠT AUTOBID");
+                                                btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                                                // 3. Báo lỗi ra màn hình cho người chơi biết
+                                                lblBidError.setStyle("-fx-text-fill: #ff9800; -fx-font-weight: bold;");
+                                                lblBidError.setText("⚠️ Bot đã tự động tắt do mức giá vượt quá trần!");
+                                            });
+                                        }
+                                    } catch (Exception e) {
+                                        System.err.println("❌ Lỗi parse dữ liệu tắt AutoBid: " + e.getMessage());
+                                    }
+                                }
+
                                 else if ("ROOM_USER_COUNT".equals(response.getStatus())) {
                                     String countStr = response.getMessage(); // Server sẽ ném số lượng người vào trường Message
                                     Platform.runLater(() -> {
                                         lblOnlineCount.setText("| 👥 Đang xem: " + countStr + " người");
                                     });
+                                }
+                                // 🔥 FIX LỖI MÙ THÔNG TIN: Nghe lệnh cập nhật toàn bộ phòng từ DB Server
+                                else if ("INITIAL_ROOM_DATA".equals(response.getStatus())) {
+                                    try {
+                                        // Ép kiểu ngược từ JSON sang đối tượng Auction xịn
+                                        Auction freshAuction = gson.fromJson(gson.toJson(response.getData()), Auction.class);
+
+                                        Platform.runLater(() -> {
+                                            // 1. Đè cái dữ liệu cũ rích từ Catalog đi, lưu cái xịn vào Session
+                                            AuctionSession.getInstance().setCurrentAuction(freshAuction);
+
+                                            // 2. Cập nhật lại mức giá chuẩn chung cuộc lên màn hình
+                                            BigDecimal finalPrice = freshAuction.getHighestBid() != null ? freshAuction.getHighestBid() : freshAuction.getItem().getStartingPrice();
+                                            lblCurrentPrice.setText(String.format("%,d VNĐ", finalPrice.longValue()));
+
+                                            // 3. Nếu phát hiện phòng này đã chết (FINISHED) từ trước
+                                            if ("FINISHED".equals(freshAuction.getStatus().name())) {
+                                                tfMaxBid.setDisable(true);
+                                                btnToggleAutoBid.setDisable(true);
+                                                tfBidAmount.setDisable(true);
+                                                btnPlaceBid.setDisable(true);
+
+                                                btnToggleAutoBid.setText("PHÒNG ĐÃ ĐÓNG");
+                                                btnToggleAutoBid.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold;");
+
+                                                if (freshAuction.getHighestBidderName() != null && !freshAuction.getHighestBidderName().isEmpty()) {
+                                                    lblHighestBidder.setText("Người thắng cuộc: " + freshAuction.getHighestBidderName());
+                                                } else {
+                                                    lblHighestBidder.setText("Người thắng cuộc: Không có ai tham gia");
+                                                }
+                                            } else {
+                                                // Nếu phòng vẫn đang chạy bình thường, cập nhật người dẫn đầu hiện tại
+                                                if (freshAuction.getHighestBidderName() != null && !freshAuction.getHighestBidderName().isEmpty()) {
+                                                    lblHighestBidder.setText("Người dẫn đầu: " + freshAuction.getHighestBidderName());
+                                                } else {
+                                                    lblHighestBidder.setText("Người dẫn đầu: Chưa có");
+                                                }
+                                            }
+                                        });
+                                    } catch (Exception e) {
+                                        System.err.println("❌ Lỗi dựng lại UI từ dữ liệu khởi tạo: " + e.getMessage());
+                                    }
                                 }
                             } catch (Exception parseEx) {
                                 System.err.println("❌ Lỗi bóc tách gói tin (Bỏ qua để nghe tiếp): " + parseEx.getMessage());

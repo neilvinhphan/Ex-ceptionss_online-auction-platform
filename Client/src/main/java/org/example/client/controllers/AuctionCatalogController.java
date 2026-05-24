@@ -69,6 +69,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
   @FXML private CheckBox cbTypeAll, cbTypeElectronics, cbTypeVehicle, cbTypeArt;
   @FXML private RadioButton rbPriceAll, rbPrice1, rbPrice2, rbPrice3, rbPrice4, rbPrice5;
   @FXML private RadioButton rbSortNewest, rbSortOldest;
+  @FXML private Button btnGoToHistory;
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
   private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -89,6 +90,12 @@ public class AuctionCatalogController extends BaseController implements Initiali
     }
     setupToggleGroups();
     loadActiveAuctions();
+
+    // 🔥 DỌN DẸP GIAO DIỆN: Xóa sổ nút Lọc "Đã kết thúc" khỏi màn hình Catalog
+    if (rbStatusFinished != null) {
+      rbStatusFinished.setVisible(false);
+      rbStatusFinished.setManaged(false); // Rút phần không gian của nó trên layout luôn
+    }
   }
   @FXML
   private void handleUpgrade(ActionEvent event) {
@@ -289,7 +296,12 @@ public class AuctionCatalogController extends BaseController implements Initiali
                     }
 
                     if (auction.getItem() != null) {
-                      fetchedAuctions.add(auction);
+                      // 🔥 BÚNG TAY THANOS: Chỉ nạp các phòng Đang chờ (OPEN) hoặc Đang chạy (RUNNING)
+                      if (auction.getStatus() == AuctionStatus.OPEN || auction.getStatus() == AuctionStatus.RUNNING) {
+                        fetchedAuctions.add(auction);
+                      } else {
+                        System.out.println("🧹 Đã dọn dẹp phòng " + auction.getAuctionId() + " khỏi Catalog vì trạng thái: " + auction.getStatus());
+                      }
                     } else {
                       System.out.println("⚠️ CẢNH BÁO: Bỏ qua Auction ID " + auction.getAuctionId() + " do ép kiểu Item thất bại.");
                     }
@@ -508,7 +520,6 @@ public class AuctionCatalogController extends BaseController implements Initiali
     rbStatusAll.setToggleGroup(statusGroup);
     rbStatusOpen.setToggleGroup(statusGroup);
     rbStatusRunning.setToggleGroup(statusGroup);
-    rbStatusFinished.setToggleGroup(statusGroup);
 
     ToggleGroup priceGroup = new ToggleGroup();
     rbPriceAll.setToggleGroup(priceGroup);
@@ -539,7 +550,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
         if (cbTypeArt.isSelected() && item instanceof ArtItem) matchType = true;
       }
       if (!matchType) continue;
-// LỌC THEO TRẠNG THÁI
+      // LỌC THEO TRẠNG THÁI
       boolean matchStatus = false;
       if (rbStatusAll.isSelected()) {
         matchStatus = true;
@@ -547,13 +558,8 @@ public class AuctionCatalogController extends BaseController implements Initiali
         matchStatus = true;
       } else if (rbStatusRunning.isSelected() && auction.getStatus() == AuctionStatus.RUNNING) {
         matchStatus = true;
-      } else if (rbStatusFinished.isSelected()) {
-        if (auction.getStatus() == AuctionStatus.FINISHED ||
-                auction.getStatus() == AuctionStatus.PAID ||
-                auction.getStatus() == AuctionStatus.CANCELED) {
-          matchStatus = true;
-        }
       }
+
       if (!matchStatus) continue;
       // LỌC THEO GIÁ
       boolean matchPrice = false;
@@ -595,4 +601,14 @@ public class AuctionCatalogController extends BaseController implements Initiali
     displayAuctions(filteredList);
   }
 
+  @FXML
+  private void handleGoToHistory(ActionEvent event) {
+    try {
+      // Sử dụng hàm switchScene có sẵn của BaseController để bay màu sang trang Lịch sử
+      switchScene(event, "/views/MarketHistoryView.fxml", "Lịch sử thị trường VET");
+    } catch (Exception e) {
+      System.err.println("❌ Lỗi không thể chuyển từ Catalog sang trang Lịch sử thị trường: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
 }

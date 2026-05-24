@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.example.core.network.LocalDateTimeAdapter;
@@ -72,6 +73,7 @@ public class ClientHandler implements Runnable {
     private static final AuctionService auctionService = AuctionService.getInstance();
     private static final BiddingService biddingService = BiddingService.getInstance();
     private static final DashBoardService dashBoardService = DashBoardService.getInstance();
+    private static final ConcurrentHashMap<Integer, ClientHandler> activeUsers = new ConcurrentHashMap<>();
 
     private final Socket clientSocket;
     private BufferedReader in;
@@ -216,6 +218,9 @@ public class ClientHandler implements Runnable {
                         case "CANCEL_AUTOBID":
                             handleCancelAutoBid(request);
                             break;
+                        case "GET_MARKET_HISTORY":
+                            handleGetMarketHistory(request);
+                            break;
                         default:
                             System.out.println("Unknown action: " + request.getAction());
                     }
@@ -288,10 +293,16 @@ public class ClientHandler implements Runnable {
             LoginRequestDTO loginRequest = gson.fromJson(dataJson, LoginRequestDTO.class);
 
             User newUser = authService.login(loginRequest);
-
             Response response;
             if (newUser != null) {
+                // 🔥 CHỐT CHẶN: Kiểm tra xem user này có đang online ở máy khác không?
+                if (activeUsers.containsKey(newUser.getUserId())) {
+                    sendMessage(gson.toJson(new Response("ERROR", "Tài khoản này đang được đăng nhập ở một thiết bị khác!", null)));
+                    return;
+                }
+
                 this.userId = newUser.getUserId();
+                activeUsers.put(this.userId, this); // Ghi danh vào sổ online
 
                 response = new Response("SUCCESS", "Login success!", newUser);
             } else {
@@ -455,6 +466,28 @@ public class ClientHandler implements Runnable {
                 }
             }
 
+            // 🔥 FIX LỖI VÀO PHÒNG FINISHED: Bốc data mới tinh từ DB gửi riêng cho ông Client này
+            try {
+                // Dùng AuctionService thay vì AuctionDAO
+                org.example.core.models.entities.Auction freshAuction =
+                        org.example.server.services.AuctionService.getInstance().getAuctionByAuctionId(auctionId);
+
+                if (freshAuction != null) {
+                    if (freshAuction.getBidderId() > 0) {
+                        // Dùng UserService thay vì UserDAO
+                        org.example.core.models.users.User winner =
+                                org.example.server.services.UserService.getInstance().getUserById(freshAuction.getBidderId());
+
+                        if (winner != null) {
+                            freshAuction.setHighestBidderName(winner.getUserName());
+                        }
+                    }
+                    sendMessage(gson.toJson(new Response("INITIAL_ROOM_DATA", "Dữ liệu khởi tạo phòng mới nhất", freshAuction)));
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Lỗi đồng bộ dữ liệu ban đầu cho Client vào phòng: " + e.getMessage());
+            }
+
         } catch (Exception e) {
             Response response = new Response("ERROR", "Lỗi khi join phòng: " + e.getMessage());
             sendMessage(gson.toJson(response));
@@ -573,9 +606,7 @@ public class ClientHandler implements Runnable {
             if (openAuctions != null) {
                 activeItems.addAll(openAuctions);
             }
-if(finishedAuctions != null){
-    activeItems.addAll(finishedAuctions);
-}
+
             Response response =
                     new Response("SUCCESS", "Lấy danh sách đấu giá đang diễn ra thành công", activeItems);
             sendMessage(gson.toJson(response));
@@ -894,12 +925,28 @@ if(finishedAuctions != null){
         }
     }
 
+    private void handleGetMarketHistory(Request request) {
+        try {
+            List<Auction> history = auctionService.getMarketHistory();
+            sendMessage(gson.toJson(new Response("SUCCESS", "Dữ liệu lịch sử thị trường", history)));
+        } catch (Exception e) {
+            sendMessage(gson.toJson(new Response("ERROR", "Lỗi lấy lịch sử thị trường: " + e.getMessage(), null)));
+        }
+    }
+
     public synchronized void sendMessage(String message) {
         out.println(message);
     }
 
     private void closeConnection() {
         try {
+            // 🔥 GẠCH TÊN KHỎI SỔ KHI CLIENT NGẮT KẾT NỐI (Tắt app, mất mạng, đăng xuất...)
+            if (this.userId != -1) {
+                activeUsers.remove(this.userId);
+                System.out.println("[SERVER] User ID " + this.userId + " đã offline và được xóa khỏi danh sách.");
+                this.userId = -1;
+            }
+
             connectedClients.remove(this);
             int oldRoomId = this.currentRoomId;
 

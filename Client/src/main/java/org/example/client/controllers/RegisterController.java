@@ -27,6 +27,19 @@ public class RegisterController extends BaseController {
 
   private Gson gson = ClientManager.getInstance().getGson();
   private AuctionClient clientSocket = ClientManager.getInstance().getClient();
+
+  // 🔥 BẮT SỰ KIỆN ENTER ĐỂ ĐĂNG KÝ
+  @FXML
+  public void initialize() {
+    tfUserName.setOnAction(this::handleRegister);
+    tfPhone.setOnAction(this::handleRegister);
+    tfEmail.setOnAction(this::handleRegister);
+    passHidden.setOnAction(this::handleRegister);
+    passShow.setOnAction(this::handleRegister);
+    repassHidden.setOnAction(this::handleRegister);
+    repassShow.setOnAction(this::handleRegister);
+  }
+
   @FXML
   void handleRegister(ActionEvent event) {
     String userName = tfUserName.getText();

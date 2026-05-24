@@ -137,9 +137,32 @@ public class AuctionService {
 
   private void endAuction(int auctionId) {
     try {
+      // 1. Lấy trạng thái và endTime MỚI NHẤT từ Database
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+
       if (auction != null && auction.getStatus() == AuctionStatus.RUNNING) {
 
+        // ==========================================================
+        // 🔥 BƯỚC CHECK SINH TỬ: CHỐNG XUNG ĐỘT ANTI-SNIPING
+        // ==========================================================
+        LocalDateTime now = LocalDateTime.now();
+
+        // Nếu giờ hiện tại vẫn chưa đến endTime mới nhất của phòng
+        // (Tức là phòng đã được BiddingService cộng thêm giờ)
+        if (now.isBefore(auction.getEndTime())) {
+
+          // Tính toán lại số giây CÒN THỪA
+          long remainingSeconds = Duration.between(now, auction.getEndTime()).getSeconds();
+          if (remainingSeconds <= 0) remainingSeconds = 1;
+
+          // Đặt lại báo thức mới (Reschedule) và tha mạng cho phòng này
+          scheduler.schedule(() -> endAuction(auctionId), remainingSeconds, TimeUnit.SECONDS);
+          System.out.println("⏳ [ANTI-SNIPING] Báo thức cũ đã reo, nhưng phòng " + auctionId + " được cộng giờ. Dời lịch đóng thêm " + remainingSeconds + " giây.");
+          return; // 🛑 Dừng việc đóng phòng tại đây!
+        }
+        // ==========================================================
+
+        // 2. Nếu thực sự đã hết giờ (now >= endTime), thì mới thẳng tay đóng cửa!
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.FINISHED);
         System.out.println("🛑 Phiên " + auctionId + " ĐÃ KẾT THÚC THÀNH CÔNG!");
 
@@ -207,6 +230,11 @@ public class AuctionService {
       throw new Exception("Trạng thái phiên đấu giá cần tra cứu không được để trống!");
     }
     return auctionDAO.getAllAuctionsByStatusForCatalog(status);
+  }
+
+  // 🔥 HÀM CẦU NỐI CHO CLIENT HANDLER
+  public Auction getAuctionByAuctionId(int auctionId) throws Exception {
+    return auctionDAO.getAuctionByAuctionId(auctionId);
   }
 
   public List<Integer> getAllItemPaidPending(int userId) throws Exception {
@@ -299,6 +327,8 @@ public class AuctionService {
       auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
       itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
 
+      itemDAO.updateItemStatus(auction.getItemId(), ItemStatus.APPROVED);
+
       return true;
     }
   }
@@ -315,5 +345,9 @@ public class AuctionService {
       throw new Exception("Mã người dùng không hợp lệ để tra cứu lịch sử mua hàng thành công!");
     }
     return auctionDAO.getAllAuctionsPaid(userId);
+  }
+
+  public List<Auction> getMarketHistory() throws Exception {
+    return auctionDAO.getAllCompletedAuctions();
   }
 }

@@ -153,7 +153,13 @@
                                                 <Font name="System Bold" size="24.0" />
                                             </font>
                                         </Label>
+
                                         <Region HBox.hgrow="ALWAYS" />
+
+                                        <Button fx:id="btnGoToHistory" mnemonicParsing="false" onAction="#handleGoToHistory"
+                                                style="-fx-background-color: #e2e8f0; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);"
+                                                text="📊 Xem lịch sử thị trường" />
+
                                     </children>
                                     <VBox.margin>
                                         <Insets bottom="30.0" />

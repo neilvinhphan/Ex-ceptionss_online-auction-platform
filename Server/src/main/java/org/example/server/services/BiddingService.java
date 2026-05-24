@@ -228,12 +228,11 @@ public class BiddingService {
             Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
             if (auction == null || auction.getStatus() != AuctionStatus.RUNNING) return;
 
-            // Lấy giá cao nhất hiện tại
-            BigDecimal highestBid = auction.getHighestBid();
+            // 🔥 FIX TỐI THƯỢNG: Ép buộc lấy giá thật trực tiếp từ DB giao dịch
+            BigDecimal highestBid = bidDAO.getCurrentPrice(auctionId);
             BigDecimal currentPrice;
 
-            // 🔥 FIX ĐÂY BRO: Nếu chưa có ai đặt (null) HOẶC giá đang là 0, thì mốc lấy đà phải là Giá Khởi Điểm!
-            if (highestBid == null || highestBid.compareTo(BigDecimal.ZERO) == 0) {
+            if (highestBid == null || highestBid.compareTo(BigDecimal.ZERO) <= 0) {
                 currentPrice = auction.getItem().getStartingPrice();
             } else {
                 currentPrice = highestBid;
@@ -249,29 +248,35 @@ public class BiddingService {
             AutoBidDAO.AutoBidConfig bot1 = activeBots.get(0);
 
             if (activeBots.size() >= 2) {
-                AutoBidDAO.AutoBidConfig bot2 = activeBots.get(1);
+                // 🔥 BƯỚC LỌC THÔNG MINH: Tự phân loại Bot Trùm và Bot Nhì
+                AutoBidDAO.AutoBidConfig highestBot = bot1.getMaxBid().compareTo(activeBots.get(1).getMaxBid()) >= 0 ? bot1 : activeBots.get(1);
+                AutoBidDAO.AutoBidConfig secondBot  = bot1.getMaxBid().compareTo(activeBots.get(1).getMaxBid()) >= 0 ? activeBots.get(1) : bot1;
 
-                if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) == 0) {
-                    if (currentPrice.compareTo(bot1.getMaxBid()) < 0) {
-                        BigDecimal finalPrice = bot1.getMaxBid();
-                        int winnerId = bot1.getCreatedAt().isBefore(bot2.getCreatedAt()) ? bot1.getUserId() : bot2.getUserId();
+                // Trường hợp 1: Hai Bot ngang cơ nhau
+                if (highestBot.getMaxBid().compareTo(secondBot.getMaxBid()) == 0) {
+                    if (currentPrice.compareTo(highestBot.getMaxBid()) < 0) {
+                        BigDecimal finalPrice = highestBot.getMaxBid();
+                        int winnerId = highestBot.getCreatedAt().isBefore(secondBot.getCreatedAt()) ? highestBot.getUserId() : secondBot.getUserId();
 
-                        // 🔥 FIX LỖI 2: Loại bỏ biến rác không tồn tại, check trực tiếp với currentPrice của phòng đấu giá
-                        if (finalPrice.compareTo(currentPrice) > 0 || auction.getBidderId() != winnerId) {
+                        if (finalPrice.compareTo(currentPrice) > 0 && auction.getBidderId() != winnerId) {
                             executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
                         }
                     }
-                } else if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) > 0) {
-                    BigDecimal finalPrice = bot2.getMaxBid().add(increment);
+                }
+                // Trường hợp 2: Bot Trùm tiền nhiều hơn Bot Nhì
+                else {
+                    BigDecimal baseComparePrice = secondBot.getMaxBid().compareTo(currentPrice) > 0 ? secondBot.getMaxBid() : currentPrice;
+                    BigDecimal finalPrice = baseComparePrice.add(increment);
 
-                    if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
-                        finalPrice = bot1.getMaxBid();
+                    if (finalPrice.compareTo(highestBot.getMaxBid()) > 0) {
+                        finalPrice = highestBot.getMaxBid();
                     }
 
-                    if (finalPrice.compareTo(currentPrice) > 0 || auction.getBidderId() != bot1.getUserId()) {
-                        executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
+                    if (finalPrice.compareTo(currentPrice) > 0 && auction.getBidderId() != highestBot.getUserId()) {
+                        executeAutoBidTransaction(auctionId, finalPrice, highestBot.getUserId(), auction);
                     }
                 }
+
             } else {
                 // 🔥 FIX LỖI 1: Luồng xử lý cho 1 Bot cô đơn đặt giá thành công
                 if (bot1.getMaxBid().compareTo(currentPrice) > 0 && auction.getBidderId() != bot1.getUserId()) {
@@ -284,6 +289,39 @@ public class BiddingService {
                     executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
                 }
             }
+
+            // =================================================================
+            // 🔥 BƯỚC DỌN DẸP CHIẾN TRƯỜNG: TẮT BOT THUA CUỘC VÀ CHẠM TRẦN
+            // =================================================================
+            Auction checkAuction = auctionDAO.getAuctionByAuctionId(auctionId);
+            if (checkAuction != null) {
+                // 🔥 FIX: Lấy giá trực tiếp từ DB để kiểm tra điều kiện tắt Bot
+                BigDecimal latestDbPrice = bidDAO.getCurrentPrice(auctionId);
+                BigDecimal latestPrice = (latestDbPrice != null && latestDbPrice.compareTo(BigDecimal.ZERO) > 0)
+                        ? latestDbPrice
+                        : checkAuction.getItem().getStartingPrice();
+
+                int currentLeaderId = checkAuction.getBidderId();
+
+                for (AutoBidDAO.AutoBidConfig bot : activeBots) {
+                    // TH1: Trần của Bot thấp hơn giá hiện tại (Hết tiền, thua đứt đuôi)
+                    boolean isOutbid = bot.getMaxBid().compareTo(latestPrice) < 0;
+
+                    // TH2: Trần của Bot bằng đúng giá hiện tại, nhưng bị người khác hớt tay trên (Chạm nóc nhưng vẫn thua)
+                    boolean isMaxedOutAndLost = (bot.getMaxBid().compareTo(latestPrice) == 0 && bot.getUserId() != currentLeaderId);
+
+                    if (isOutbid || isMaxedOutAndLost) {
+                        // Gọi thẳng hàm có sẵn của bro luôn, cực kỳ OOP!
+                        autoBidDAO.disableAutoBid(auctionId, bot.getUserId());
+                        System.out.println("🤖 [AUTOBID CLEANUP] Đã tự động tắt Bot của User " + bot.getUserId() + " tại phòng " + auctionId);
+
+                        // 2. 🔥 FIX UI: Bắn tín hiệu Socket ra toàn phòng để Client tự cập nhật nút bấm!
+                        Response disableAlert = new Response("AUTOBID_DISABLED", "Bot chạm trần", bot.getUserId());
+                        AuctionServer.broadcastToRoom(auctionId, disableAlert);
+                    }
+                }
+            }
+            // =================================================================
         } catch (Exception e) {
             System.err.println("❌ Lỗi xử lý lõi toán học AutoBid: " + e.getMessage());
             e.printStackTrace();
@@ -291,15 +329,25 @@ public class BiddingService {
     }
 
     private void executeAutoBidTransaction(int auctionId, BigDecimal finalPrice, int winnerId, Auction auction) throws Exception {
+        LocalDateTime now = LocalDateTime.now(); // Lấy thời gian hiện tại
         String winnerName = userDAO.getUserByUserId(winnerId).getUserName();
 
-        BidTransaction autoBidTx = new BidTransaction(finalPrice, LocalDateTime.now(), winnerId, winnerName);
+        BidTransaction autoBidTx = new BidTransaction(finalPrice, now, winnerId, winnerName);
         autoBidTx.setAuctionId(auctionId);
 
+        // 1. Lưu vào bảng lịch sử giao dịch
         bidDAO.insertBid(autoBidTx);
 
-        auctionDAO.updateHighestPriceByItemId(winnerId, finalPrice);
+        // 2. Cập nhật giá và người dẫn đầu hiện tại (Lệnh chuẩn đã fix lúc nãy)
+        bidDAO.updateCurrentPrice(auctionId, winnerId, finalPrice);
 
+        // ==========================================================
+        // 🔥 FIX LỖI Ở ĐÂY: KÍCH HOẠT ANTI-SNIPING CHO AUTOBID
+        // ==========================================================
+        // Gọi hàm cộng giờ trước khi báo cho Client biết
+        handleAntiSniping(auctionId, auction, now);
+
+        // 3. Đóng gói dữ liệu phát sóng. Lúc này auction.getEndTime() sẽ lấy được giờ MỚI NHẤT (nếu có cộng)
         BidBroadcastDTO broadcastData = new BidBroadcastDTO(
                 auctionId,
                 finalPrice.doubleValue(),
@@ -308,6 +356,7 @@ public class BiddingService {
                 true
         );
 
+        // 4. Phát loa cho cả phòng tự cập nhật giá và thời gian đếm ngược
         Response broadcastResponse = new Response("NEW_BID", "Hệ thống tự động đẩy giá!", broadcastData);
         AuctionServer.broadcastToRoom(auctionId, broadcastResponse);
         System.out.println("🚀 [AUTOBID BROADCAST] Giá phòng " + auctionId + " tự động tăng vọt lên " + finalPrice + " đ bởi Bot của " + winnerName);

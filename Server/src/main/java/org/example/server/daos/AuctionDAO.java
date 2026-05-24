@@ -7,6 +7,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.models.users.User;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.config.DBConnection;
 import org.example.core.models.entities.Auction;
@@ -348,6 +349,18 @@ public class AuctionDAO {
             System.err.println("Lỗi nạp kèm Item trong DAO: " + e.getMessage());
           }
 
+          if (auction.getBidderId() > 0) {
+            try {
+              // Gọi sang UserDAO để lấy thông tin người dùng
+              User winner = UserDAO.getInstance().getUserByUserId(auction.getBidderId());
+              if (winner != null) {
+                auction.setHighestBidderName(winner.getUserName());
+              }
+            } catch (Exception e) {
+              System.out.println("Bỏ qua lỗi lấy tên người thắng: " + e.getMessage());
+            }
+          }
+
           return auction;
         }
       }
@@ -355,6 +368,78 @@ public class AuctionDAO {
       throw new RuntimeException(e);
     }
     return null;
+  }
+
+  public List<Auction> getAllCompletedAuctions() {
+    List<Auction> auctions = new ArrayList<>();
+
+    String sql =
+            "SELECT a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment, a.bidder_id, "
+                    + "i.items_name AS item_name, i.type AS item_type, i.start_price, i.image, i.description, i.owner_id, "
+                    + "COALESCE(MAX(b.bid_amount), i.start_price) AS highest_price, "
+                    + "COUNT(b.bid_amount) AS total_bids " // 🔥 FIX Ở ĐÂY: Đếm trực tiếp từ bảng bid
+                    + "FROM auction a "
+                    + "JOIN items i ON a.items_id = i.items_id "
+                    + "LEFT JOIN bid b ON a.auction_id = b.auction_id "
+                    + "WHERE a.status IN ('FINISHED', 'PAID') "
+                    + "GROUP BY a.auction_id, a.items_id, a.start_time, a.end_time, a.status, a.bid_increment, a.bidder_id, "
+                    + "i.items_name, i.type, i.start_price, i.image, i.description, i.owner_id "
+                    + "ORDER BY a.end_time DESC";
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+
+      ResultSet rs = ps.executeQuery();
+
+      while (rs.next()) {
+        Auction auction = new Auction();
+        auction.setAuctionId(rs.getInt("auction_id"));
+        auction.setItemId(rs.getInt("items_id"));
+        auction.setBidderId(rs.getInt("bidder_id"));
+        auction.setOwnerId(rs.getInt("owner_id"));
+
+        String statusStr = rs.getString("status");
+        if (statusStr != null) {
+          auction.setStatus(AuctionStatus.valueOf(statusStr.toUpperCase()));
+        }
+
+        if (rs.getTimestamp("start_time") != null) {
+          auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+        }
+        if (rs.getTimestamp("end_time") != null) {
+          auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+        }
+
+        auction.setHighestBid(rs.getBigDecimal("highest_price"));
+        auction.setBidIncrement(rs.getBigDecimal("bid_increment"));
+        auction.setTotalBids(rs.getInt("total_bids")); // Bắt số lượng Bid
+
+        // 🔥 Tự động nặn Item đa hình từ SQL, Gson parse mượt mà không vấp!
+        String itemType = rs.getString("item_type");
+        Item item = null;
+        if (itemType != null) {
+          switch (itemType.toUpperCase()) {
+            case "ART" -> item = new ArtItem();
+            case "ELECTRONICS" -> item = new ElectronicsItem();
+            case "VEHICLE" -> item = new VehicleItem();
+          }
+          if (item != null) {
+            item.setItemId(rs.getInt("items_id"));
+            item.setItemName(rs.getString("item_name"));
+            item.setType(itemType);
+            item.setStartingPrice(rs.getBigDecimal("start_price"));
+            item.setImage(rs.getString("image"));
+            item.setDescription(rs.getString("description"));
+            auction.setItem(item);
+          }
+        }
+        auctions.add(auction);
+      }
+    } catch (Exception e) {
+      System.err.println("Lỗi DAO khi lấy Market History: " + e.getMessage());
+      e.printStackTrace();
+    }
+    return auctions;
   }
 
   public BigDecimal getBidIncrementByAuctionId(int auctionId) {

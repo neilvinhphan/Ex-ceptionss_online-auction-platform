@@ -26,6 +26,23 @@ public class LoginController extends BaseController {
   private Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
+  // 🔥 BẮT SỰ KIỆN ENTER ĐỂ ĐĂNG NHẬP
+  @FXML
+  public void initialize() {
+    tfUserName.setOnAction(this::triggerLogin);
+    pfPass.setOnAction(this::triggerLogin);
+    tfPassShow.setOnAction(this::triggerLogin);
+  }
+
+  // Hàm mồi để bọc cái try-catch do handleLogin của ông đang throw Exception
+  private void triggerLogin(ActionEvent event) {
+    try {
+      handleLogin(event);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   @FXML
   void handleLogin(ActionEvent event) throws Exception {
     String userName = tfUserName.getText();
