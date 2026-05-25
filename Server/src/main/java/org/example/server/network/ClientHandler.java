@@ -140,6 +140,7 @@ public class ClientHandler implements Runnable {
         switch (request.getAction()) {
           case "REGISTER" -> handleRegister(request);
           case "LOGIN" -> handleLogin(request);
+          case "LOGOUT" -> handleLogout(request);
           case "CREATE_ITEM" -> handleCreateItem(request);
           case "UPDATE_ITEM_FULL" -> handleEditProduct(request);
           case "DELETE_ITEM" -> handleDeleteProduct(request);
@@ -234,6 +235,19 @@ public class ClientHandler implements Runnable {
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Lỗi xử lý đăng nhập", e);
       sendMessage(gson.toJson(new Response("ERROR", e.getMessage())));
+    }
+  }
+
+  private void handleLogout(Request request) {
+    try {
+      if (this.userId != -1) {
+        activeUsers.remove(this.userId);
+        System.out.println("[SERVER] User ID " + this.userId + " đã Đăng xuất an toàn.");
+        this.userId = -1;
+      }
+      sendMessage(gson.toJson(new Response("SUCCESS", "Đăng xuất thành công!", null)));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

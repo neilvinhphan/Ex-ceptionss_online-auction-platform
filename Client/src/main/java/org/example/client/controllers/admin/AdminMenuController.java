@@ -1,5 +1,7 @@
 package org.example.client.controllers.admin;
 
+import com.google.gson.Gson;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -7,7 +9,10 @@ import javafx.scene.control.ButtonType;
 import java.util.Optional;
 import java.util.logging.Logger;
 import org.example.client.controllers.BaseController;
+import org.example.client.network.AuctionClient;
+import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
+import org.example.core.dto.Request;
 
 /** Controller quản lý thanh menu điều hướng của hệ thống Admin Panel. */
 public class AdminMenuController extends BaseController {
@@ -41,9 +46,22 @@ public class AdminMenuController extends BaseController {
     Optional<ButtonType> result = alert.showAndWait();
 
     if (result.isPresent() && result.get() == ButtonType.OK) {
-      logger.info("Admin xác nhận đăng xuất. Đang xóa phiên làm việc.");
-      UserSession.getInstance().cleanUserSession();
-      switchScene(event, "/views/LoginView.fxml", "Đăng nhập ");
+      System.out.println("Admin xác nhận đăng xuất. Đang gửi yêu cầu gạch tên lên Server...");
+
+      try {
+        Gson gson = ClientManager.getInstance().getGson();
+        AuctionClient clientSocket = ClientManager.getInstance().getClient();
+
+        Request logoutRequest = new Request("LOGOUT", null);
+        String jsonRequest = gson.toJson(logoutRequest);
+
+        clientSocket.sendRequest(jsonRequest);
+      } catch (Exception e) {
+        System.err.println("Lỗi khi gửi yêu cầu LOGOUT của Admin: " + e.getMessage());
+      }
+
+      org.example.client.utils.UserSession.getInstance().cleanUserSession();
+      switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     }
   }
 }
