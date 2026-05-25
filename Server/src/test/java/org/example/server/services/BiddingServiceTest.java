@@ -145,7 +145,6 @@ class BiddingServiceTest {
         Auction mockAuction = new Auction();
         mockAuction.setAuctionId(1);
         mockAuction.setStatus(AuctionStatus.RUNNING);
-        mockAuction.setHighestBid(new BigDecimal("100000"));
         mockAuction.setBidIncrement(new BigDecimal("20000"));
         mockAuction.setBidderId(99);
 
@@ -162,12 +161,17 @@ class BiddingServiceTest {
         when(autoBidDAOMock.getActiveAutoBidsForAuction(1)).thenReturn(activeBots);
         when(userDAOMock.getUserByUserId(10)).thenReturn(mockUser);
 
+        // 🔥 FIX 1: Bổ sung Mock dữ liệu giả cho hàm lấy giá trực tiếp từ DB
+        when(bidDAOMock.getCurrentPrice(1)).thenReturn(new BigDecimal("100000"));
+
         biddingService.evaluateDeterministicBidding(1);
 
         BigDecimal expectedFinalPrice = new BigDecimal("120000");
 
         verify(bidDAOMock, times(1)).insertBid(argThat(tx -> tx.getAmount().compareTo(expectedFinalPrice) == 0 && tx.getBidderId() == 10));
-        verify(auctionDAOMock, times(1)).updateHighestPriceByItemId(10, expectedFinalPrice);
+
+        // 🔥 FIX 2: Sửa lại tên hàm Verify cho chuẩn khớp với code thật
+        verify(bidDAOMock, times(1)).updateCurrentPrice(1, 10, expectedFinalPrice);
     }
 
     @Test
@@ -177,7 +181,6 @@ class BiddingServiceTest {
         Auction mockAuction = new Auction();
         mockAuction.setAuctionId(1);
         mockAuction.setStatus(AuctionStatus.RUNNING);
-        mockAuction.setHighestBid(new BigDecimal("100000"));
         mockAuction.setBidIncrement(new BigDecimal("15000"));
         mockAuction.setBidderId(99);
 
@@ -200,11 +203,16 @@ class BiddingServiceTest {
         when(autoBidDAOMock.getActiveAutoBidsForAuction(1)).thenReturn(activeBots);
         when(userDAOMock.getUserByUserId(10)).thenReturn(mockUser);
 
+        // 🔥 FIX 1: Bổ sung Mock dữ liệu giả cho hàm lấy giá trực tiếp từ DB
+        when(bidDAOMock.getCurrentPrice(1)).thenReturn(new BigDecimal("100000"));
+
         biddingService.evaluateDeterministicBidding(1);
 
         BigDecimal expectedFinalPrice = new BigDecimal("415000");
 
         verify(bidDAOMock, times(1)).insertBid(argThat(tx -> tx.getAmount().compareTo(expectedFinalPrice) == 0 && tx.getBidderId() == 10));
-        verify(auctionDAOMock, times(1)).updateHighestPriceByItemId(10, expectedFinalPrice);
+
+        // 🔥 FIX 2: Sửa lại tên hàm Verify cho chuẩn khớp với code thật
+        verify(bidDAOMock, times(1)).updateCurrentPrice(1, 10, expectedFinalPrice);
     }
 }

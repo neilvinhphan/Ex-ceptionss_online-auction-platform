@@ -1,4 +1,4 @@
-package org.example.client.controllers;
+package org.example.client.controllers.admin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -10,50 +10,64 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.example.client.controllers.BaseController;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.ImageUtils;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.dto.admin.AdminCancelAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.Item;
-import org.example.core.shared.enums.AuctionStatus;
 
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.util.List;
-import java.util.ResourceBundle;
-
+/**
+ * Controller xử lý quy trình phê duyệt hoặc từ chối các phiên đấu giá đang chờ duyệt từ phía Admin.
+ */
 public class AuctionApprovalController extends BaseController implements Initializable {
 
-  // --- CÁC THÀNH PHẦN GIAO DIỆN (Đã khớp fx:id với FXML của My) ---
-  @FXML private TableView<Auction> itemTable; // Dùng TableView để chứa Auction
+  private static final Logger logger = Logger.getLogger(AuctionApprovalController.class.getName());
+
+  @FXML private TableView<Auction> itemTable;
   @FXML private TableColumn<Auction, Integer> colId;
   @FXML private TableColumn<Auction, String> colItemName;
   @FXML private TableColumn<Auction, String> colType;
   @FXML private TableColumn<Auction, String> colPrice;
-
   @FXML private ImageView itemImageView;
-  @FXML private Label lblNoImage, lblName, lblType, lblPrice;
+  @FXML private Label lblNoImage;
+  @FXML private Label lblName;
+  @FXML private Label lblType;
+  @FXML private Label lblPrice;
   @FXML private TextArea txtDescription;
-  @FXML private Button btnApprove, btnReject;
+  @FXML private Button btnApprove;
+  @FXML private Button btnReject;
 
-  private ObservableList<Auction> pendingAuctionList = FXCollections.observableArrayList();
+  private final ObservableList<Auction> pendingAuctionList = FXCollections.observableArrayList();
   private final Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
+  /**
+   * Khởi tạo cấu trúc bảng dữ liệu, tải danh sách chờ duyệt và đăng ký lắng nghe sự kiện chọn dòng.
+   */
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     setupTableColumns();
     loadPendingAuctions();
 
-    // 🎧 Lắng nghe sự kiện chọn dòng trong bảng để hiển thị Preview
     itemTable
         .getSelectionModel()
         .selectedItemProperty()
@@ -71,13 +85,10 @@ public class AuctionApprovalController extends BaseController implements Initial
             });
   }
 
-  // =======================================================
-  // 1. CÀI ĐẶT BẢNG (MAP DỮ LIỆU AUCTION)
-  // =======================================================
+  /** Định hình cấu trúc ánh xạ dữ liệu của thực thể Auction và Item lên các cột của TableView. */
   private void setupTableColumns() {
     colId.setCellValueFactory(new PropertyValueFactory<>("auctionId"));
 
-    // Móc tên sản phẩm từ object Item nằm trong Auction
     colItemName.setCellValueFactory(
         cellData -> {
           Item item = cellData.getValue().getItem();
@@ -101,6 +112,12 @@ public class AuctionApprovalController extends BaseController implements Initial
         });
   }
 
+  /**
+   * Trích xuất thông tin chi tiết của phiên đấu giá được chọn và giải mã chuỗi Base64 để hiển thị
+   * ảnh.
+   *
+   * @param auction Đối tượng phiên đấu giá được chọn từ bảng.
+   */
   private void showAuctionPreview(Auction auction) {
     Item item = auction.getItem();
     if (item == null) return;
@@ -110,13 +127,22 @@ public class AuctionApprovalController extends BaseController implements Initial
     lblPrice.setText(String.format("%,d VND", item.getStartingPrice().longValue()));
     txtDescription.setText(item.getDescription());
 
-    // Xử lý ảnh Base64
     if (item.getImage() != null && !item.getImage().isEmpty()) {
       lblNoImage.setVisible(false);
       new Thread(
               () -> {
-                Image img = ImageUtils.decodeBase64ToImage(item.getImage());
-                Platform.runLater(() -> itemImageView.setImage(img));
+                try {
+                  Image img = ImageUtils.decodeBase64ToImage(item.getImage());
+                  Platform.runLater(() -> itemImageView.setImage(img));
+                } catch (Exception e) {
+                  logger.log(Level.WARNING, "Không thể giải mã hình ảnh Base64 của sản phẩm", e);
+                  Platform.runLater(
+                      () -> {
+                        itemImageView.setImage(null);
+                        lblNoImage.setVisible(true);
+                        lblNoImage.setText("Lỗi tải ảnh");
+                      });
+                }
               })
           .start();
     } else {
@@ -126,6 +152,7 @@ public class AuctionApprovalController extends BaseController implements Initial
     }
   }
 
+  /** Khôi phục trạng thái trống cho vùng hiển thị thông tin xem trước (Preview) sản phẩm. */
   private void clearPreview() {
     lblName.setText("...");
     lblType.setText("...");
@@ -133,27 +160,34 @@ public class AuctionApprovalController extends BaseController implements Initial
     txtDescription.setText("");
     itemImageView.setImage(null);
     lblNoImage.setVisible(true);
+    lblNoImage.setText("Không có ảnh");
   }
 
-  // =======================================================
-  // 2. GIAO TIẾP SERVER (LẤY DANH SÁCH PENDING)
-  // =======================================================
+  /**
+   * Làm mới lại danh sách các phiên đấu giá đang chờ duyệt.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   private void handleRefresh(ActionEvent event) {
     loadPendingAuctions();
   }
 
+  /**
+   * Tạo tiến trình bất đồng bộ gửi yêu cầu lên Server để đồng bộ danh sách các phiên đấu giá chờ
+   * duyệt.
+   */
   private void loadPendingAuctions() {
     Request request = new Request("GET_PENDING_AUCTIONS", null);
-    System.out.println("Tao luong");
+
     new Thread(
             () -> {
               try {
-                System.out.println("Gui request");
+                logger.info("Đang gửi yêu cầu lấy danh sách phiên đấu giá chờ duyệt lên Server.");
                 String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
-                System.out.println("DEBUG SERVER TRẢ VỀ: " + jsonResponse);
+                logger.fine("Dữ liệu phản hồi từ Server: " + jsonResponse);
+
                 Response response = gson.fromJson(jsonResponse, Response.class);
-                System.out.println("Nhan response");
 
                 if ("SUCCESS".equals(response.getStatus())) {
                   String jsonData = gson.toJson(response.getData());
@@ -166,18 +200,27 @@ public class AuctionApprovalController extends BaseController implements Initial
                         itemTable.setItems(pendingAuctionList);
                         clearPreview();
                       });
+                } else {
+                  logger.warning(
+                      "Server từ chối cung cấp danh sách chờ duyệt: " + response.getMessage());
+                  Platform.runLater(() -> showAlert("Lỗi phản hồi", response.getMessage()));
                 }
               } catch (Exception e) {
+                logger.log(
+                    Level.SEVERE, "Lỗi nghiêm trọng khi tải danh sách phiên đấu giá chờ duyệt", e);
                 Platform.runLater(
-                    () -> showAlert("Lỗi", "Không thể tải dữ liệu: " + e.getMessage()));
+                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
               }
             })
         .start();
   }
 
-  // =======================================================
-  // 3. XỬ LÝ DUYỆT / TỪ CHỐI (KÍCH HOẠT SCHEDULER)
-  // =======================================================
+  /**
+   * Xử lý phê duyệt phiên đấu giá đã chọn, lên lịch mở phòng đấu giá tự động theo thời gian cấu
+   * hình.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   private void handleApprove(ActionEvent event) {
     Auction selected = itemTable.getSelectionModel().getSelectedItem();
@@ -190,8 +233,10 @@ public class AuctionApprovalController extends BaseController implements Initial
     new Thread(
             () -> {
               try {
+                logger.info("Gửi yêu cầu phê duyệt phiên đấu giá ID: " + selected.getAuctionId());
                 String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
                 Response res = gson.fromJson(jsonResponse, Response.class);
+
                 Platform.runLater(
                     () -> {
                       if ("SUCCESS".equals(res.getStatus())) {
@@ -200,49 +245,70 @@ public class AuctionApprovalController extends BaseController implements Initial
                             "Đã duyệt! Phòng sẽ tự mở vào lúc: " + selected.getStartTime());
                         loadPendingAuctions();
                       } else {
+                        logger.warning("Phê duyệt thất bại: " + res.getMessage());
                         showAlert("Lỗi", res.getMessage());
                       }
                     });
               } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+                logger.log(
+                    Level.SEVERE,
+                    "Lỗi mạng khi phê duyệt phiên đấu giá ID: " + selected.getAuctionId(),
+                    e);
+                Platform.runLater(
+                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
               }
             })
         .start();
   }
 
+  /**
+   * Xử lý từ chối và hủy bỏ phiên đấu giá đang được lựa chọn từ quản trị viên.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   private void handleReject(ActionEvent event) {
     Auction selected = itemTable.getSelectionModel().getSelectedItem();
     if (selected == null) return;
 
     int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-    // Dùng DTO Hủy đấu giá đã sửa của anh em mình
-    org.example.core.dto.admin.AdminCancelAuctionDTO cancelReq =
-        new org.example.core.dto.admin.AdminCancelAuctionDTO(selected.getAuctionId(), adminId);
-
+    AdminCancelAuctionDTO cancelReq = new AdminCancelAuctionDTO(selected.getAuctionId(), adminId);
     Request request = new Request("ADMIN_CANCEL_AUCTION", cancelReq);
 
     new Thread(
             () -> {
               try {
+                logger.info(
+                    "Gửi yêu cầu hủy phiên đấu giá từ Admin ID "
+                        + adminId
+                        + " đối với Auction ID "
+                        + selected.getAuctionId());
                 String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
                 Response res = gson.fromJson(jsonResponse, Response.class);
+
                 Platform.runLater(
                     () -> {
                       if ("SUCCESS".equals(res.getStatus())) {
                         showAlert("Thành công", "Đã từ chối phiên đấu giá.");
                         loadPendingAuctions();
                       } else {
+                        logger.warning("Từ chối phiên đấu giá thất bại: " + res.getMessage());
                         showAlert("Lỗi", res.getMessage());
                       }
                     });
               } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi mạng", e.getMessage()));
+                logger.log(Level.SEVERE, "Lỗi hệ thống khi gửi yêu cầu từ chối phiên đấu giá", e);
+                Platform.runLater(() -> showAlert("Lỗi mạng", "Chi tiết lỗi: " + e.getMessage()));
               }
             })
         .start();
   }
 
+  /**
+   * Quay lại màn hình giao diện quản lý phiên đấu giá tổng quan.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   private void handleBack(ActionEvent event) {
     switchScene(event, "/views/ManageAuctionView.fxml", "Quản trị hệ thống");

@@ -72,10 +72,6 @@
                         </VBox>
                     </center>
 
-                    <bottom>
-                        <fx:include source="FooterView.fxml" BorderPane.alignment="CENTER" />
-                    </bottom>
-
                 </BorderPane>
             </children>
         </VBox>

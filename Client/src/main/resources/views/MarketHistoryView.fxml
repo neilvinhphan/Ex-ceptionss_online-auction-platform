@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox spacing="20.0" style="-fx-background-color: #f8fafc; -fx-padding: 20;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.user.MarketHistoryController">
+    <children>
+
+        <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <children>
+                        <Button mnemonicParsing="false" onAction="#handleBackToCatalog" style="-fx-background-color: #cbd5e1; -fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 5 15; -fx-cursor: hand;" text="⬅ Quay lại" />
+                        <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0f172a;" text="📜 BẢNG GIÁ THỊ TRƯỜNG" />
+                    </children>
+                </HBox>
+
+                <TableView fx:id="tvMarketHistory" style="-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-radius: 5;" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colItemName" prefWidth="250.0" text="TÊN SẢN PHẨM" />
+                        <TableColumn fx:id="colFinalPrice" prefWidth="150.0" text="GIÁ CHỐT" />
+                        <TableColumn fx:id="colBidCount" prefWidth="80.0" text="SỐ BID" />
+                        <TableColumn fx:id="colStatus" prefWidth="120.0" text="TRẠNG THÁI" />
+                        <TableColumn fx:id="colEndTime" prefWidth="150.0" text="NGÀY ĐÓNG" />
+                    </columns>
+                </TableView>
+
+                <VBox spacing="5.0" style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 8;" prefHeight="300">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #475569;" text="📈 BIỂU ĐỒ XU HƯỚNG GIÁ" />
+                    <LineChart fx:id="chartPriceTrend" VBox.vgrow="ALWAYS" legendVisible="false">
+                        <xAxis><CategoryAxis label="Ngày đóng"/></xAxis>
+                        <yAxis><NumberAxis label="Giá"/></yAxis>
+                    </LineChart>
+                </VBox>
+            </children>
+        </VBox>
+
+        <VBox prefWidth="350.0" spacing="15.0">
+            <children>
+
+                <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-background-radius: 8;">
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #334155;" text="🔎 CHI TIẾT GIAO DỊCH" />
+
+                    <ImageView fx:id="imgProduct" fitHeight="150.0" fitWidth="150.0" preserveRatio="true" />
+                    <Label fx:id="lblDetailName" style="-fx-font-weight: bold; -fx-font-size: 16px;" text="Chọn sản phẩm..." wrapText="true" />
+
+                    <Label fx:id="lblDetailDesc" style="-fx-text-fill: #64748b; -fx-font-size: 13px;" text="Mô tả..." wrapText="true" />
+                    <Label fx:id="lblDetailBids" style="-fx-font-weight: bold; -fx-text-fill: #0284c7; -fx-font-size: 13px;" text="Số lượt thầu: --" />
+
+                    <Label fx:id="lblDetailPrice" style="-fx-font-weight: black; -fx-text-fill: #e11d48; -fx-font-size: 14px;" text="Giá: -- VNĐ" />
+                </VBox>
+
+                <VBox spacing="8.0" style="-fx-background-color: #eff6ff; -fx-padding: 20; -fx-border-color: #bfdbfe; -fx-border-radius: 8; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">
+                    <Label style="-fx-font-weight: bold; -fx-text-fill: #1e40af;" text="💡 Thông tin phân tích" />
+                    <Label fx:id="lblAnalysis" style="-fx-text-fill: #1e3a8a; -fx-font-size: 13px;" text="Dữ liệu đang được tính toán..." wrapText="true" />
+                </VBox>
+
+            </children>
+        </VBox>
+    </children>
+</HBox>
