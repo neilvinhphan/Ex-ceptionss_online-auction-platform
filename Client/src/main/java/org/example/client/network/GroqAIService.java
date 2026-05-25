@@ -9,25 +9,31 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * Lớp dịch vụ tích hợp trí tuệ nhân tạo thông qua cổng API Groq Cloud.
+ * Vận hành trên luồng HTTP Client hiện đại để phân tích xu hướng giá cả thị trường đấu giá.
+ */
 public class GroqAIService {
 
-    // 🔥 Thay API Key của ông vào đây
+    private static final Logger logger = Logger.getLogger(GroqAIService.class.getName());
     private static final String API_KEY = "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";
     private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-    // Dùng chung một HttpClient để tối ưu hiệu suất
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
     private static final Gson gson = new Gson();
 
     /**
-     * Gửi Prompt văn bản lên Groq và nhận về kết quả phân tích.
+     * Gửi Prompt văn bản lên mô hình Llama-3.1 xử lý ngữ nghĩa và trả về kết quả đúc kết thị trường.
+     *
+     * @param prompt Chuỗi cấu trúc dữ liệu thị trường và yêu cầu phân tích chuyên gia.
+     * @return Chuỗi phân tích thị trường súc tích trả về từ AI.
      */
     public static String analyzeMarket(String prompt) {
         try {
-            // 1. Đóng gói dữ liệu đầu vào (Cấu trúc hệt như OpenAI)
             JsonObject message = new JsonObject();
             message.addProperty("role", "user");
             message.addProperty("content", prompt);
@@ -38,9 +44,8 @@ public class GroqAIService {
             JsonObject requestBody = new JsonObject();
             requestBody.addProperty("model", "llama-3.1-8b-instant");
             requestBody.add("messages", messages);
-            requestBody.addProperty("temperature", 0.3); // Nhiệt độ thấp để AI trả lời khách quan, bớt bịa chuyện
+            requestBody.addProperty("temperature", 0.3);
 
-            // 2. Tạo Request HTTP
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
                     .header("Content-Type", "application/json")
@@ -48,10 +53,8 @@ public class GroqAIService {
                     .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(requestBody)))
                     .build();
 
-            // 3. Bắn Request lên Server Groq và chờ phản hồi
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // 4. Bóc tách JSON lấy kết quả
             if (response.statusCode() == 200) {
                 JsonObject jsonResponse = gson.fromJson(response.body(), JsonObject.class);
                 return jsonResponse.getAsJsonArray("choices")
@@ -59,12 +62,13 @@ public class GroqAIService {
                         .getAsJsonObject("message")
                         .get("content").getAsString();
             } else {
-                System.err.println("❌ Lỗi API Groq: " + response.body());
+                logger.log(Level.SEVERE, "Yêu cầu API Groq thất bại với mã trạng thái: {0} - Chi tiết: {1}",
+                        new Object[]{response.statusCode(), response.body()});
                 return "Không thể phân tích dữ liệu lúc này (Lỗi: " + response.statusCode() + ")";
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Gặp sự cố lỗi hệ thống hoặc ngắt kết nối khi gửi yêu cầu lên Groq AI Server", e);
             return "Đã xảy ra lỗi hệ thống khi kết nối AI: " + e.getMessage();
         }
     }

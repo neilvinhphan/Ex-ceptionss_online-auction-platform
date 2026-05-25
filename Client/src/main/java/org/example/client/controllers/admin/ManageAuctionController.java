@@ -1,11 +1,10 @@
-package org.example.client.controllers;
+package org.example.client.controllers.admin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,9 +12,21 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-
+import java.math.BigDecimal;
+import java.net.URL;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.example.client.controllers.BaseController;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
@@ -29,43 +40,44 @@ import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.AuctionStatus;
 
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-
+/**
+ * Controller quản lý danh sách và các thao tác liên quan đến toàn bộ phiên đấu giá hệ thống dành
+ * cho Admin.
+ */
 public class ManageAuctionController extends BaseController implements Initializable {
 
+  private static final Logger logger = Logger.getLogger(ManageAuctionController.class.getName());
+
   @FXML private TextField searchField;
-
-  // Gắn class Auction của bạn vào bảng
   @FXML private TableView<Auction> auctionTable;
-
   @FXML private TableColumn<Auction, Integer> colId;
   @FXML private TableColumn<Auction, String> colItemName;
   @FXML private TableColumn<Auction, String> colSeller;
   @FXML private TableColumn<Auction, String> colStartTime;
   @FXML private TableColumn<Auction, BigDecimal> colCurrentPrice;
   @FXML private TableColumn<Auction, String> colStatus;
-  private Gson gson = ClientManager.getInstance().getGson();
-  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
-  private ObservableList<Auction> auctionList =
-      FXCollections.observableArrayList(); // danh sách gốc
 
+  private final Gson gson = ClientManager.getInstance().getGson();
+  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+  private final ObservableList<Auction> auctionList = FXCollections.observableArrayList();
+
+  /**
+   * Khởi tạo cấu trúc các cột của bảng hiển thị và gửi yêu cầu đồng bộ dữ liệu phiên đấu giá từ
+   * Server.
+   */
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     setupTableColumns();
     loadAuctionsFromServer();
   }
 
+  /**
+   * Thiết lập cấu trúc ánh xạ dữ liệu động từ thực thể Auction lên các thành phần cột giao diện
+   * bảng.
+   */
   private void setupTableColumns() {
-    // 1. Cột ID Phiên (lấy thẳng biến "id" trong class Auction)
     colId.setCellValueFactory(new PropertyValueFactory<>("auctionId"));
 
-    // 2. Cột Tên sản phẩm: Phải  vào trong Item để lấy ra
     colItemName.setCellValueFactory(
         cellData -> {
           if (cellData.getValue().getItem() != null) {
@@ -73,19 +85,9 @@ public class ManageAuctionController extends BaseController implements Initializ
           }
           return new SimpleStringProperty("Sản phẩm bị lỗi");
         });
-   // colItemName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
 
-    // 3. Cột Người bán: Lấy SellerID từ Item
-//    colSeller.setCellValueFactory(
-//        cellData -> {
-//          if (cellData.getValue().getItem() != null) {
-//            return new SimpleStringProperty("sellerID");
-//          }
-//          return new SimpleStringProperty("NULL");
-//        });
     colSeller.setCellValueFactory(new PropertyValueFactory<>("ownerId"));
 
-    // 4. Cột Giờ bắt đầu: Dùng Formatter để biến LocalDateTime thành chữ cho đẹp
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     colStartTime.setCellValueFactory(
         cellData -> {
@@ -95,49 +97,48 @@ public class ManageAuctionController extends BaseController implements Initializ
           return new SimpleStringProperty("Chưa có");
         });
 
-    // 5. Cột Giá hiện tại (ánh xạ thẳng biến "highestBid")
     colCurrentPrice.setCellValueFactory(new PropertyValueFactory<>("highestBid"));
 
-    // 6. Cột Trạng thái
     colStatus.setCellValueFactory(
         cellData -> {
           AuctionStatus statusEnum = cellData.getValue().getStatus();
           return new SimpleStringProperty(
               statusEnum != null ? statusEnum.name() : "Không xác định");
         });
+
     auctionTable.setItems(auctionList);
   }
 
+  /**
+   * Khởi chạy tiến trình chạy ngầm gửi yêu cầu tải toàn bộ danh sách phiên đấu giá hiện có trên
+   * Server.
+   */
   private void loadAuctionsFromServer() {
     User currentUser = UserSession.getInstance().getCurrentUser();
     if (currentUser == null) {
       showAlert("Lỗi", "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn!");
       return;
     }
-    // Tạo gói tin yêu cầu lấy TOÀN BỘ phiên đấu giá (của Admin)
+
     Request request = new Request("ADMIN_GET_ALL_AUCTIONS", null);
     String jsonRequest = gson.toJson(request);
 
     new Thread(
             () -> {
               try {
-                System.out.println("Đang lấy danh sách tất cả phiên đấu giá từ Server...");
+                logger.info("Đang lấy danh sách tất cả phiên đấu giá từ Server...");
                 String jsonResponse = clientSocket.sendRequest(jsonRequest);
                 Response response = gson.fromJson(jsonResponse, Response.class);
 
                 if ("SUCCESS".equals(response.getStatus())) {
-
-                  // --- BƯỚC 1: XỬ LÝ DỮ LIỆU ĐA HÌNH (PARSING) Ở LUỒNG CHẠY NGẦM ---
                   String jsonData = gson.toJson(response.getData());
                   JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                   List<Auction> fetchedAuctions = new ArrayList<>();
 
                   for (JsonElement element : jsonArray) {
                     JsonObject auctionObj = element.getAsJsonObject();
-                    // 1.1 Dịch các trường cơ bản của Auction
                     Auction auction = gson.fromJson(auctionObj, Auction.class);
 
-                    // 1.2 Bóc tách thủ công cục Item bên trong dựa vào biến "type"
                     if (auctionObj.has("item") && !auctionObj.get("item").isJsonNull()) {
                       JsonObject itemObj = auctionObj.getAsJsonObject("item");
                       String type = itemObj.get("type").getAsString();
@@ -153,66 +154,79 @@ public class ManageAuctionController extends BaseController implements Initializ
                     }
                     fetchedAuctions.add(auction);
                   }
-                  // --- BƯỚC 2: ĐẨY DANH SÁCH VỪA BÓC TÁCH VÀO GIAO DIỆN CHÍNH ---
+
                   Platform.runLater(
                       () -> {
                         auctionList.setAll(fetchedAuctions);
-                        System.out.println(
+                        logger.info(
                             "Đã tải xong "
                                 + fetchedAuctions.size()
                                 + " phiên đấu giá vào bảng Quản lý.");
                       });
 
                 } else {
+                  logger.warning(
+                      "Server từ chối cung cấp danh sách phiên đấu giá: " + response.getMessage());
                   Platform.runLater(() -> showAlert("Lỗi tải dữ liệu", response.getMessage()));
                 }
 
               } catch (Exception e) {
+                logger.log(
+                    Level.SEVERE, "Lỗi kết nối hoặc xử lý bóc tách dữ liệu đa hình từ Server", e);
                 Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Không thể lấy dữ liệu: " + e.getMessage()));
-                e.printStackTrace();
+                    () ->
+                        showAlert(
+                            "Lỗi kết nối",
+                            "Không thể lấy dữ liệu. Chi tiết lỗi: " + e.getMessage()));
               }
             })
         .start();
   }
 
+  /**
+   * Thực hiện tìm kiếm cục bộ và lọc dữ liệu trên bảng theo từ khóa dựa trên ID phiên hoặc tên sản
+   * phẩm.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   public void handleSearch(ActionEvent event) {
     String keyword = searchField.getText().trim().toLowerCase();
-    // Nếu ô tìm kiếm trống, hiển thị lại toàn bộ danh sách gốc
     if (keyword.isEmpty()) {
       auctionTable.setItems(auctionList);
       return;
     }
+
     ObservableList<Auction> filteredList = FXCollections.observableArrayList();
     for (Auction auction : auctionList) {
       boolean matchId = false;
       boolean matchItemName = false;
       String idStr = String.valueOf(auction.getAuctionId());
-      if (idStr.contains(keyword) || String.valueOf(auction.getAuctionId()).contains(keyword)) {
+
+      if (idStr.contains(keyword)) {
         matchId = true;
       }
 
-      // Kiểm tra Tên sản phẩm: Lấy trực tiếp getItemName() giống PropertyValueFactory
       if (auction.getItemName() != null && auction.getItemName().toLowerCase().contains(keyword)) {
         matchItemName = true;
-      }
-      // Dự phòng trường hợp dữ liệu vẫn nằm sâu trong object Item
-      else if (auction.getItem() != null
-              && auction.getItem().getItemName() != null
-              && auction.getItem().getItemName().toLowerCase().contains(keyword)) {
+      } else if (auction.getItem() != null
+          && auction.getItem().getItemName() != null
+          && auction.getItem().getItemName().toLowerCase().contains(keyword)) {
         matchItemName = true;
       }
 
-      // Nếu khớp ID hoặc Tên thì tóm cổ nó nhét vào list kết quả
       if (matchId || matchItemName) {
         filteredList.add(auction);
       }
     }
-    // Cập nhật lại bảng với danh sách đã lọc
     auctionTable.setItems(filteredList);
   }
 
+  /**
+   * Khôi phục thanh tìm kiếm, đặt lại bảng dữ liệu gốc và thực hiện tải mới dữ liệu từ Server.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   public void handleRefresh(ActionEvent event) {
     searchField.clear();
@@ -222,7 +236,12 @@ public class ManageAuctionController extends BaseController implements Initializ
     loadAuctionsFromServer();
   }
 
-
+  /**
+   * Thực hiện lệnh cưỡng chế hủy một phiên đấu giá đang trong trạng thái hoạt động (RUNNING) từ
+   * phía Admin.
+   *
+   * @param event Sự kiện kích hoạt từ UI.
+   */
   @FXML
   public void handleCancelAuction(ActionEvent event) {
     Auction selectedAuction = auctionTable.getSelectionModel().getSelectedItem();
@@ -232,7 +251,6 @@ public class ManageAuctionController extends BaseController implements Initializ
       return;
     }
 
-    // Chỉ cho phép hủy nếu phiên đang RUNNING
     if (selectedAuction.getStatus() != AuctionStatus.RUNNING
         && selectedAuction.getStatus() != null) {
       showAlert("Từ chối", "Chỉ có thể hủy những phiên đang chạy (RUNNING).");
@@ -254,9 +272,11 @@ public class ManageAuctionController extends BaseController implements Initializ
         .ifPresent(
             responseBtn -> {
               if (responseBtn == ButtonType.OK) {
-                System.out.println(
-                    "Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: " + selectedAuction.getAuctionId());
-                Request request = new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getAuctionId());
+                logger.info(
+                    "Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: "
+                        + selectedAuction.getAuctionId());
+                Request request =
+                    new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getAuctionId());
                 String jsonRequest = gson.toJson(request);
 
                 new Thread(
@@ -269,15 +289,22 @@ public class ManageAuctionController extends BaseController implements Initializ
                                 () -> {
                                   if ("SUCCESS".equals(serverResponse.getStatus())) {
                                     showAlert("Thành công", "Đã hủy phiên đấu giá thành công!");
-                                    // Cập nhật lại UI:
                                     selectedAuction.setStatus(AuctionStatus.CANCELED);
-                                    auctionTable.refresh(); // Làm mới giao diện bảng
+                                    auctionTable.refresh();
                                   } else {
+                                    logger.warning(
+                                        "Server từ chối thực hiện lệnh hủy phiên: "
+                                            + serverResponse.getMessage());
                                     showAlert("Lỗi khi hủy", serverResponse.getMessage());
                                   }
                                 });
                           } catch (Exception e) {
-                            Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+                            logger.log(
+                                Level.SEVERE,
+                                "Lỗi mạng khi thực hiện yêu cầu hủy phiên đấu giá",
+                                e);
+                            Platform.runLater(
+                                () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
                           }
                         })
                     .start();

@@ -14,7 +14,7 @@
 
 <StackPane fx:id="rootPane" style="-fx-background-color: #f4f4f4;"
            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="org.example.client.controllers.LoginController">
+           fx:controller="org.example.client.controllers.auth.LoginController">
     <children>
 
         <ImageView fitHeight="${rootPane.height}" fitWidth="${rootPane.width}"
