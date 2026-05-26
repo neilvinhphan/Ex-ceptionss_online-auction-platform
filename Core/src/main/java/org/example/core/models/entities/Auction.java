@@ -22,8 +22,9 @@ public class Auction extends Entity {
   private int ownerId;
   private String itemName;
   private String type;
+  private String highestBidderName;
+  private int totalBids;
 
-  // Constructor tạo mới đấu giá
   public Auction(
       Item item, LocalDateTime startTime, long durationMinutes, BigDecimal bidIncrement) {
     super(LocalDateTime.now());
@@ -34,9 +35,7 @@ public class Auction extends Entity {
     this.bidIncrement = bidIncrement;
   }
 
-  // Constructor from DB
   public Auction(
-      int id,
       LocalDateTime createdAt,
       Item item,
       AuctionStatus status,
@@ -58,18 +57,15 @@ public class Auction extends Entity {
   public Auction() {}
 
   public void validateBid(LocalDateTime now, BigDecimal amount) throws Exception {
-    // Check trạng thái
     if (this.status != AuctionStatus.RUNNING) {
       throw new Exception("Phiên đấu giá đã kết thúc!");
     }
 
-    // Check thời gian
     if (now.isBefore(this.startTime) || now.isAfter(this.endTime)) {
       throw new Exception("Đã hết thời gian đặt giá!");
     }
   }
 
-  // Anti-Sniping
   public void extendEndTime(long seconds) {
     if (this.endTime != null) {
       this.endTime = this.endTime.plusSeconds(seconds);
@@ -89,8 +85,12 @@ public class Auction extends Entity {
     return rangeCheck;
   }
 
-  public long getDurationMinutes() {
-    return durationMinutes;
+  public String getHighestBidderName() {
+    return highestBidderName;
+  }
+
+  public void setHighestBidderName(String highestBidderName) {
+    this.highestBidderName = highestBidderName;
   }
 
   public void setDurationMinutes(long durationMinutes) {
@@ -183,9 +183,20 @@ public class Auction extends Entity {
   public void setItemName(String itemName) {this.itemName = itemName;}
 
   public String getItemName() {return itemName;}
+
   public void setType(String type) {this.type = type;}
+
   public String getType() {return type;}
+
   public void setOwnerId(int ownerId) {this.ownerId = ownerId;}
 
   public int getOwnerId() {return ownerId;}
+
+  public int getTotalBids() {
+    return totalBids;
+  }
+
+  public void setTotalBids(int totalBids) {
+    this.totalBids = totalBids;
+  }
 }

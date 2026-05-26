@@ -4,6 +4,7 @@ import org.example.core.dto.itemsDTO.CreateArtItemDTO;
 import org.example.core.dto.itemsDTO.CreateElectronicsItemDTO;
 import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 import org.example.core.dto.itemsDTO.CreateVehicleItemDTO;
+import org.example.core.exception.DataConflictException;
 import org.example.core.shared.enums.ItemStatus;
 
 import java.sql.ResultSet;
@@ -11,7 +12,7 @@ import java.sql.ResultSet;
 public class ItemFactory {
   public static Item takeItemFromDB(ResultSet rs) throws Exception {
     String type = rs.getString("type");
-    Item item = null;
+    Item item;
     switch (type) {
       case "ART" -> {
         ArtItem artItem = new ArtItem();
@@ -41,7 +42,7 @@ public class ItemFactory {
       default -> throw new Exception("Unknown item type: " + type);
     }
 
-    if (item != null) { // Set các thông tin chung
+    if (item != null) {
       item.setItemId(rs.getInt("items_id"));
       item.setItemName(rs.getString("items_name"));
       item.setDescription(rs.getString("description"));
@@ -49,8 +50,6 @@ public class ItemFactory {
       item.setType(type);
       item.setImage(rs.getString("image"));
       item.setStatus(ItemStatus.valueOf(rs.getString("status")));
-
-      // --- BỔ SUNG 2 DÒNG NÀY ĐỂ LẤY DỮ LIỆU AI ---
       item.setSuggestedPrice(rs.getBigDecimal("suggested_price"));
       item.setAiReason(rs.getString("ai_reason"));
     }
@@ -58,7 +57,7 @@ public class ItemFactory {
     return item;
   }
 
-  public static Item createItemDTO(CreateItemRequestDTO itemDTO) throws Exception {
+  public static Item createItemDTO(CreateItemRequestDTO itemDTO) {
     Item trueItem;
     String type = itemDTO.getType().toUpperCase();
 
@@ -87,7 +86,7 @@ public class ItemFactory {
         vehicleItem.setMileage(vehicleItemDTO.getMileage());
         trueItem = vehicleItem;
       }
-      default -> throw new Exception("Unknown item type: " + itemDTO.getType());
+      default -> throw new DataConflictException("Unknown item type: " + itemDTO.getType());
     }
 
     trueItem.setType(type);
@@ -96,6 +95,8 @@ public class ItemFactory {
     trueItem.setSellerID(itemDTO.getSellerID());
     trueItem.setStartingPrice(itemDTO.getStartingPrice());
     trueItem.setImage(itemDTO.getBase64Image());
+
+    trueItem.setStatus(ItemStatus.PENDING);
 
     return trueItem;
   }

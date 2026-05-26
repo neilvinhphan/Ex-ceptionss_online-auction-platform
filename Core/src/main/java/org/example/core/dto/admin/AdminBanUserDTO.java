@@ -1,8 +1,8 @@
 package org.example.core.dto.admin;
 
 public class AdminBanUserDTO {
-  private int adminId; // ID của người đang thực hiện lệnh này
-  private int userId; // ID của kẻ bị khóa mõm
+  private int adminId;
+  private int userId;
   private boolean isBanned;
 
   public AdminBanUserDTO(int adminId, int userId, boolean isBanned) {
@@ -15,10 +15,6 @@ public class AdminBanUserDTO {
     return adminId;
   }
 
-  public void setAdminId(int adminId) {
-    this.adminId = adminId;
-  }
-
   public int getUserId() {
     return userId;
   }
@@ -29,9 +25,5 @@ public class AdminBanUserDTO {
 
   public boolean isBanned() {
     return isBanned;
-  }
-
-  public void setBanned(boolean banned) {
-    isBanned = banned;
   }
 }

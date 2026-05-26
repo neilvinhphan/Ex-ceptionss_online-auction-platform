@@ -37,4 +37,20 @@ public class CreateAuctionDTO {
   public BigDecimal getBidIncrement() {
     return bidIncrement;
   }
+
+  public void setItem(Item item) {
+    this.item = item;
+  }
+
+  public void setDurationMinutes(long durationMinutes) {
+    this.durationMinutes = durationMinutes;
+  }
+
+  public void setBidIncrement(BigDecimal bidIncrement) {
+    this.bidIncrement = bidIncrement;
+  }
+
+  public void setStartTime(LocalDateTime startTime) {
+    this.startTime = startTime;
+  }
 }

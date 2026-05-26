@@ -5,129 +5,179 @@ import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 import org.example.core.dto.itemsDTO.DeleteRequestDTO;
 import org.example.core.dto.itemsDTO.EditProductRequestDTO;
 import org.example.core.dto.itemsDTO.PendingItemsDTO;
+import org.example.core.exception.DataConflictException;
+import org.example.core.exception.DatabaseAccessException;
+import org.example.core.exception.InvalidUserDataException;
+import org.example.core.exception.ResourceNotFoundException;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.ItemFactory;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.server.daos.ItemDAO;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * Dịch vụ quản lý kho đồ tài sản.
+ */
 public class ItemService {
-  private static final ItemDAO itemDAO = ItemDAO.getInstance();
+  private static final Logger logger = Logger.getLogger(ItemService.class.getName());
+  private static volatile ItemService instance = null;
+  private final ItemDAO itemDAO;
 
-  /** TẠO SẢN PHẨM MỚI TÍCH HỢP AI KIỂM DUYỆT */
-  public static Item createItem(CreateItemRequestDTO requestPayload) throws Exception {
+  ItemService(ItemDAO itemDAO) {
+    this.itemDAO = itemDAO;
+  }
 
+  public static ItemService getInstance() {
+    if (instance == null) {
+      synchronized (ItemService.class) {
+        if (instance == null) {
+          instance = new ItemService(ItemDAO.getInstance());
+        }
+      }
+    }
+    return instance;
+  }
+
+  public Item createItem(CreateItemRequestDTO requestPayload) {
     validateItemData(requestPayload);
 
     Item newItem = ItemFactory.createItemDTO(requestPayload);
-
-    // 1. Mặc định để trạng thái là PENDING (Chờ duyệt)
-    newItem.setStatus(ItemStatus.PENDING);
-
-    Integer itemId = itemDAO.insertIntoItemTable(newItem);
-    if (itemId == null || itemId <= 0) {
-      throw new Exception("Cannot create item.");
+    if (newItem == null) {
+      throw new InvalidUserDataException("Lỗi khởi tạo: Nhà máy cấu trúc không thể đóng gói sản phẩm mới!");
     }
 
-    newItem.setItemId(itemId); // Gán ID để tí nữa luồng AI biết đường mà UPDATE
-    itemDAO.insertIntoChildTable(newItem, itemId);
+    Integer itemId = itemDAO.insertIntoItemTable(newItem);
+    newItem.setItemId(itemId);
+    boolean isSuccess = itemDAO.insertIntoChildTable(newItem, itemId);
+    if(!isSuccess) {
+      throw new DatabaseAccessException("Không thể lưu trữ thông tin chi tiết của vật phẩm vào cơ sở dữ liệu!");
+    }
 
-    // 2. 🚀 CHẠY NGẦM (ASYNC): Gọi AI để thẩm định nội dung và định giá
-    CompletableFuture.runAsync(
-        () -> {
-          try {
-            System.out.println("🤖 AI đang bắt đầu quét vật phẩm ID: " + itemId);
+    CompletableFuture.runAsync(() -> {
+      try {
+        logger.info("🤖 AI bắt đầu quét thẩm định vật phẩm ID: " + itemId);
+        AiEvaluationDTO evaluation = AiModerationService.evaluateItem(newItem);
 
-            // Gọi trạm AI Moderation (LM Studio hoặc Gemini)
-            AiEvaluationDTO evaluation = AiModerationService.evaluateItem(newItem);
+        newItem.setSuggestedPrice(evaluation.getSuggestedPrice());
+        newItem.setAiReason(evaluation.getReason());
 
-            // Cập nhật kết quả AI trả về vào đối tượng
-            newItem.setSuggestedPrice(evaluation.getSuggestedPrice());
-            newItem.setAiReason(evaluation.getReason());
-
-            // Nếu AI xác nhận an toàn (isSafe = true), tự động nâng cấp status lên APPROVED
-            if (evaluation.isSafe()) {
-              newItem.setStatus(ItemStatus.APPROVED);
-              System.out.println("✅ AI tự động DUYỆT vật phẩm ID: " + itemId);
-            } else {
-              System.out.println(
-                  "🚩 AI phát hiện nghi vấn tại ID: "
-                      + itemId
-                      + ". Giữ trạng thái PENDING cho Admin.");
-            }
-
-            // Lưu kết quả thẩm định cuối cùng của AI vào Database
-            itemDAO.updateAiEvaluation(newItem);
-
-          } catch (Exception e) {
-            System.err.println("❌ Lỗi trong quá trình AI thẩm định: " + e.getMessage());
-          }
-        });
+        if (evaluation.isSafe()) {
+          newItem.setStatus(ItemStatus.APPROVED);
+          logger.info("✅ AI tự động APPROVED cho vật phẩm ID: " + itemId);
+        } else {
+          logger.log(Level.WARNING, "AI phát hiện rủi ro tại ID: " + itemId);
+        }
+        itemDAO.updateAiEvaluation(newItem);
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, "Lỗi tiến trình AI kiểm duyệt ngầm", e);
+      }
+    });
 
     return newItem;
   }
 
-  public static boolean updateItemFull(EditProductRequestDTO requestPayload) {
+  public boolean updateItemFull(EditProductRequestDTO requestPayload) {
+    if (requestPayload == null) {
+      throw new InvalidUserDataException("Dữ liệu chỉnh sửa thông tin rỗng!");
+    }
     int itemId = requestPayload.getItemId();
     String newName = requestPayload.getItemEditName();
     String newDescription = requestPayload.getDescription();
     BigDecimal newPrice = requestPayload.getPrice();
 
-    if (itemDAO.updateItemDescriptionByItemId(itemId, newDescription)
-        && itemDAO.updateItemNameByItemId(itemId, newName)
-        && itemDAO.updateStartPriceByItemId(itemId, newPrice)) {
-      return true;
-    } else {
-      return false;
+    validateEditFields(itemId, newName, newDescription, newPrice);
+
+    Item currentItem = itemDAO.getItemById(itemId);
+    if (currentItem.getStatus() == ItemStatus.LISTED) {
+      throw new DataConflictException("Sản phẩm đang trong phiên đấu giá trực tuyến, nghiêm cấm chỉnh sửa!");
     }
+
+    boolean isSuccess = itemDAO.updateItemDescriptionByItemId(itemId, newDescription)
+            && itemDAO.updateItemNameByItemId(itemId, newName)
+            && itemDAO.updateStartPriceByItemId(itemId, newPrice);
+    if(!isSuccess) {
+      throw new DatabaseAccessException("Không thể cập nhật vật phẩm!");
+    }
+    return isSuccess;
   }
 
-  public static List<Item> getAllItem(PendingItemsDTO requestPayload) throws Exception {
-    int sellerId = requestPayload.getSellerId();
-    if (sellerId <= 0) {
-      throw new Exception("Invalid seller ID.");
+  public boolean deleteItem(DeleteRequestDTO requestPayload) {
+    if (requestPayload == null) {
+      throw new InvalidUserDataException("Yêu cầu loại bỏ sản phẩm không hợp lệ.");
     }
-    List<Item> items = itemDAO.getAllItemByUserId(sellerId);
-    return items;
-  }
-
-  public static boolean deleteItem(DeleteRequestDTO requestPayload) throws Exception {
     int itemId = requestPayload.getItemId();
     if (itemId <= 0) {
-      throw new Exception("Invalid item ID.");
+      throw new InvalidUserDataException("Mã vật phẩm yêu cầu xóa bỏ không hợp lệ.");
     }
-    boolean success = itemDAO.deleteItemByItemId(itemId);
-    if (!success) {
-      throw new Exception("Cannot delete item.");
+
+    Item currentItem = itemDAO.getItemById(itemId);
+    if (currentItem.getStatus() == ItemStatus.LISTED) {
+      throw new DataConflictException("Không thể xóa vật phẩm này do nó đang được mở đấu giá công khai!");
     }
-    return true;
+
+    return itemDAO.deleteItemByItemId(itemId);
   }
 
-  private static void validateItemData(CreateItemRequestDTO item) throws Exception {
-    if (item == null) {
-      throw new Exception("Item data is required.");
+  public boolean updateItemStatus(int itemId, ItemStatus newStatus) {
+    if (itemId <= 0) {
+      throw new InvalidUserDataException("Mã số nhận diện vật phẩm không hợp lệ.");
     }
-    if (item.getSellerID() <= 0) {
-      throw new Exception("Invalid seller ID.");
+    if (newStatus == null) {
+      throw new InvalidUserDataException("Trạng thái cập nhật mới không được để trống.");
     }
-    if (item.getType() == null || item.getType().trim().isEmpty()) {
-      throw new Exception("Item type is required.");
+    return itemDAO.updateItemStatus(itemId, newStatus);
+  }
+
+  public List<Item> getAllItem(PendingItemsDTO requestPayload) {
+    if (requestPayload == null) {
+      throw new InvalidUserDataException("Thông tin yêu cầu lọc danh mục sản phẩm trống!");
     }
-    if (item.getItemName() == null || item.getItemName().trim().isEmpty()) {
-      throw new Exception("Item name is required.");
+    int sellerId = requestPayload.getSellerId();
+    if (sellerId <= 0) {
+      throw new InvalidUserDataException("Mã định danh người bán (Seller ID) không hợp lệ.");
     }
-    if (item.getDescription() == null || item.getDescription().trim().isEmpty()) {
-      throw new Exception("Item description is required.");
+    return itemDAO.getAllItemByUserId(sellerId);
+  }
+
+  public List<Item> getAllItemByStatus(ItemStatus status) {
+    if (status == null) {
+      throw new InvalidUserDataException("Trạng thái kiểm duyệt cần lọc bắt buộc phải chọn.");
     }
-    if (item.getStartingPrice() == null
-        || item.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-      throw new Exception("Starting price must be greater than zero.");
+    return itemDAO.getItemsByStatus(status);
+  }
+
+  public List<Item> getApprovedItemsByUserId(int userId) {
+    if (userId <= 0) {
+      throw new InvalidUserDataException("Mã người dùng không hợp lệ để tra cứu kho đồ APPROVED!");
     }
-    if (item.getBase64Image() == null || item.getBase64Image().trim().isEmpty()) {
-      throw new Exception("Item image is required.");
+    return itemDAO.getApprovedItemsByUserId(userId);
+  }
+
+  public Item getItemById(int itemId) {
+    if (itemId <= 0) {
+      throw new InvalidUserDataException("Mã số nhận diện vật phẩm không hợp lệ.");
     }
+    return itemDAO.getItemById(itemId);
+  }
+
+  private void validateItemData(CreateItemRequestDTO item) {
+    if (item == null) throw new InvalidUserDataException("Dữ liệu khai báo thông tin vật phẩm bắt buộc phải có.");
+    if (item.getSellerID() <= 0) throw new InvalidUserDataException("Định danh tài khoản người bán không hợp lệ.");
+    if (item.getType() == null || item.getType().trim().isEmpty()) throw new InvalidUserDataException("Vui lòng phân loại danh mục nhóm (Type)!");
+    if (item.getItemName() == null || item.getItemName().trim().isEmpty()) throw new InvalidUserDataException("Tên gọi hiển thị không được phép để trống!");
+    if (item.getDescription() == null || item.getDescription().trim().isEmpty()) throw new InvalidUserDataException("Vui lòng điền văn bản mô tả tình trạng vật phẩm!");
+    if (item.getStartingPrice() == null || item.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) throw new InvalidUserDataException("Giá sàn khởi điểm buộc phải lớn hơn 0 VNĐ!");
+    if (item.getBase64Image() == null || item.getBase64Image().trim().isEmpty()) throw new InvalidUserDataException("Vui lòng đăng tải hình ảnh minh họa!");
+  }
+
+  private void validateEditFields(int id, String name, String desc, BigDecimal price) {
+    if (id <= 0) throw new InvalidUserDataException("Mã vật phẩm chỉnh sửa không hợp lệ!");
+    if (name == null || name.trim().isEmpty()) throw new InvalidUserDataException("Tên sản phẩm cập nhật mới không được phép bỏ trống!");
+    if (desc == null || desc.trim().isEmpty()) throw new InvalidUserDataException("Nội dung mô tả sản phẩm mới không được để trống!");
+    if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) throw new InvalidUserDataException("Mức giá khởi điểm mới phải lớn hơn 0 VNĐ!");
   }
 }

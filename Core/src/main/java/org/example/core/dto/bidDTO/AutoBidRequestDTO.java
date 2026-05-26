@@ -5,10 +5,7 @@ import java.math.BigDecimal;
 public class AutoBidRequestDTO {
     private int auctionId;
     private int userId;
-    private BigDecimal maxBid; // Số tiền trần tối đa User sẵn sàng trả
-
-    public AutoBidRequestDTO() {
-    }
+    private BigDecimal maxBid;
 
     public AutoBidRequestDTO(int auctionId, int userId, BigDecimal maxBid) {
         this.auctionId = auctionId;
@@ -35,9 +32,5 @@ public class AutoBidRequestDTO {
 
     public BigDecimal getMaxBid() {
         return maxBid;
-    }
-
-    public void setMaxBid(BigDecimal maxBid) {
-        this.maxBid = maxBid;
     }
 }

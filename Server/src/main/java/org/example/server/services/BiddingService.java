@@ -1,36 +1,63 @@
 package org.example.server.services;
 
+import org.example.core.dto.Response;
+import org.example.core.dto.bidDTO.BidBroadcastDTO;
 import org.example.core.dto.bidDTO.BidRequestDTO;
+import org.example.core.exception.DataConflictException;
+import org.example.core.exception.InsufficientBalanceException;
+import org.example.core.exception.InvalidUserDataException;
+import org.example.core.exception.InvalidBidException;
+import org.example.core.exception.ResourceNotFoundException;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
+import org.example.core.shared.enums.AuctionStatus;
 import org.example.server.daos.AuctionDAO;
+import org.example.server.daos.AutoBidDAO;
 import org.example.server.daos.BidDAO;
 import org.example.server.daos.UserDAO;
 import org.example.server.daos.WalletDAO;
+import org.example.server.network.AuctionServer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+/**
+ * Dịch vụ xử lý lượt đặt thầu thủ công và tự động.
+ */
 public class BiddingService {
-
+  private static final Logger logger = Logger.getLogger(BiddingService.class.getName());
   private static volatile BiddingService instance;
 
-  private static final BidDAO bidDAO = BidDAO.getInstance();
-  private static final AuctionDAO auctionDAO = AuctionDAO.getInstance();
-  private static final WalletDAO walletDAO = WalletDAO.getInstance();
-  private static final UserDAO userDAO = UserDAO.getInstance();
-
-  // lock theo từng auction để tránh đè giá cùng lúc
+  private final BidDAO bidDAO;
+  private final AuctionDAO auctionDAO;
+  private final WalletDAO walletDAO;
+  private final UserDAO userDAO;
+  private final AutoBidDAO autoBidDAO;
   private final ConcurrentHashMap<Integer, ReentrantLock> auctionLocks = new ConcurrentHashMap<>();
+
+  BiddingService(BidDAO bidDAO, AuctionDAO auctionDAO, WalletDAO walletDAO, UserDAO userDAO, AutoBidDAO autoBidDAO) {
+    this.bidDAO = bidDAO;
+    this.auctionDAO = auctionDAO;
+    this.walletDAO = walletDAO;
+    this.userDAO = userDAO;
+    this.autoBidDAO = autoBidDAO;
+  }
 
   public static BiddingService getInstance() {
     if (instance == null) {
       synchronized (BiddingService.class) {
         if (instance == null) {
-          instance = new BiddingService();
+          instance = new BiddingService(
+                  BidDAO.getInstance(),
+                  AuctionDAO.getInstance(),
+                  WalletDAO.getInstance(),
+                  UserDAO.getInstance(),
+                  AutoBidDAO.getInstance());
         }
       }
     }
@@ -41,34 +68,47 @@ public class BiddingService {
     return auctionLocks.computeIfAbsent(auctionId, id -> new ReentrantLock());
   }
 
-  public boolean placeBid(BidRequestDTO request) throws Exception {
-    // TEST---
-    String threadName = Thread.currentThread().getName();
-    // ----
+  public boolean placeBid(BidRequestDTO request) {
+    if (request == null) {
+      throw new InvalidUserDataException("Yêu cầu đặt giá không hợp lệ hoặc để trống!");
+    }
+    if (request.getAuctionId() <= 0 || request.getUserId() <= 0) {
+      throw new InvalidUserDataException("Thông số định danh phòng hoặc tài khoản không hợp lệ!");
+    }
+    if (request.getBidAmount() == null || request.getBidAmount().compareTo(BigDecimal.ZERO) <= 0) {
+      throw new InvalidUserDataException("Số tiền đấu giá đặt lên phải lớn hơn 0 VNĐ!");
+    }
 
+    String threadName = Thread.currentThread().getName();
     ReentrantLock lock = getLock(request.getAuctionId());
+
     lock.lock();
     try {
-      // TEST---
-      System.out.println(
-              "["
-                      + threadName
-                      + "] 🟢 Đã cầm chìa khóa (Lock)! Đang xử lý giá cho User "
-                      + request.getUserId());
-      // ----
-
+      logger.info("[" + threadName + "] Đã giữ khóa phân mảnh phòng " + request.getAuctionId());
       LocalDateTime now = LocalDateTime.now();
 
       Auction auction = auctionDAO.getAuctionByAuctionId(request.getAuctionId());
       if (auction == null) {
-        throw new Exception("Không tìm thấy phiên đấu giá.");
+        throw new ResourceNotFoundException("Không tìm thấy dữ liệu của phiên đấu giá này.");
       }
-      // check trạng thái + thời gian (đang có sẵn trong domain Auction)
-      auction.validateBid(now, request.getBidAmount());
 
       BigDecimal currentPrice = bidDAO.getCurrentPrice(request.getAuctionId());
-      if (currentPrice == null) {
-        currentPrice = BigDecimal.ZERO;
+      if (currentPrice == null || currentPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        currentPrice = auction.getItem().getStartingPrice();
+      }
+
+      Integer highestBidderId = auction.getBidderId();
+
+      if (highestBidderId != null && highestBidderId == request.getUserId()) {
+        if (request.getBidAmount().compareTo(currentPrice) <= 0) {
+          throw new InvalidBidException("Bạn đang dẫn đầu phòng! Giá đặt mới phải lớn hơn giá hiện tại: " + currentPrice);
+        }
+      } else {
+        try {
+          auction.validateBid(now, request.getBidAmount());
+        } catch (Exception e) {
+          throw new InvalidBidException(e.getMessage());
+        }
       }
 
       BigDecimal bidIncrement = auctionDAO.getBidIncrementByAuctionId(request.getAuctionId());
@@ -76,173 +116,154 @@ public class BiddingService {
         bidIncrement = BigDecimal.ONE;
       }
 
-      BigDecimal minAcceptable = currentPrice.add(bidIncrement);
+      BigDecimal minAcceptable = (bidDAO.getCurrentPrice(request.getAuctionId()) == null)
+              ? auction.getItem().getStartingPrice()
+              : currentPrice.add(bidIncrement);
+
       if (request.getBidAmount().compareTo(minAcceptable) < 0) {
-        throw new Exception("Giá đặt phải >= " + minAcceptable);
+        throw new InvalidBidException("Mức giá đặt thầu tối thiểu tiếp theo phải lớn hơn hoặc bằng: " + minAcceptable + " VNĐ");
       }
 
-      BigDecimal availableBalance = walletDAO.getAvailableBalance(request.getUserId());
-      if (request.getBidAmount().compareTo(availableBalance) > 0) {
-        throw new Exception("Sô dư khả dụng không đủ!");
+      if (request.getBidAmount().compareTo(walletDAO.getAvailableBalance(request.getUserId())) > 0) {
+        throw new InsufficientBalanceException("Số dư khả dụng trong tài khoản ví không đủ thực hiện lượt trả giá!");
       }
 
-      // 🔥 THAY ĐỔI CỐT LÕI: Đóng gói đối tượng BidTransaction trước khi nạp xuống DAO
-      // 1. Lấy tên hiển thị của User đặt thầu tay từ cơ sở dữ liệu
-      String bidderName = userDAO.getUserByUserId(request.getUserId()).getUserName();
+      var user = userDAO.getUserByUserId(request.getUserId());
+      BidTransaction manualBidTx = new BidTransaction(request.getBidAmount(), now, request.getUserId(), user.getUserName());
+      manualBidTx.setAuctionId(request.getAuctionId());
 
-      // 2. Khởi tạo thực thể theo constructor 4 tham số có sẵn trong Core
-      BidTransaction manualBidTx = new BidTransaction(request.getBidAmount(), now, request.getUserId(), bidderName);
-      manualBidTx.setAuctionId(request.getAuctionId()); // Gán mã phòng thông qua setter
-
-      // 3. Truyền trọn gói thực thể xuống hàm insertBid mới của DAO
-      boolean inserted = bidDAO.insertBid(manualBidTx);
-      if (!inserted) {
-        throw new Exception("Không thể ghi nhận lượt đặt giá.");
-      }
-
-      boolean updatedPrice =
-              bidDAO.updateCurrentPrice(
-                      request.getAuctionId(), request.getUserId(), request.getBidAmount());
-      if (!updatedPrice) {
-        throw new Exception("Không thể cập nhật giá hiện tại.");
-      }
-
+      bidDAO.insertBid(manualBidTx);
+      bidDAO.updateCurrentPrice(request.getAuctionId(), request.getUserId(), request.getBidAmount());
       handleAntiSniping(request.getAuctionId(), auction, now);
 
-      // TEST
-      System.out.println(
-              "[" + threadName + "] 💾 Ghi DB thành công cho User " + request.getUserId());
-      // ----
-
       return true;
-    } catch (Exception e) {
-      // TEST
-      System.out.println("[" + threadName + "] ❌ Bị lỗi: " + e.getMessage());
-      throw e;
     } finally {
-      // TEST
-      System.out.println("[" + threadName + "] 🔓 Trả lại chìa khóa (Unlock)!");
-      // ----
       lock.unlock();
+      logger.info("[" + threadName + "] 🔓 Đã giải phóng chìa khóa lock phòng " + request.getAuctionId());
     }
   }
 
-  /** handleAntiSniping: nếu bid trong 1/10 thời gian cuối thì cộng thêm 1/10 thời lượng phiên */
-  private void handleAntiSniping(int auctionId, Auction auction, LocalDateTime now) {
-    LocalDateTime endTime = auction.getEndTime();
-    if (endTime == null || !endTime.isAfter(now)) {
-      return; // Nếu chưa setup giờ hoặc phiên đã kết thúc thì bỏ qua
-    }
-
-    long antiSnipingSeconds = 120;
-
-    boolean inSnipingWindow = auction.isAntiSniping(now, antiSnipingSeconds);
-    if (!inSnipingWindow) return;
-    auction.extendEndTime(antiSnipingSeconds);
-    auctionDAO.updateAuctionEndTime(auctionId, auction.getEndTime());
-  }
-
-  /** Lấy lịch sử để FE vẽ chart */
-  public List<BidTransaction> getBidHistory(int auctionId) {
-    return bidDAO.getBidHistoryByAuctionId(auctionId);
-  }
-
-  // BỔ SUNG THÊM HÀM NÀY VÀO TRONG CLASS BiddingService.java
-  public static synchronized void evaluateDeterministicBidding(int auctionId) {
+  public synchronized void evaluateDeterministicBidding(int auctionId) {
     try {
-      // 1. Tải thông tin thực tế của phòng đấu giá lên
-      org.example.core.models.entities.Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
-      if (auction == null || auction.getStatus() != org.example.core.shared.enums.AuctionStatus.RUNNING) return;
+      Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
+      if (auction == null || auction.getStatus() != AuctionStatus.RUNNING) return;
 
-      java.math.BigDecimal currentPrice = auction.getHighestBid() != null ? auction.getHighestBid() : auction.getItem().getStartingPrice();
-      java.math.BigDecimal increment = auction.getBidIncrement();
+      BigDecimal highestBid = bidDAO.getCurrentPrice(auctionId);
+      BigDecimal currentPrice = (highestBid == null || highestBid.compareTo(BigDecimal.ZERO) <= 0)
+              ? auction.getItem().getStartingPrice() : highestBid;
 
-      // 2. Tải tất cả Bot đang hoạt động (Sắp xếp: trần cao nhất lên đầu)
-      List<org.example.server.daos.AutoBidDAO.AutoBidConfig> activeBots =
-              org.example.server.daos.AutoBidDAO.getInstance().getActiveAutoBidsForAuction(auctionId);
+      BigDecimal increment = auction.getBidIncrement();
+      List<AutoBidDAO.AutoBidConfig> activeBots = autoBidDAO.getActiveAutoBidsForAuction(auctionId);
+      if (activeBots.isEmpty()) return;
 
-      if (activeBots.isEmpty()) return; // Không có bot nào gác phòng, giữ nguyên luồng đấu thầu bằng tay
+      AutoBidDAO.AutoBidConfig bot1 = activeBots.get(0);
 
-      org.example.server.daos.AutoBidDAO.AutoBidConfig bot1 = activeBots.get(0); // Bot có giá trần cao nhất
-
-      // =========================================================================
-      // KỊCH BẢN A: CÓ TỪ 2 BOT TRỞ LÊN ĐỤNG ĐỘ SÁT PHẠT NHAU
-      // =========================================================================
       if (activeBots.size() >= 2) {
-        org.example.server.daos.AutoBidDAO.AutoBidConfig bot2 = activeBots.get(1); // Bot có giá trần cao thứ nhì
+        AutoBidDAO.AutoBidConfig highestBot = bot1.getMaxBid().compareTo(activeBots.get(1).getMaxBid()) >= 0 ? bot1 : activeBots.get(1);
+        AutoBidDAO.AutoBidConfig secondBot = bot1.getMaxBid().compareTo(activeBots.get(1).getMaxBid()) >= 0 ? activeBots.get(1) : bot1;
 
-        // Trường hợp biên (Edge Case): Hai tài khoản cài giá trần giống hệt nhau
-        if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) == 0) {
-          // Nếu giá phòng hiện tại chưa chạm tới mức trần này
-          if (currentPrice.compareTo(bot1.getMaxBid()) < 0) {
-            java.math.BigDecimal finalPrice = bot1.getMaxBid();
-            // Thằng nào đặt cấu hình Bot trước (createdAt nhỏ hơn) sẽ dành chiến thắng dẫn đầu!
-            int winnerId = bot1.getCreatedAt().isBefore(bot2.getCreatedAt()) ? bot1.getUserId() : bot2.getUserId();
-
-            executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
+        if (highestBot.getMaxBid().compareTo(secondBot.getMaxBid()) == 0) {
+          if (currentPrice.compareTo(highestBot.getMaxBid()) < 0) {
+            BigDecimal finalPrice = highestBot.getMaxBid();
+            int winnerId = highestBot.getCreatedAt().isBefore(secondBot.getCreatedAt()) ? highestBot.getUserId() : secondBot.getUserId();
+            if (finalPrice.compareTo(currentPrice) > 0 && auction.getBidderId() != winnerId) {
+              executeAutoBidTransaction(auctionId, finalPrice, winnerId, auction);
+            }
+          }
+        } else {
+          BigDecimal baseComparePrice = secondBot.getMaxBid().compareTo(currentPrice) > 0 ? secondBot.getMaxBid() : currentPrice;
+          BigDecimal finalPrice = baseComparePrice.add(increment);
+          if (finalPrice.compareTo(highestBot.getMaxBid()) > 0) finalPrice = highestBot.getMaxBid();
+          if (finalPrice.compareTo(currentPrice) > 0 && auction.getBidderId() != highestBot.getUserId()) {
+            executeAutoBidTransaction(auctionId, finalPrice, highestBot.getUserId(), auction);
           }
         }
-        // Trường hợp thông thường: Trần Bot 1 lớn hơn hẳn trần Bot 2
-        else if (bot1.getMaxBid().compareTo(bot2.getMaxBid()) > 0) {
-          // Công thức thép: Giá nhảy vọt lên bằng Trần thằng thua + 1 Bước giá thầu
-          java.math.BigDecimal finalPrice = bot2.getMaxBid().add(increment);
-
-          // Chốt chặn an toàn: Nếu tính ra vượt quá trần Bot 1, ép lùi về kịch trần Bot 1
-          if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
-            finalPrice = bot1.getMaxBid();
-          }
-
-          // Chỉ cập nhật nếu con số tính toán toán học này thực sự cao hơn giá đang hiển thị và Bot 1 chưa dẫn đầu
-          if (finalPrice.compareTo(currentPrice) > 0 || auction.getBidderId() != bot1.getUserId()) {
-            executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
-          }
-        }
-      }
-      // =========================================================================
-      // KỊCH BẢN B: CHỈ CÓ DUY NHẤT 1 BOT CÔ ĐƠN GÁC PHÒNG
-      // =========================================================================
-      else {
-        // Nếu giá trần của Bot đủ lớn để nuốt chửng giá hiện tại và người dẫn đầu phòng không phải chủ Bot
+      } else {
         if (bot1.getMaxBid().compareTo(currentPrice) > 0 && auction.getBidderId() != bot1.getUserId()) {
-          java.math.BigDecimal finalPrice = currentPrice.add(increment);
-          if (finalPrice.compareTo(bot1.getMaxBid()) > 0) {
-            finalPrice = bot1.getMaxBid();
-          }
+          BigDecimal finalPrice = currentPrice.add(increment);
+          if (finalPrice.compareTo(bot1.getMaxBid()) > 0) finalPrice = bot1.getMaxBid();
           executeAutoBidTransaction(auctionId, finalPrice, bot1.getUserId(), auction);
         }
       }
+
+      Auction checkAuction = auctionDAO.getAuctionByAuctionId(auctionId);
+      if (checkAuction != null) {
+        BigDecimal latestDbPrice = bidDAO.getCurrentPrice(auctionId);
+        BigDecimal latestPrice = (latestDbPrice != null && latestDbPrice.compareTo(BigDecimal.ZERO) > 0) ? latestDbPrice : checkAuction.getItem().getStartingPrice();
+        int currentLeaderId = checkAuction.getBidderId();
+
+        for (AutoBidDAO.AutoBidConfig bot : activeBots) {
+          boolean isOutbid = bot.getMaxBid().compareTo(latestPrice) < 0;
+          boolean isMaxedOutAndLost = (bot.getMaxBid().compareTo(latestPrice) == 0 && bot.getUserId() != currentLeaderId);
+          if (isOutbid || isMaxedOutAndLost) {
+            autoBidDAO.disableAutoBid(auctionId, bot.getUserId());
+            AuctionServer.broadcastToRoom(auctionId, new Response("AUTOBID_DISABLED", "Bot chạm trần", bot.getUserId()));
+          }
+        }
+      }
     } catch (Exception e) {
-      System.err.println("❌ Lỗi xử lý lõi toán học AutoBid: " + e.getMessage());
-      e.printStackTrace();
+      logger.log(Level.SEVERE, "Lỗi bộ lõi tính toán đấu thầu tự động", e);
     }
   }
 
-  // Hàm phụ trợ ghi Log lịch sử và phát sóng thông báo giá nhảy vọt do Bot
-  private static void executeAutoBidTransaction(int auctionId, java.math.BigDecimal finalPrice, int winnerId, org.example.core.models.entities.Auction auction) throws Exception {
-    // 1. Trích xuất tên hiển thị của tài khoản Bot chiến thắng từ hệ thống
+  private void executeAutoBidTransaction(int auctionId, BigDecimal finalPrice, int winnerId, Auction auction) throws Exception {
+    LocalDateTime now = LocalDateTime.now();
     String winnerName = userDAO.getUserByUserId(winnerId).getUserName();
 
-    // 2. ĐÓNG GÓI CHUẨN ĐỒNG BỘ: Khởi tạo thực thể BidTransaction dành cho luồng AutoBid
-    BidTransaction autoBidTx = new BidTransaction(finalPrice, java.time.LocalDateTime.now(), winnerId, winnerName);
+    BidTransaction autoBidTx = new BidTransaction(finalPrice, now, winnerId, winnerName);
     autoBidTx.setAuctionId(auctionId);
 
-    // 3. Gọi chung một hàm insert thực thể của DAO giống hệt luồng đặt giá bằng tay
     bidDAO.insertBid(autoBidTx);
+    bidDAO.updateCurrentPrice(auctionId, winnerId, finalPrice);
+    handleAntiSniping(auctionId, auction, now);
 
-    // Cập nhật giá thầu trần mới dẫn đầu vào bảng dữ liệu phiên phòng đấu giá
-    auctionDAO.updateHighestPriceByItemId(winnerId, finalPrice);
+    BidBroadcastDTO broadcastData = new BidBroadcastDTO(auctionId, finalPrice.doubleValue(), winnerName, auction.getEndTime(), true);
+    AuctionServer.broadcastToRoom(auctionId, new Response("NEW_BID", "Hệ thống tự động đẩy giá!", broadcastData));
+  }
 
-    // 4. Đóng gói gói tin phát sóng thời gian thực (Bật cờ true báo hiệu giá nhảy do AutoBid)
-    org.example.core.dto.bidDTO.BidBroadcastDTO broadcastData = new org.example.core.dto.bidDTO.BidBroadcastDTO(
-            auctionId,
-            finalPrice.doubleValue(),
-            winnerName,
-            auction.getEndTime(),
-            true // 🔥 ĐÁNH DẤU: Cờ báo hiệu nhảy giá do AutoBid!
-    );
+  private void handleAntiSniping(int auctionId, Auction auction, LocalDateTime now) {
+    LocalDateTime endTime = auction.getEndTime();
+    if (endTime == null || !endTime.isAfter(now)) return;
 
-    org.example.core.dto.Response broadcastResponse = new org.example.core.dto.Response("NEW_BID", "Hệ thống tự động đẩy giá!", broadcastData);
-    org.example.server.network.AuctionServer.broadcastToRoom(auctionId, broadcastResponse);
-    System.out.println("🚀 [AUTOBID BROADCAST] Giá phòng " + auctionId + " tự động tăng vọt lên " + finalPrice + " đ bởi Bot của " + winnerName);
+    long antiSnipingSeconds = 120;
+    if (!auction.isAntiSniping(now, antiSnipingSeconds)) return;
+
+    auction.extendEndTime(antiSnipingSeconds);
+    auctionDAO.updateAuctionEndTime(auctionId, auction.getEndTime());
+    logger.info("[ANTI-SNIPING] Phòng " + auctionId + " gia hạn đến: " + auction.getEndTime());
+  }
+
+  public void saveOrUpdateAutoBid(int auctionId, int userId, BigDecimal maxBid) {
+    if (auctionId <= 0 || userId <= 0) {
+      throw new InvalidUserDataException("Mã phòng hoặc người dùng thiết lập AutoBid không hợp lệ.");
+    }
+    if (maxBid == null || maxBid.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new InvalidUserDataException("Mức giá trần thiết lập tối đa phải lớn hơn 0 VNĐ.");
+    }
+    if (maxBid.compareTo(walletDAO.getAvailableBalance(userId)) > 0) {
+      throw new InsufficientBalanceException("Giá đặt trần tự động không được vượt quá số dư ví khả dụng!");
+    }
+    autoBidDAO.saveOrUpdateAutoBid(auctionId, userId, maxBid);
+  }
+
+  public void disableAutoBid(int auctionId, int userId) {
+    if (auctionId <= 0 || userId <= 0) {
+      throw new InvalidUserDataException("Mã định danh không hợp lệ để hủy AutoBid.");
+    }
+    autoBidDAO.disableAutoBid(auctionId, userId);
+  }
+
+  public BigDecimal getMaxAutoBid(int auctionId, int userId) {
+    if (auctionId <= 0 || userId <= 0) {
+      throw new InvalidUserDataException("Thông tin định danh phòng đấu giá hoặc người dùng bị sai.");
+    }
+    return autoBidDAO.getMaxAutoBid(auctionId, userId);
+  }
+
+  public List<BidTransaction> getBidHistory(int auctionId) {
+    if (auctionId <= 0) {
+      throw new InvalidUserDataException("Mã phiên đấu giá cần lấy lịch sử biểu đồ không hợp lệ!");
+    }
+    return bidDAO.getBidHistoryByAuctionId(auctionId);
   }
 }

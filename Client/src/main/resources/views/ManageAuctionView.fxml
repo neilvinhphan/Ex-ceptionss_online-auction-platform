@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.ManageAuctionController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="768.0" prefWidth="1200.0" style="-fx-background-color: #F3F5F8; -fx-background: #F3F5F8; -fx-padding: 0; -fx-background-insets: 0; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.admin.ManageAuctionController">
    <content>
         <VBox minHeight="760.0" style="-fx-background-color: #F3F5F8;">
             <children>
@@ -48,13 +48,11 @@
                                 <HBox alignment="CENTER_LEFT" spacing="20.0">
                                     <children>
                                         <VBox>
-                                            <Label style="-fx-text-fill: #2c3e50; -fx-font-weight: bold;" text="Quản Lý Phiên Đấu Giá">
-                                                <font>
-                                                    <Font size="24.0" />
-                                                </font>
-                                            </Label>
-                                            <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 13;" text="Giám sát và kiểm soát toàn bộ các cuộc đấu giá trên nền tảng." />
+                                            <Label style="-fx-text-fill: #2c3e50; -fx-font-weight: bold; -fx-font-size: 26;" text="Quản Lý Phiên Đấu Giá" />
+
+                                            <Label style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;" text="Giám sát và kiểm soát toàn bộ các cuộc đấu giá trên nền tảng." />
                                         </VBox>
+
                                     </children>
                                 </HBox>
 

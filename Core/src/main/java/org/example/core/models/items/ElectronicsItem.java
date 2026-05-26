@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 
 public class ElectronicsItem extends Item {
   private String brand;
-  private int warrantyMonths; // Số tháng bảo hành
-  private String condition; // tình trạng của sản phẩm
+  private int warrantyMonths;
+  private String condition;
 
   public ElectronicsItem() {
     super();

@@ -115,3 +115,19 @@
 .chart-pie {
     -fx-border-color: transparent;
 }
+/* Trạng thái bình thường của ô nhập liệu */
+.custom-text-field {
+    -fx-background-color: #FAFAFA;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* HIỆU ỨNG CHUYÊN NGHIỆP KHI BẤM CHUỘT VÀO (FOCUS) */
+.custom-text-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #808080;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(40, 167, 69, 0.15), 6, 0, 0, 0); /* Đổ bóng nhẹ cực mượt */
+}
