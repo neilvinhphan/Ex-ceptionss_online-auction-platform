@@ -133,25 +133,32 @@ public class MainController extends BaseController implements Initializable {
     Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
     String jsonRequest = gson.toJson(request);
 
-    new Thread(() -> {
-      try {
-        String jsonResponse = clientSocket.sendRequest(jsonRequest);
-        Response response = gson.fromJson(jsonResponse, Response.class);
+    new Thread(
+            () -> {
+              try {
+                String jsonResponse = clientSocket.sendRequest(jsonRequest);
+                Response response = gson.fromJson(jsonResponse, Response.class);
 
-        Platform.runLater(() -> {
-          if ("SUCCESS".equals(response.getStatus())) {
-            showAlert("Chúc mừng", "Nâng cấp thành công! Vui lòng đăng nhập lại.");
-            UserSession.getInstance().cleanUserSession();
-            switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-          } else {
-            showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
-          }
-        });
-      } catch (Exception e) {
-        Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
-        logger.log(Level.SEVERE, "Gặp sự cố ngắt kết nối Socket", e);
-      }
-    }).start();
+                Platform.runLater(
+                    () -> {
+                      if ("SUCCESS".equals(response.getStatus())) {
+                        showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
+                        UserSession.getInstance().cleanUserSession();
+                        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+                      } else {
+                        showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
+                      }
+                    });
+              } catch (Exception e) {
+                Platform.runLater(
+                    () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
+                logger.log(
+                    Level.SEVERE,
+                    "Gặp sự cố ngắt kết nối Socket khi thực hiện gửi yêu cầu UPDATE_ROLE",
+                    e);
+              }
+            })
+        .start();
   }
 
   /**
