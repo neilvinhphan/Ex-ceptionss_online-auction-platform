@@ -443,8 +443,16 @@ public class ClientHandler implements Runnable {
   private void handleUpdateRole(Request request) {
     try {
       UpdateRoleRequestDTO requestDTO =
-          gson.fromJson(gson.toJson(request.getData()), UpdateRoleRequestDTO.class);
+              gson.fromJson(gson.toJson(request.getData()), UpdateRoleRequestDTO.class);
+
       if (userService.updateRole(requestDTO.getUserId())) {
+
+        if (this.userId != -1) {
+          activeUsers.remove(this.userId);
+          System.out.println("[SERVER] Nâng cấp Seller. Tự động xóa phiên để User " + this.userId + " đăng nhập lại.");
+          this.userId = -1;
+        }
+
         sendMessage(gson.toJson(new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!")));
       } else {
         sendMessage(gson.toJson(new Response("ERROR", "Nâng cấp thất bại! Lỗi cơ sở dữ liệu.")));
