@@ -1,6 +1,8 @@
 package org.example.server.daos;
 
 import org.example.core.models.entities.BidTransaction;
+import org.example.core.exception.DatabaseAccessException;
+import org.example.core.exception.ResourceNotFoundException;
 import org.example.server.config.DBConnection;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -33,15 +35,12 @@ public class BidDAO {
 
   /**
    * Lưu một bản ghi lịch sử đặt thầu mới (Bid Transaction) từ tầng Service vào cơ sở dữ liệu.
-   *
-   * @param tx Thực thể giao dịch thầu chứa thông tin người đặt và số tiền.
-   * @return {@code true} nếu lưu thành công bản ghi, ngược lại {@code false}.
    */
   public boolean insertBid(BidTransaction tx) {
     String sql =
-        "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
+            "INSERT INTO bid (auction_id, bidder_id, bid_amount, user_name) VALUES (?, ?, ?, ?)";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, tx.getAuctionId());
       ps.setInt(2, tx.getBidderId());
       ps.setBigDecimal(3, tx.getAmount());
@@ -50,10 +49,10 @@ public class BidDAO {
       return ps.executeUpdate() > 0;
     } catch (SQLException e) {
       logger.log(
-          Level.SEVERE,
-          "Lỗi khi ghi nhận lượt đặt thầu mới cho Auction ID: " + tx.getAuctionId(),
-          e);
-      throw new RuntimeException("Ghi nhận lượt đặt giá mới thất bại", e);
+              Level.SEVERE,
+              "Lỗi khi ghi nhận lượt đặt thầu mới cho Auction ID: " + tx.getAuctionId(),
+              e);
+      throw new DatabaseAccessException("Ghi nhận lượt đặt giá mới thất bại do sự cố đồng bộ dữ liệu.", e);
     }
   }
 
@@ -61,14 +60,14 @@ public class BidDAO {
   public boolean updateCurrentPrice(int auctionId, int bidderId, BigDecimal newPrice) {
     String sql = "UPDATE auction SET highest_price = ?, bidder_id = ? WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setBigDecimal(1, newPrice);
       ps.setInt(2, bidderId);
       ps.setInt(3, auctionId);
       return ps.executeUpdate() > 0;
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi cập nhật bước giá mới cho phòng đấu giá ID: " + auctionId, e);
-      throw new RuntimeException("Cập nhật giá hiện tại của phiên thất bại", e);
+      throw new DatabaseAccessException("Cập nhật giá hiện tại của phiên đấu giá thất bại.", e);
     }
   }
 
@@ -78,30 +77,29 @@ public class BidDAO {
   public BigDecimal getCurrentPrice(int auctionId) {
     String sql = "SELECT highest_price FROM auction WHERE auction_id = ?";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         if (rs.next()) {
           return rs.getBigDecimal("highest_price");
         }
-        return null;
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi khi lấy giá hiện tại của Auction ID: " + auctionId, e);
-      throw new RuntimeException("Truy vấn giá hiện tại thất bại", e);
+      throw new DatabaseAccessException("Truy vấn giá hiện tại của phiên thất bại.", e);
     }
+    throw new ResourceNotFoundException("Không tìm thấy thông tin giá cho phiên đấu giá ID: " + auctionId);
   }
 
   /**
-   * Truy xuất toàn bộ danh sách lịch sử đặt thầu của một phòng phục vụ việc vẽ đồ thị Client. Thứ
-   * tự sắp xếp theo trình tự thời gian tăng dần (Tài khoản đặt trước hiển thị trước).
+   * Truy xuất toàn bộ danh sách lịch sử đặt thầu của một phòng phục vụ việc vẽ đồ thị Client.
    */
   public List<BidTransaction> getBidHistoryByAuctionId(int auctionId) {
     List<BidTransaction> transactions = new ArrayList<>();
     String sql =
-        "SELECT bid_amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
+            "SELECT bid_amount, created_at, bidder_id FROM bid WHERE auction_id = ? ORDER BY created_at ASC";
     try (Connection connection = DBConnection.getConnection();
-        PreparedStatement ps = connection.prepareStatement(sql)) {
+         PreparedStatement ps = connection.prepareStatement(sql)) {
       ps.setInt(1, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -118,7 +116,7 @@ public class BidDAO {
       return transactions;
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi truy xuất lịch sử đặt thầu của Auction ID: " + auctionId, e);
-      throw new RuntimeException("Tải lịch sử đặt giá thất bại", e);
+      throw new DatabaseAccessException("Tải lịch sử đặt giá của phiên thất bại.", e);
     }
   }
 }

@@ -31,6 +31,7 @@ import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
@@ -84,18 +85,13 @@ public class WareHouseController extends BaseController implements Initializable
   @FXML
   public void handleDeleteProduct(ActionEvent event) {
     Item selectedItem = productTable.getSelectionModel().getSelectedItem();
-
     if (selectedItem == null) {
       showAlert("Thông báo", "Vui lòng click chọn một sản phẩm trên bảng để xóa!");
       return;
     }
 
-    if (selectedItem.getStatus() != null
-        && selectedItem.getStatus() != ItemStatus.APPROVED
-        && selectedItem.getStatus() != ItemStatus.PENDING) {
-      showAlert(
-          "Cảnh báo",
-          "Bạn chỉ có thể xóa tài sản đang ở trạng thái APPROVED hoặc PENDING (Chưa đấu giá)!");
+    if (selectedItem.getStatus() != null && selectedItem.getStatus() != ItemStatus.APPROVED && selectedItem.getStatus() != ItemStatus.PENDING) {
+      showAlert("Cảnh báo", "Bạn chỉ có thể xóa tài sản đang ở trạng thái APPROVED hoặc PENDING (Chưa đấu giá)!");
       return;
     }
 
@@ -103,41 +99,32 @@ public class WareHouseController extends BaseController implements Initializable
     confirmAlert.setTitle("Xác nhận xóa");
     confirmAlert.setHeaderText("Bạn có chắc chắn muốn xóa: " + selectedItem.getItemName() + "?");
 
-    confirmAlert
-        .showAndWait()
-        .ifPresent(
-            response -> {
-              if (response == ButtonType.OK) {
-                DeleteRequestDTO payload = new DeleteRequestDTO(selectedItem.getItemId());
-                Request request = new Request("DELETE_ITEM", payload);
-                String jsonRequest = gson.toJson(request);
+    confirmAlert.showAndWait().ifPresent(response -> {
+      if (response == ButtonType.OK) {
+        DeleteRequestDTO payload = new DeleteRequestDTO(selectedItem.getItemId());
+        Request request = new Request(ActionType.DELETE_ITEM, payload);
 
-                new Thread(
-                        () -> {
-                          try {
-                            String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                            Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+        new Thread(() -> {
+          try {
+            String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+            Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                            Platform.runLater(
-                                () -> {
-                                  if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                    observableItemList.remove(selectedItem);
-                                    showAlert("Thành công", "Đã xóa sản phẩm khỏi cơ sở dữ liệu!");
-                                  } else {
-                                    showAlert("Lỗi khi xóa", serverResponse.getMessage());
-                                  }
-                                });
-                          } catch (Exception e) {
-                            Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
-                            logger.log(
-                                Level.SEVERE,
-                                "Lỗi mạng Socket phát sinh khi gửi yêu cầu DELETE_ITEM",
-                                e);
-                          }
-                        })
-                    .start();
+            Platform.runLater(() -> {
+              if ("SUCCESS".equals(serverResponse.getStatus())) {
+                observableItemList.remove(selectedItem);
+                showAlert("Thành công", "Đã xóa sản phẩm khỏi cơ sở dữ liệu!");
+              } else {
+                int code = serverResponse.getData() instanceof Number ? ((Number) serverResponse.getData()).intValue() : -1;
+                String title = (code == 4090) ? "Xung đột dữ liệu (409)" : "Lỗi khi xóa (" + code + ")";
+                showAlert(title, serverResponse.getMessage());
               }
             });
+          } catch (Exception e) {
+            Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+          }
+        }).start();
+      }
+    });
   }
 
   /**
@@ -147,18 +134,17 @@ public class WareHouseController extends BaseController implements Initializable
   @FXML
   public void handleEditProduct(ActionEvent event) {
     Item selectedItem = productTable.getSelectionModel().getSelectedItem();
-
     if (selectedItem == null) {
       showAlert("Thông báo", "Vui lòng chọn một sản phẩm để sửa!");
       return;
     }
+
     int itemId = selectedItem.getItemId();
     String itemType = selectedItem.getType();
 
     Dialog<ButtonType> dialog = new Dialog<>();
     dialog.setTitle("Chỉnh sửa sản phẩm");
     dialog.setHeaderText("Cập nhật thông tin cho: " + selectedItem.getItemName());
-
     ButtonType saveButtonType = new ButtonType("Lưu thay đổi", ButtonBar.ButtonData.OK_DONE);
     dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
@@ -167,70 +153,51 @@ public class WareHouseController extends BaseController implements Initializable
     TextField tfPrice = new TextField(selectedItem.getStartingPrice().toString());
 
     GridPane grid = new GridPane();
-    grid.setHgap(10);
-    grid.setVgap(10);
-    grid.add(new Label("Tên sản phẩm:"), 0, 0);
-    grid.add(tfName, 1, 0);
-    grid.add(new Label("Mô tả:"), 0, 1);
-    grid.add(tfDesc, 1, 1);
-    grid.add(new Label("Giá khởi điểm:"), 0, 2);
-    grid.add(tfPrice, 1, 2);
-
+    grid.setHgap(10); grid.setVgap(10);
+    grid.add(new Label("Tên sản phẩm:"), 0, 0); grid.add(tfName, 1, 0);
+    grid.add(new Label("Mô tả:"), 0, 1); grid.add(tfDesc, 1, 1);
+    grid.add(new Label("Giá khởi điểm:"), 0, 2); grid.add(tfPrice, 1, 2);
     dialog.getDialogPane().setContent(grid);
 
-    dialog
-        .showAndWait()
-        .ifPresent(
-            result -> {
-              if (result == saveButtonType) {
-                try {
-                  String newName = tfName.getText().trim();
-                  String newDesc = tfDesc.getText().trim();
-                  BigDecimal newPrice = new BigDecimal(tfPrice.getText().trim());
+    dialog.showAndWait().ifPresent(result -> {
+      if (result == saveButtonType) {
+        try {
+          String newName = tfName.getText().trim();
+          String newDesc = tfDesc.getText().trim();
+          BigDecimal newPrice = new BigDecimal(tfPrice.getText().trim());
 
-                  EditProductRequestDTO payload =
-                      new EditProductRequestDTO(itemId, newName, newDesc, newPrice, itemType);
-                  Request request = new Request("UPDATE_ITEM_FULL", payload);
-                  String jsonRequest = gson.toJson(request);
+          EditProductRequestDTO payload = new EditProductRequestDTO(itemId, newName, newDesc, newPrice, itemType);
+          Request request = new Request(ActionType.UPDATE_ITEM_FULL, payload);
 
-                  new Thread(
-                          () -> {
-                            try {
-                              String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                              Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+          new Thread(() -> {
+            try {
+              String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+              Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                              Platform.runLater(
-                                  () -> {
-                                    if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                      showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
-
-                                      selectedItem.setItemName(newName);
-                                      selectedItem.setDescription(newDesc);
-                                      selectedItem.setStartingPrice(newPrice);
-
-                                      productTable.refresh();
-
-                                      int index = observableItemList.indexOf(selectedItem);
-                                      observableItemList.set(index, selectedItem);
-                                    } else {
-                                      showAlert("Lỗi", serverResponse.getMessage());
-                                    }
-                                  });
-                            } catch (Exception e) {
-                              Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
-                              logger.log(
-                                  Level.SEVERE,
-                                  "Gặp sự cố kết nối khi gửi yêu cầu UPDATE_ITEM_FULL",
-                                  e);
-                            }
-                          })
-                      .start();
-
-                } catch (NumberFormatException e) {
-                  showAlert("Lỗi", "Giá khởi điểm phải là một con số hợp lệ!");
+              Platform.runLater(() -> {
+                if ("SUCCESS".equals(serverResponse.getStatus())) {
+                  showAlert("Thành công", "Đã cập nhật toàn bộ thông tin!");
+                  selectedItem.setItemName(newName);
+                  selectedItem.setDescription(newDesc);
+                  selectedItem.setStartingPrice(newPrice);
+                  productTable.refresh();
+                  int index = observableItemList.indexOf(selectedItem);
+                  observableItemList.set(index, selectedItem);
+                } else {
+                  int code = serverResponse.getData() instanceof Number ? ((Number) serverResponse.getData()).intValue() : -1;
+                  String title = (code == 4090) ? "Xung đột dữ liệu (409)" : "Lỗi cập nhật (" + code + ")";
+                  showAlert(title, serverResponse.getMessage());
                 }
-              }
-            });
+              });
+            } catch (Exception e) {
+              Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
+            }
+          }).start();
+        } catch (NumberFormatException e) {
+          showAlert("Lỗi", "Giá khởi điểm phải là một con số hợp lệ!");
+        }
+      }
+    });
   }
 
   /**
@@ -264,7 +231,7 @@ public class WareHouseController extends BaseController implements Initializable
     }
     int sellerId = currentUser.getUserId();
     PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
-    Request request = new Request("GET_PENDING_ITEMS", requestPayload);
+    Request request = new Request(ActionType.GET_PENDING_ITEMS, requestPayload);
     String jsonRequest = gson.toJson(request);
 
     new Thread(

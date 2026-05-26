@@ -34,6 +34,7 @@ import org.example.core.dto.Response;
 import org.example.core.dto.admin.AdminCancelAuctionDTO;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.items.Item;
+import org.example.core.shared.enums.ActionType;
 
 /**
  * Controller xử lý quy trình phê duyệt hoặc từ chối các phiên đấu giá đang chờ duyệt từ phía Admin.
@@ -66,7 +67,7 @@ public class AuctionApprovalController extends BaseController implements Initial
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     setupTableColumns();
-    loadPendingAuctions();
+//    loadPendingAuctions();
 
     itemTable
         .getSelectionModel()
@@ -163,103 +164,103 @@ public class AuctionApprovalController extends BaseController implements Initial
     lblNoImage.setText("Không có ảnh");
   }
 
-  /**
-   * Làm mới lại danh sách các phiên đấu giá đang chờ duyệt.
-   *
-   * @param event Sự kiện kích hoạt từ UI.
-   */
-  @FXML
-  private void handleRefresh(ActionEvent event) {
-    loadPendingAuctions();
-  }
+//  /**
+//   * Làm mới lại danh sách các phiên đấu giá đang chờ duyệt.
+//   *
+//   * @param event Sự kiện kích hoạt từ UI.
+//   */
+//  @FXML
+//  private void handleRefresh(ActionEvent event) {
+//    loadPendingAuctions();
+//  }
 
-  /**
-   * Tạo tiến trình bất đồng bộ gửi yêu cầu lên Server để đồng bộ danh sách các phiên đấu giá chờ
-   * duyệt.
-   */
-  private void loadPendingAuctions() {
-    Request request = new Request("GET_PENDING_AUCTIONS", null);
+//  /**
+//   * Tạo tiến trình bất đồng bộ gửi yêu cầu lên Server để đồng bộ danh sách các phiên đấu giá chờ
+//   * duyệt.
+//   */
+//  private void loadPendingAuctions() {
+//    Request request = new Request(ActionType.GET_PENDING_AUCTIONS, null);
+//
+//    new Thread(
+//            () -> {
+//              try {
+//                logger.info("Đang gửi yêu cầu lấy danh sách phiên đấu giá chờ duyệt lên Server.");
+//                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+//                logger.fine("Dữ liệu phản hồi từ Server: " + jsonResponse);
+//
+//                Response response = gson.fromJson(jsonResponse, Response.class);
+//
+//                if ("SUCCESS".equals(response.getStatus())) {
+//                  String jsonData = gson.toJson(response.getData());
+//                  Type listType = new TypeToken<List<Auction>>() {}.getType();
+//                  List<Auction> fetched = gson.fromJson(jsonData, listType);
+//
+//                  Platform.runLater(
+//                      () -> {
+//                        pendingAuctionList.setAll(fetched);
+//                        itemTable.setItems(pendingAuctionList);
+//                        clearPreview();
+//                      });
+//                } else {
+//                  logger.warning(
+//                      "Server từ chối cung cấp danh sách chờ duyệt: " + response.getMessage());
+//                  Platform.runLater(() -> showAlert("Lỗi phản hồi", response.getMessage()));
+//                }
+//              } catch (Exception e) {
+//                logger.log(
+//                    Level.SEVERE, "Lỗi nghiêm trọng khi tải danh sách phiên đấu giá chờ duyệt", e);
+//                Platform.runLater(
+//                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
+//              }
+//            })
+//        .start();
+//  }
 
-    new Thread(
-            () -> {
-              try {
-                logger.info("Đang gửi yêu cầu lấy danh sách phiên đấu giá chờ duyệt lên Server.");
-                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
-                logger.fine("Dữ liệu phản hồi từ Server: " + jsonResponse);
-
-                Response response = gson.fromJson(jsonResponse, Response.class);
-
-                if ("SUCCESS".equals(response.getStatus())) {
-                  String jsonData = gson.toJson(response.getData());
-                  Type listType = new TypeToken<List<Auction>>() {}.getType();
-                  List<Auction> fetched = gson.fromJson(jsonData, listType);
-
-                  Platform.runLater(
-                      () -> {
-                        pendingAuctionList.setAll(fetched);
-                        itemTable.setItems(pendingAuctionList);
-                        clearPreview();
-                      });
-                } else {
-                  logger.warning(
-                      "Server từ chối cung cấp danh sách chờ duyệt: " + response.getMessage());
-                  Platform.runLater(() -> showAlert("Lỗi phản hồi", response.getMessage()));
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE, "Lỗi nghiêm trọng khi tải danh sách phiên đấu giá chờ duyệt", e);
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
-              }
-            })
-        .start();
-  }
-
-  /**
-   * Xử lý phê duyệt phiên đấu giá đã chọn, lên lịch mở phòng đấu giá tự động theo thời gian cấu
-   * hình.
-   *
-   * @param event Sự kiện kích hoạt từ UI.
-   */
-  @FXML
-  private void handleApprove(ActionEvent event) {
-    Auction selected = itemTable.getSelectionModel().getSelectedItem();
-    if (selected == null) return;
-
-    JsonObject data = new JsonObject();
-    data.addProperty("auctionId", selected.getAuctionId());
-    Request request = new Request("APPROVE_AUCTION", data);
-
-    new Thread(
-            () -> {
-              try {
-                logger.info("Gửi yêu cầu phê duyệt phiên đấu giá ID: " + selected.getAuctionId());
-                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
-                Response res = gson.fromJson(jsonResponse, Response.class);
-
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(res.getStatus())) {
-                        showAlert(
-                            "Thành công",
-                            "Đã duyệt! Phòng sẽ tự mở vào lúc: " + selected.getStartTime());
-                        loadPendingAuctions();
-                      } else {
-                        logger.warning("Phê duyệt thất bại: " + res.getMessage());
-                        showAlert("Lỗi", res.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE,
-                    "Lỗi mạng khi phê duyệt phiên đấu giá ID: " + selected.getAuctionId(),
-                    e);
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
-              }
-            })
-        .start();
-  }
+//  /**
+//   * Xử lý phê duyệt phiên đấu giá đã chọn, lên lịch mở phòng đấu giá tự động theo thời gian cấu
+//   * hình.
+//   *
+//   * @param event Sự kiện kích hoạt từ UI.
+//   */
+//  @FXML
+//  private void handleApprove(ActionEvent event) {
+//    Auction selected = itemTable.getSelectionModel().getSelectedItem();
+//    if (selected == null) return;
+//
+//    JsonObject data = new JsonObject();
+//    data.addProperty("auctionId", selected.getAuctionId());
+//    Request request = new Request(ActionType.APPROVE_AUCTION, data);
+//
+//    new Thread(
+//            () -> {
+//              try {
+//                logger.info("Gửi yêu cầu phê duyệt phiên đấu giá ID: " + selected.getAuctionId());
+//                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+//                Response res = gson.fromJson(jsonResponse, Response.class);
+//
+//                Platform.runLater(
+//                    () -> {
+//                      if ("SUCCESS".equals(res.getStatus())) {
+//                        showAlert(
+//                            "Thành công",
+//                            "Đã duyệt! Phòng sẽ tự mở vào lúc: " + selected.getStartTime());
+//                        loadPendingAuctions();
+//                      } else {
+//                        logger.warning("Phê duyệt thất bại: " + res.getMessage());
+//                        showAlert("Lỗi", res.getMessage());
+//                      }
+//                    });
+//              } catch (Exception e) {
+//                logger.log(
+//                    Level.SEVERE,
+//                    "Lỗi mạng khi phê duyệt phiên đấu giá ID: " + selected.getAuctionId(),
+//                    e);
+//                Platform.runLater(
+//                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
+//              }
+//            })
+//        .start();
+//  }
 
   /**
    * Xử lý từ chối và hủy bỏ phiên đấu giá đang được lựa chọn từ quản trị viên.
@@ -268,40 +269,41 @@ public class AuctionApprovalController extends BaseController implements Initial
    */
   @FXML
   private void handleReject(ActionEvent event) {
-    Auction selected = itemTable.getSelectionModel().getSelectedItem();
-    if (selected == null) return;
+      Auction selected = itemTable.getSelectionModel().getSelectedItem();
+      if (selected == null) return;
 
-    int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-    AdminCancelAuctionDTO cancelReq = new AdminCancelAuctionDTO(selected.getAuctionId(), adminId);
-    Request request = new Request("ADMIN_CANCEL_AUCTION", cancelReq);
+      int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+      AdminCancelAuctionDTO cancelReq = new AdminCancelAuctionDTO(selected.getAuctionId(), adminId);
+      Request request = new Request(ActionType.ADMIN_CANCEL_AUCTION, cancelReq);
 
-    new Thread(
-            () -> {
-              try {
-                logger.info(
-                    "Gửi yêu cầu hủy phiên đấu giá từ Admin ID "
-                        + adminId
-                        + " đối với Auction ID "
-                        + selected.getAuctionId());
-                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
-                Response res = gson.fromJson(jsonResponse, Response.class);
+      new Thread(
+              () -> {
+                  try {
+                      logger.info("Gửi yêu cầu hủy phiên đấu giá khẩn cấp từ Admin ID " + adminId);
+                      String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+                      Response res = gson.fromJson(jsonResponse, Response.class);
 
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(res.getStatus())) {
-                        showAlert("Thành công", "Đã từ chối phiên đấu giá.");
-                        loadPendingAuctions();
-                      } else {
-                        logger.warning("Từ chối phiên đấu giá thất bại: " + res.getMessage());
-                        showAlert("Lỗi", res.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                logger.log(Level.SEVERE, "Lỗi hệ thống khi gửi yêu cầu từ chối phiên đấu giá", e);
-                Platform.runLater(() -> showAlert("Lỗi mạng", "Chi tiết lỗi: " + e.getMessage()));
-              }
-            })
-        .start();
+                      Platform.runLater(() -> {
+                          if ("SUCCESS".equals(res.getStatus())) {
+                              showAlert("Thành công", "Đã cưỡng chế hủy / từ chối phiên đấu giá.");
+                          } else {
+                              int code = res.getData() instanceof Number ? ((Number) res.getData()).intValue() : -1;
+                              String errorTitle = switch (code) {
+                                  case 4040 -> "Không tìm thấy phiên (404)";
+                                  case 4030 -> "Từ chối quyền hạn Admin (403)";
+                                  case 5000 -> "Lỗi hạ tầng cơ sở dữ liệu (500)";
+                                  default -> "Hủy phiên thất bại (" + code + ")";
+                              };
+                              logger.warning("Admin từ chối phiên thất bại [" + code + "]: " + res.getMessage());
+                              showAlert(errorTitle, res.getMessage());
+                          }
+                      });
+                  } catch (Exception e) {
+                      logger.log(Level.SEVERE, "Lỗi hệ thống khi gửi yêu cầu từ chối phiên đấu giá", e);
+                      Platform.runLater(() -> showAlert("Lỗi mạng", "Chi tiết lỗi: " + e.getMessage()));
+                  }
+              })
+              .start();
   }
 
   /**

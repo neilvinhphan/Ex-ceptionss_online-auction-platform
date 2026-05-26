@@ -1,5 +1,7 @@
 package org.example.server.daos;
 
+import org.example.core.exception.DataConflictException;
+import org.example.core.exception.DatabaseAccessException;
 import org.example.server.config.DBConnection;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -40,12 +42,12 @@ public class AutoBidDAO {
       ps.executeUpdate();
     } catch (SQLException e) {
       logger.log(
-          Level.SEVERE,
-          "Lỗi lưu/cập nhật AutoBid cho phòng ID: " + auctionId + ", User: " + userId,
-          e);
-      throw new RuntimeException("Không thể thiết lập cấu hình đấu giá tự động", e);
+          Level.SEVERE, "Lỗi lưu/cập nhật AutoBid cho phòng ID: " + auctionId + ", User: " + userId, e);
+      if(e.getErrorCode() == 1062) {
+      throw new DataConflictException("Không thể thiết lập cấu hình đấu giá tự động");
     }
-  }
+    throw new DatabaseAccessException("Lỗi không xác định khi lưu cấu hình đấu giá tự động", e);
+  }}
 
   /** Hủy chế độ đặt giá tự động (Tắt hoạt động bot) khi người dùng chủ động thoát phòng gác. */
   public void disableAutoBid(int auctionId, int userId) {
@@ -61,7 +63,7 @@ public class AutoBidDAO {
           Level.SEVERE,
           "Lỗi tắt trạng thái AutoBid phòng ID: " + auctionId + ", User: " + userId,
           e);
-      throw new RuntimeException("Không thể hủy trạng thái đấu giá tự động", e);
+      throw new DatabaseAccessException("Không thể hủy trạng thái đấu giá tự động", e);
     }
   }
 
@@ -82,7 +84,7 @@ public class AutoBidDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi truy vấn mức giá trần AutoBid phòng ID: " + auctionId, e);
-      throw new RuntimeException("Lấy hạn mức đấu giá tự động thất bại", e);
+      throw new DatabaseAccessException("Lấy hạn mức đấu giá tự động thất bại", e);
     }
     return null;
   }
@@ -139,14 +141,6 @@ public class AutoBidDAO {
       this.userId = userId;
       this.maxBid = maxBid;
       this.createdAt = createdAt;
-    }
-
-    public int getAutoBidId() {
-      return autoBidId;
-    }
-
-    public int getAuctionId() {
-      return auctionId;
     }
 
     public int getUserId() {

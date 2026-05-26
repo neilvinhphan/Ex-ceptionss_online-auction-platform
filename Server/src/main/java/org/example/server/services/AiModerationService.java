@@ -3,6 +3,7 @@ package org.example.server.services;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.example.core.dto.admin.AiEvaluationDTO;
+import org.example.core.exception.DatabaseAccessException;
 import org.example.core.models.items.Item;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,9 +29,6 @@ public class AiModerationService {
 
   /**
    * Phân tích, thẩm định mức độ an toàn và ước tính giá trị thị trường của vật phẩm thông qua AI.
-   *
-   * @param item Đối tượng thực thể sản phẩm cần kiểm duyệt.
-   * @return Đối tượng {@link AiEvaluationDTO} chứa kết quả thẩm định và lý do từ AI.
    */
   public static AiEvaluationDTO evaluateItem(Item item) {
     try {
@@ -67,18 +65,15 @@ public class AiModerationService {
     }
   }
 
-  /**
-   * Trích xuất ma trận dữ liệu JSON phức tạp từ cấu hình phản hồi của Google Gemini.
-   */
   private static AiEvaluationDTO parseAiResponse(String responseBody) {
-    logger.info("🤖 AI RAW RESPONSE: " + responseBody);
+    logger.info("AI RAW RESPONSE: " + responseBody);
     try {
       JsonObject jsonObject = gson.fromJson(responseBody, JsonObject.class);
 
       if (jsonObject.has("error")) {
         JsonObject errorObj = jsonObject.getAsJsonObject("error");
         String errMsg = errorObj.get("message").getAsString();
-        logger.log(Level.WARNING, "❌ Lỗi phản hồi cấu trúc từ hệ thống Google API: " + errMsg);
+        logger.log(Level.WARNING, "Lỗi phản hồi cấu trúc từ hệ thống Google API: " + errMsg);
         return new AiEvaluationDTO(true, null, "Lỗi API: " + errMsg);
       }
 
@@ -89,12 +84,12 @@ public class AiModerationService {
               .get("text").getAsString();
 
       String cleanJson = rawAiText.replaceAll("```json", "").replaceAll("```", "").trim();
-      logger.info("🧼 CHUỖI JSON ĐÃ LÀM SẠCH: " + cleanJson);
+      logger.info("CHUỖI JSON ĐÃ LÀM SẠCH: " + cleanJson);
 
       return gson.fromJson(cleanJson, AiEvaluationDTO.class);
 
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "❌ Thất bại khi bóc tách cú pháp phản hồi mã token từ AI", e);
+      logger.log(Level.SEVERE, "Thất bại khi bóc tách cú pháp phản hồi mã token từ AI", e);
       return new AiEvaluationDTO(true, null, "Không thể giải mã phản hồi từ AI. Cần kiểm tra lại.");
     }
   }

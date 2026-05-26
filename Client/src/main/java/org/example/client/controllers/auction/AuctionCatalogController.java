@@ -36,6 +36,7 @@ import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.client.utils.ImageUtils;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
@@ -104,8 +105,7 @@ public class AuctionCatalogController extends BaseController implements Initiali
   private void handleUpgrade(ActionEvent event) {
     Dialog<String> dialog = new Dialog<>();
     dialog.setTitle("Xác nhận nâng cấp");
-    dialog.setHeaderText(
-        "Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
+    dialog.setHeaderText("Bạn có chắc chắn muốn nâng cấp lên tài khoản SELLER không?\nNếu có, vui lòng nhập lại mật khẩu để xác nhận:");
 
     ButtonType confirmButtonType = new ButtonType("Nâng cấp", ButtonBar.ButtonData.OK_DONE);
     dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
@@ -120,38 +120,34 @@ public class AuctionCatalogController extends BaseController implements Initiali
 
     Platform.runLater(passwordField::requestFocus);
 
-    dialog.setResultConverter(
-        dialogButton -> dialogButton == confirmButtonType ? passwordField.getText() : null);
+    dialog.setResultConverter(dialogButton -> dialogButton == confirmButtonType ? passwordField.getText() : null);
 
     Optional<String> result = dialog.showAndWait();
-    result.ifPresent(
-        password -> {
-          try {
-            User currentUser = UserSession.getInstance().getCurrentUser();
-            int currentId = currentUser.getUserId();
+    result.ifPresent(password -> {
+      try {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        int currentId = currentUser.getUserId();
 
-            logger.info("Bắt đầu quy trình kiểm tra mật khẩu nâng cấp.");
+        logger.info("Bắt đầu quy trình kiểm tra mật khẩu nâng cấp.");
 
-            if (currentUser.getPassword() == null || currentUser.getPassword().isEmpty()) {
-              showAlert(
-                  "Lỗi hệ thống",
-                  "Dữ liệu User trong Session không chứa mật khẩu mã hóa. Vui lòng kiểm tra lại API Login phía Server!");
-              return;
-            }
+        if (currentUser.getPassword() == null || currentUser.getPassword().isEmpty()) {
+          showAlert("Lỗi hệ thống", "Dữ liệu User trong Session không chứa mật khẩu mã hóa. Vui lòng kiểm tra lại API Login phía Server!");
+          return;
+        }
 
-            if (!BCrypt.checkpw(password, currentUser.getPassword())) {
-              showAlert("Lỗi", "Sai mật khẩu!");
-              return;
-            }
+        if (!BCrypt.checkpw(password, currentUser.getPassword())) {
+          showAlert("Lỗi", "Sai mật khẩu!");
+          return;
+        }
 
-            logger.info("Xác thực BCrypt thành công. Tiến hành gửi yêu cầu lên máy chủ.");
-            sendUpgradeRequestToServer(currentId, event);
+        logger.info("Xác thực BCrypt thành công. Tiến hành gửi yêu cầu lên máy chủ.");
+        sendUpgradeRequestToServer(currentId, event);
 
-          } catch (Exception e) {
-            logger.log(Level.SEVERE, "Lỗi trong quá trình xác thực mật khẩu bằng BCrypt", e);
-            showAlert("Lỗi vặt", "Có lỗi xảy ra khi kiểm tra mật khẩu: " + e.getMessage());
-          }
-        });
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, "Lỗi trong quá trình xác thực mật khẩu bằng BCrypt", e);
+        showAlert("Lỗi vặt", "Có lỗi xảy ra khi kiểm tra mật khẩu: " + e.getMessage());
+      }
+    });
   }
 
   /** Xử lý sự kiện lọc và sắp xếp danh sách đấu giá theo các tiêu chí đã chọn. */
@@ -205,18 +201,16 @@ public class AuctionCatalogController extends BaseController implements Initiali
       filteredList.add(auction);
     }
 
-    filteredList.sort(
-        (a1, a2) -> {
-          LocalDateTime t1 = a1.getStartTime();
-          LocalDateTime t2 = a2.getStartTime();
+    filteredList.sort((a1, a2) -> {
+      LocalDateTime t1 = a1.getStartTime();
+      LocalDateTime t2 = a2.getStartTime();
 
-          if (t1 == null && t2 == null)
-            return Integer.compare(a1.getAuctionId(), a2.getAuctionId());
-          if (t1 == null) return 1;
-          if (t2 == null) return -1;
+      if (t1 == null && t2 == null) return Integer.compare(a1.getAuctionId(), a2.getAuctionId());
+      if (t1 == null) return 1;
+      if (t2 == null) return -1;
 
-          return rbSortNewest.isSelected() ? t2.compareTo(t1) : t1.compareTo(t2);
-        });
+      return rbSortNewest.isSelected() ? t2.compareTo(t1) : t1.compareTo(t2);
+    });
 
     displayAuctions(filteredList);
   }
@@ -234,111 +228,93 @@ public class AuctionCatalogController extends BaseController implements Initiali
   /** Gửi gói tin nâng cấp quyền người dùng lên máy chủ qua luồng kết nối Socket. */
   private void sendUpgradeRequestToServer(int userId, ActionEvent event) {
     UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
-    Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
-    String jsonRequest = gson.toJson(request);
+    Request request = new Request(ActionType.UPDATE_ROLE, updateRoleRequestDTO);
 
-    new Thread(
-            () -> {
-              try {
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(response.getStatus())) {
-                        showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
-                        UserSession.getInstance().cleanUserSession();
-                        switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
-                      } else {
-                        showAlert("Đã xảy ra lỗi", "Mật khẩu không chính xác! Vui lòng nhập lại.");
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
-                logger.log(Level.SEVERE, "Lỗi kết nối Socket khi gửi yêu cầu nâng cấp role", e);
-              }
-            })
-        .start();
+    new Thread(() -> {
+      try {
+        String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+        Response response = gson.fromJson(jsonResponse, Response.class);
+
+        Platform.runLater(() -> {
+          if ("SUCCESS".equals(response.getStatus())) {
+            showAlert("Chúc mừng", "Đăng nhập lại để cập nhật menu.");
+            UserSession.getInstance().cleanUserSession();
+            switchScene(event, "/views/LoginView.fxml", "Đăng nhập hệ thống");
+          } else {
+            // GIẢI MÃ LỖI TỪ SERVER
+            int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+            String title = (code == 5000) ? "Lỗi máy chủ (500)" : "Từ chối thực thi (" + code + ")";
+            showAlert(title, response.getMessage());
+          }
+        });
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
+        logger.log(Level.SEVERE, "Lỗi kết nối Socket khi gửi yêu cầu nâng cấp role", e);
+      }
+    }).start();
   }
 
   /** Tải danh sách phòng đấu giá đang mở hoặc sắp diễn ra từ máy chủ. */
   private void loadActiveAuctions() {
-    Request request = new Request("GET_ACTIVE_AUCTIONS", null);
-    String jsonRequest = gson.toJson(request);
-    new Thread(
-            () -> {
-              try {
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response response = gson.fromJson(jsonResponse, Response.class);
+    Request request = new Request(ActionType.GET_ACTIVE_AUCTIONS, null);
 
-                if ("SUCCESS".equals(response.getStatus())) {
-                  if (response.getData() == null) {
-                    logger.warning(
-                        "Server báo SUCCESS dữ liệu danh sách phòng đấu giá trả về bị rỗng (Null).");
-                    return;
-                  }
-                  String jsonData = gson.toJson(response.getData());
-                  JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
-                  List<Auction> fetchedAuctions = new ArrayList<>();
+    new Thread(() -> {
+      try {
+        String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+        Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  logger.log(
-                      Level.INFO,
-                      "Tìm thấy {0} phần tử đấu giá thô nhận về từ máy chủ.",
-                      jsonArray.size());
-                  for (JsonElement element : jsonArray) {
-                    JsonObject auctionObj = element.getAsJsonObject();
-                    Auction auction = gson.fromJson(auctionObj, Auction.class);
+        if ("SUCCESS".equals(response.getStatus())) {
+          if (response.getData() == null) {
+            logger.warning("Server báo SUCCESS dữ liệu danh sách phòng đấu giá trả về bị rỗng (Null).");
+            return;
+          }
+          String jsonData = gson.toJson(response.getData());
+          JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
+          List<Auction> fetchedAuctions = new ArrayList<>();
 
-                    if (auctionObj.has("type") && !auctionObj.get("type").isJsonNull()) {
-                      String type = auctionObj.get("type").getAsString();
+          for (JsonElement element : jsonArray) {
+            JsonObject auctionObj = element.getAsJsonObject();
+            Auction auction = gson.fromJson(auctionObj, Auction.class);
 
-                      Item parsedItem =
-                          switch (type.toUpperCase()) {
-                            case "ART" -> gson.fromJson(auctionObj, ArtItem.class);
-                            case "ELECTRONICS" -> gson.fromJson(auctionObj, ElectronicsItem.class);
-                            case "VEHICLE" -> gson.fromJson(auctionObj, VehicleItem.class);
-                            default -> null;
-                          };
+            if (auctionObj.has("type") && !auctionObj.get("type").isJsonNull()) {
+              String type = auctionObj.get("type").getAsString();
+              Item parsedItem = switch (type.toUpperCase()) {
+                case "ART" -> gson.fromJson(auctionObj, ArtItem.class);
+                case "ELECTRONICS" -> gson.fromJson(auctionObj, ElectronicsItem.class);
+                case "VEHICLE" -> gson.fromJson(auctionObj, VehicleItem.class);
+                default -> null;
+              };
 
-                      if (parsedItem != null) {
-                        if (auctionObj.has("itemName")) {
-                          parsedItem.setItemName(auctionObj.get("itemName").getAsString());
-                        }
-                        auction.setItem(parsedItem);
-                      }
-                    }
-
-                    if (auction.getItem() != null) {
-                      if (auction.getStatus() == AuctionStatus.OPEN
-                          || auction.getStatus() == AuctionStatus.RUNNING) {
-                        fetchedAuctions.add(auction);
-                      } else {
-                        logger.log(
-                            Level.INFO,
-                            "Đã dọn dẹp phòng {0} khỏi danh sách vì trạng thái: {1}",
-                            new Object[] {auction.getAuctionId(), auction.getStatus()});
-                      }
-                    } else {
-                      logger.log(
-                          Level.WARNING,
-                          "Bỏ qua phòng đấu giá ID {0} do lỗi ép kiểu thông tin sản phẩm.",
-                          auction.getAuctionId());
-                    }
-                  }
-                  allAuctionsList = new ArrayList<>(fetchedAuctions);
-                  Platform.runLater(
-                      () -> {
-                        displayAuctions(allAuctionsList);
-                        handleFilter(new ActionEvent());
-                      });
+              if (parsedItem != null) {
+                if (auctionObj.has("itemName")) {
+                  parsedItem.setItemName(auctionObj.get("itemName").getAsString());
                 }
-              } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi", "Mất kết nối: " + e.getMessage()));
-                logger.log(
-                    Level.SEVERE, "Lỗi xảy ra trong quá trình nạp danh sách đấu giá hoạt động", e);
+                auction.setItem(parsedItem);
               }
-            })
-        .start();
+            }
+
+            if (auction.getItem() != null) {
+              if (auction.getStatus() == AuctionStatus.OPEN || auction.getStatus() == AuctionStatus.RUNNING) {
+                fetchedAuctions.add(auction);
+              }
+            }
+          }
+          allAuctionsList = new ArrayList<>(fetchedAuctions);
+          Platform.runLater(() -> {
+            displayAuctions(allAuctionsList);
+            handleFilter(new ActionEvent());
+          });
+        } else {
+          Platform.runLater(() -> {
+            int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+            showAlert("Lỗi tải danh mục (" + code + ")", response.getMessage());
+          });
+        }
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi", "Mất kết nối: " + e.getMessage()));
+        logger.log(Level.SEVERE, "Lỗi xảy ra trong quá trình nạp danh sách đấu giá hoạt động", e);
+      }
+    }).start();
   }
 
   /** Hiển thị danh sách các thẻ phòng đấu giá lên giao diện FlowPane. */

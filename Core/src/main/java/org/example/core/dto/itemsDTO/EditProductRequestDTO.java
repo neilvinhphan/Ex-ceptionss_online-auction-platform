@@ -42,10 +42,6 @@ public class EditProductRequestDTO {
     return description;
   }
 
-  public String getItemType() {
-    return itemType;
-  }
-
   public void setItemEditName(String itemEditName) {
     this.itemEditName = itemEditName;
   }

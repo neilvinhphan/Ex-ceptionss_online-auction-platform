@@ -17,10 +17,8 @@ public class User extends Entity {
   protected UserStatus status;
   private BigDecimal balance;
 
-  // Seller contributes
   private SellerProfile sellerProfile;
 
-  // Đăng ký tài khoản
   public User(String userName, String password, String email, String phone) {
     this.userName = userName;
     this.phone = phone;
@@ -28,7 +26,6 @@ public class User extends Entity {
     this.password = password;
   }
 
-  // Lấy dữ liệu từ Database
   public User(
       String userName,
       String phone,
@@ -48,7 +45,6 @@ public class User extends Entity {
     this.status = status;
   }
 
-  // Constructor rỗng cho DB
   public User() {}
 
   // GETTER & SETTER

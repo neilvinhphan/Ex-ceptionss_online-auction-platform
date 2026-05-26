@@ -20,6 +20,7 @@ import org.example.core.models.items.ArtItem;
 import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
@@ -97,151 +98,133 @@ public class CreateAuctionController extends BaseController implements Initializ
    */
   @FXML
   public void handleSubmit(ActionEvent event) {
-    Item selectedItem = cbPendingItems.getSelectionModel().getSelectedItem();
-    if (selectedItem == null) {
-      showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
-      return;
-    }
-    String bidIncrText = tfBidIncrement.getText().trim();
-    if (bidIncrText.isEmpty()) {
-      showAlert("Lỗi", "Vui lòng nhập bước giá!");
-      return;
-    }
+      Item selectedItem = cbPendingItems.getSelectionModel().getSelectedItem();
+      if (selectedItem == null) {
+          showAlert("Lỗi", "Vui lòng chọn một tài sản để tạo đấu giá!");
+          return;
+      }
+      String bidIncrText = tfBidIncrement.getText().trim();
+      if (bidIncrText.isEmpty()) {
+          showAlert("Lỗi", "Vui lòng nhập bước giá!");
+          return;
+      }
 
-    LocalDate startDate = dpStartDate.getValue();
-    if (startDate == null) {
-      showAlert("Lỗi", "Vui lòng chọn ngày mở phiên đấu giá!");
-      return;
-    }
-    int startHour = startHourSpinner.getValue();
-    int startMinute = startMinuteSpinner.getValue();
-    LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.of(startHour, startMinute));
+      LocalDate startDate = dpStartDate.getValue();
+      if (startDate == null) {
+          showAlert("Lỗi", "Vui lòng chọn ngày mở phiên đấu giá!");
+          return;
+      }
+      int startHour = startHourSpinner.getValue();
+      int startMinute = startMinuteSpinner.getValue();
+      LocalDateTime startTime = LocalDateTime.of(startDate, LocalTime.of(startHour, startMinute));
 
-    if (startTime.isBefore(LocalDateTime.now())) {
-      showAlert("Lỗi", "Thời gian mở phòng dự kiến phải lớn hơn thời gian hiện tại!");
-      return;
-    }
+      if (startTime.isBefore(LocalDateTime.now())) {
+          showAlert("Lỗi", "Thời gian mở phòng dự kiến phải lớn hơn thời gian hiện tại!");
+          return;
+      }
 
-    if (getDuration().toMinutes() <= 0) {
-      showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
-      return;
-    }
+      if (getDuration().toMinutes() <= 0) {
+          showAlert("Lỗi", "Thời gian đấu giá phải lớn hơn 0!");
+          return;
+      }
 
-    try {
-      long durationMinutes = getDuration().toMinutes();
-      BigDecimal bidIncrement = new BigDecimal(tfBidIncrement.getText().trim());
+      try {
+          long durationMinutes = getDuration().toMinutes();
+          BigDecimal bidIncrement = new BigDecimal(tfBidIncrement.getText().trim());
 
-      CreateAuctionDTO requestDTO =
-          new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement, startTime);
-      Request request = new Request("CREATE_AUCTION", requestDTO);
-      String jsonRequest = gson.toJson(request);
+          CreateAuctionDTO requestDTO = new CreateAuctionDTO(selectedItem, durationMinutes, bidIncrement, startTime);
+          Request request = new Request(ActionType.CREATE_AUCTION, requestDTO);
+          String jsonRequest = gson.toJson(request);
 
-      new Thread(
-              () -> {
-                try {
+          new Thread(() -> {
+              try {
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
                   Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  Platform.runLater(
-                      () -> {
-                        if ("SUCCESS".equals(response.getStatus())) {
+                  Platform.runLater(() -> {
+                      if ("SUCCESS".equals(response.getStatus())) {
                           String jsonData = gson.toJson(response.getData());
                           Auction newAuction = gson.fromJson(jsonData, Auction.class);
 
                           AuctionSession.getInstance().setCurrentAuction(newAuction);
                           AuctionSession.getInstance().setCurrentItem(selectedItem);
-
                           AuctionSession.getInstance().clearSession();
                           switchScene(event, "/views/AuctionCatalogView.fxml", "Danh mục đấu giá");
-                        } else {
-                          showAlert("Lỗi tạo đấu giá", response.getMessage());
-                        }
-                      });
-                } catch (Exception e) {
-                  Platform.runLater(
-                      () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
-                  logger.log(
-                      Level.SEVERE, "Gặp lỗi kết nối khi thực hiện bắn gói tin tạo đấu giá", e);
-                }
-              })
-          .start();
-
-      logger.log(
-          Level.INFO,
-          "Đã đóng gói CreateAuctionDTO thành công cho tài sản: {0}",
-          selectedItem.getItemName());
-
-    } catch (Exception e) {
-      showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
-      logger.log(Level.SEVERE, "Lỗi hệ thống trong hàm xử lý Submit tạo đấu giá", e);
-    }
+                      } else {
+                          int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+                          String title = switch (code) {
+                              case 4000 -> "Dữ liệu không hợp lệ (400)";
+                              case 4040 -> "Tài sản không hợp lệ (404)";
+                              case 5000 -> "Lỗi hệ thống Server (500)";
+                              default -> "Tạo đấu giá thất bại (" + code + ")";
+                          };
+                          showAlert(title, response.getMessage());
+                      }
+                  });
+              } catch (Exception e) {
+                  Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu: " + e.getMessage()));
+                  logger.log(Level.SEVERE, "Gặp lỗi kết nối khi thực hiện bắn gói tin tạo đấu giá", e);
+              }
+          }).start();
+          logger.log(Level.INFO, "Đã đóng gói CreateAuctionDTO thành công cho tài sản: {0}", selectedItem.getItemName());
+      } catch (Exception e) {
+          showAlert("Lỗi hệ thống", "Có lỗi xảy ra: " + e.getMessage());
+          logger.log(Level.SEVERE, "Lỗi hệ thống trong hàm xử lý Submit tạo đấu giá", e);
+      }
   }
 
   /** Tải danh sách vật phẩm đang thuộc trạng thái APPROVED từ server về để đưa vào ComboBox. */
   private void loadPendingItems() {
-    int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
-    PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
-    requestPayload.setSellerId(sellerId);
+      int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
+      PendingItemsDTO requestPayload = new PendingItemsDTO(sellerId);
+      requestPayload.setSellerId(sellerId);
 
-    try {
-      Request request = new Request("GET_APPROVED_ITEMS", requestPayload);
-      String jsonRequest = gson.toJson(request);
+      try {
+          Request request = new Request(ActionType.GET_APPROVED_ITEMS, requestPayload);
+          String jsonRequest = gson.toJson(request);
 
-      new Thread(
-              () -> {
-                try {
+          new Thread(() -> {
+              try {
                   String jsonResponse = clientSocket.sendRequest(jsonRequest);
                   Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  Platform.runLater(
-                      () -> {
-                        if (response.getStatus().equals("SUCCESS")) {
+                  Platform.runLater(() -> {
+                      if (response.getStatus().equals("SUCCESS")) {
                           String jsonData = gson.toJson(response.getData());
                           JsonArray jsonArray = JsonParser.parseString(jsonData).getAsJsonArray();
                           allPendingItems.clear();
 
                           for (JsonElement element : jsonArray) {
-                            JsonObject itemObj = element.getAsJsonObject();
-                            String type = itemObj.get("type").getAsString();
-                            Item parsedItem = null;
+                              JsonObject itemObj = element.getAsJsonObject();
+                              String type = itemObj.get("type").getAsString();
+                              Item parsedItem = null;
 
-                            switch (type.toUpperCase()) {
-                              case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
-                              case "ELECTRONICS" ->
-                                  parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
-                              case "VEHICLE" ->
-                                  parsedItem = gson.fromJson(itemObj, VehicleItem.class);
-                              default ->
-                                  logger.log(
-                                      Level.WARNING,
-                                      "Không xác định được loại item type: {0}",
-                                      type);
-                            }
+                              switch (type.toUpperCase()) {
+                                  case "ART" -> parsedItem = gson.fromJson(itemObj, ArtItem.class);
+                                  case "ELECTRONICS" -> parsedItem = gson.fromJson(itemObj, ElectronicsItem.class);
+                                  case "VEHICLE" -> parsedItem = gson.fromJson(itemObj, VehicleItem.class);
+                                  default -> logger.log(Level.WARNING, "Không xác định được loại item type: {0}", type);
+                              }
 
-                            if (parsedItem != null
-                                && parsedItem.getStatus() == ItemStatus.APPROVED) {
-                              allPendingItems.add(parsedItem);
-                            }
+                              if (parsedItem != null && parsedItem.getStatus() == ItemStatus.APPROVED) {
+                                  allPendingItems.add(parsedItem);
+                              }
                           }
-                          cbPendingItems.setItems(
-                              FXCollections.observableArrayList(allPendingItems));
-                        } else {
-                          showAlert("Lỗi", response.getMessage());
-                        }
-                      });
-                } catch (Exception e) {
-                  Platform.runLater(
-                      () ->
-                          showAlert(
-                              "Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
+                          cbPendingItems.setItems(FXCollections.observableArrayList(allPendingItems));
+                      } else {
+                          int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+                          showAlert("Lỗi tải danh sách tài sản (" + code + ")", response.getMessage());
+                      }
+                  });
+              } catch (Exception e) {
+                  Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
                   logger.log(Level.SEVERE, "Lỗi luồng mạng khi nạp danh sách Approved Items", e);
-                }
-              })
-          .start();
-    } catch (Exception e) {
-      showAlert("Lỗi", "Có lỗi xảy ra khi gửi yêu cầu: " + e.getMessage());
-      logger.log(Level.SEVERE, "Lỗi khởi tạo yêu cầu nạp danh sách Approved Items", e);
-    }
+              }
+          }).start();
+      } catch (Exception e) {
+          showAlert("Lỗi", "Có lỗi xảy ra khi gửi yêu cầu: " + e.getMessage());
+          logger.log(Level.SEVERE, "Lỗi khởi tạo yêu cầu nạp danh sách Approved Items", e);
+      }
   }
 
   /** Lắp đặt các bộ lắng nghe (Listeners) để xử lý logic tự điền giá và lọc phân loại. */

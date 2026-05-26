@@ -16,6 +16,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.userDTO.LoginRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.RoleType;
 
 import java.util.logging.Level;
@@ -55,65 +56,50 @@ public class LoginController extends BaseController {
       return;
     }
 
-    logger.info("Khởi tạo tiến trình xác thực đăng nhập.");
     try {
       LoginRequestDTO loginRequestDTO = new LoginRequestDTO(userName, password);
-      Request request = new Request("LOGIN", loginRequestDTO);
+      Request request = new Request(ActionType.LOGIN, loginRequestDTO);
       String jsonRequest = gson.toJson(request);
 
-      new Thread(
-              () -> {
-                try {
-                  logger.info("Gửi gói tin xác thực tài khoản qua Socket...");
-                  String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                  Response response = gson.fromJson(jsonResponse, Response.class);
+      new Thread(() -> {
+        try {
+          String jsonResponse = clientSocket.sendRequest(jsonRequest);
+          Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  Platform.runLater(
-                      () -> {
-                        if ("SUCCESS".equals(response.getStatus())) {
-                          String dataUserJson = gson.toJson(response.getData());
-                          User loggedInUser = gson.fromJson(dataUserJson, User.class);
-                          UserSession.getInstance().setCurrentUser(loggedInUser);
+          Platform.runLater(() -> {
+            if ("SUCCESS".equals(response.getStatus())) {
+              String dataUserJson = gson.toJson(response.getData());
+              User loggedInUser = gson.fromJson(dataUserJson, User.class);
+              UserSession.getInstance().setCurrentUser(loggedInUser);
 
-                          logger.log(
-                              Level.INFO,
-                              "Đăng nhập thành công. Tài khoản: {0}, Vai trò: {1}",
-                              new Object[] {loggedInUser.getUserName(), loggedInUser.getRole()});
-
-                          if (loggedInUser.getRole() != null
-                              && loggedInUser.getRole() == RoleType.ADMIN) {
-                            showAlert(
-                                "Thành công", "Đăng nhập thành công! Chuyển đến Admin Panel...");
-                            AdminSidebarController.activePage = "AdminDashboardView.fxml";
-                            switchScene(
-                                event,
-                                "/views/AdminDashboardView.fxml",
-                                "Tổng quan hệ thống - Admin");
-                          } else {
-                            showAlert(
-                                "Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
-                            switchScene(event, "/views/AuctionCatalogView.fxml", "Trang chủ");
-                          }
-                        } else {
-                          logger.log(
-                              Level.WARNING,
-                              "Đăng nhập thất bại từ hệ thống: {0}",
-                              response.getMessage());
-                          showAlert("Đăng nhập thất bại!", response.getMessage());
-                        }
-                      });
-                } catch (Exception e) {
-                  Platform.runLater(
-                      () ->
-                          showAlert(
-                              "Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
-                  logger.log(Level.SEVERE, "Lỗi xảy ra trong luồng mạng khi xử lý đăng nhập", e);
-                }
-              })
-          .start();
+              if (loggedInUser.getRole() != null && loggedInUser.getRole() == RoleType.ADMIN) {
+                showAlert("Thành công", "Đăng nhập thành công! Chuyển đến Admin Panel...");
+                AdminSidebarController.activePage = "AdminDashboardView.fxml";
+                switchScene(event, "/views/AdminDashboardView.fxml", "Tổng quan hệ thống - Admin");
+              } else {
+                showAlert("Thành công", "Đăng nhập thành công! Chuyển sang trang chủ...");
+                switchScene(event, "/views/AuctionCatalogView.fxml", "Trang chủ");
+              }
+            } else {
+              // GIẢI MÃ MÃ LỖI ĐĂNG NHẬP
+              int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+              String title = switch (code) {
+                case 4010 -> "Sai thông tin (401)";
+                case 4090 -> "Đang đăng nhập nơi khác (409)";
+                case 4000 -> "Tài khoản không hợp lệ (400)";
+                case 5000 -> "Lỗi hệ thống Server (500)";
+                default -> "Đăng nhập thất bại (" + code + ")";
+              };
+              logger.log(Level.WARNING, "Đăng nhập thất bại từ hệ thống: {0}", response.getMessage());
+              showAlert(title, response.getMessage());
+            }
+          });
+        } catch (Exception e) {
+          Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + e.getMessage()));
+        }
+      }).start();
     } catch (Exception e) {
       showAlert("Lỗi", "Đã xảy ra lỗi khi gửi yêu cầu đăng nhập: " + e.getMessage());
-      logger.log(Level.SEVERE, "Lỗi đóng gói dữ liệu đăng nhập", e);
     }
   }
 

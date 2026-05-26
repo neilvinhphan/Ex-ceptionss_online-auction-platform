@@ -17,6 +17,7 @@ import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.userDTO.SellerDashboardDTO;
+import org.example.core.shared.enums.ActionType;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -54,38 +55,36 @@ public class RevenueController extends BaseController {
     if (UserSession.getInstance().getCurrentUser() == null) return;
     int sellerId = UserSession.getInstance().getCurrentUser().getUserId();
 
-    new Thread(
-            () -> {
-              try {
-                Request request = new Request("GET_SELLER_DASHBOARD", sellerId);
-                clientSocket.getOut().println(gson.toJson(request));
+    new Thread(() -> {
+      try {
+        Request request = new Request(ActionType.GET_SELLER_DASHBOARD, sellerId);
+        clientSocket.getOut().println(gson.toJson(request));
 
-                String jsonResponse = clientSocket.getIn().readLine();
-                if (jsonResponse != null) {
-                  Response response = gson.fromJson(jsonResponse, Response.class);
+        String jsonResponse = clientSocket.getIn().readLine();
+        if (jsonResponse != null) {
+          Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  if ("SUCCESS".equals(response.getStatus())) {
-                    String dataJson = gson.toJson(response.getData());
-                    SellerDashboardDTO dto = gson.fromJson(dataJson, SellerDashboardDTO.class);
+          if ("SUCCESS".equals(response.getStatus())) {
+            String dataJson = gson.toJson(response.getData());
+            SellerDashboardDTO dto = gson.fromJson(dataJson, SellerDashboardDTO.class);
 
-                    Platform.runLater(
-                        () -> {
-                          updateKPIs(dto.getTotalRevenue(), dto.getTotalSold());
-                          updatePieChart(dto.getCategoryData());
-                          updateLineChart(dto.getRevenueGrowthData());
-                        });
-                  } else {
-                    Platform.runLater(() -> showAlert("Lỗi", response.getMessage()));
-                  }
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE, "Gặp sự cố kết nối mạng khi tải dữ liệu Seller Dashboard", e);
-                Platform.runLater(
-                    () -> showAlert("Lỗi mạng", "Không thể tải dữ liệu: " + e.getMessage()));
-              }
-            })
-        .start();
+            Platform.runLater(() -> {
+              updateKPIs(dto.getTotalRevenue(), dto.getTotalSold());
+              updatePieChart(dto.getCategoryData());
+              updateLineChart(dto.getRevenueGrowthData());
+            });
+          } else {
+            Platform.runLater(() -> {
+              int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+              String title = (code == 4030) ? "Không có quyền Seller (403)" : "Lỗi Server (" + code + ")";
+              showAlert(title, response.getMessage());
+            });
+          }
+        }
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi mạng", "Không thể tải dữ liệu: " + e.getMessage()));
+      }
+    }).start();
   }
 
   /** Cập nhật các chỉ số tài chính cơ bản (KPI Labels) kèm định dạng tiền tệ VNĐ chuẩn. */

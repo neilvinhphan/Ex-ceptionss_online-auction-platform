@@ -17,6 +17,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.userDTO.DepositRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.RoleType;
 
 import java.math.BigDecimal;
@@ -64,62 +65,6 @@ public class PersonalController extends BaseController implements Initializable 
   @FXML
   public void handleHistoryAuction(ActionEvent event) {
     switchScene(event, "/views/AuctionHistoryView.fxml", "Lịch sử đấu gia");
-  }
-
-  /**
-   * Mở hộp thoại sửa đổi nhanh số điện thoại và đồng bộ vào thực thể User trong Session hiện hành.
-   */
-  @FXML
-  void handleEditPhone(ActionEvent event) {
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    TextInputDialog dialog = new TextInputDialog(currentUser.getPhone());
-    dialog.setTitle("Cập nhật thông tin");
-    dialog.setHeaderText("Chỉnh sửa số điện thoại");
-    dialog.setContentText("Nhập số điện thoại mới của bạn:");
-
-    Optional<String> result = dialog.showAndWait();
-    if (result.isPresent() && !result.get().trim().isEmpty()) {
-      String newPhone = result.get().trim();
-      currentUser.setPhone(newPhone);
-      lbPhoneNum.setText(newPhone);
-      showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");
-    }
-  }
-
-  /** Mở hộp thoại sửa đổi nhanh Email và đồng bộ vào thực thể User trong Session hiện hành. */
-  @FXML
-  void handleEditEmail(ActionEvent event) {
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    TextInputDialog dialog = new TextInputDialog(currentUser.getEmail());
-    dialog.setTitle("Cập nhật thông tin");
-    dialog.setHeaderText("Chỉnh sửa Email");
-    dialog.setContentText("Nhập Email mới của bạn:");
-
-    Optional<String> result = dialog.showAndWait();
-    if (result.isPresent() && !result.get().trim().isEmpty()) {
-      String newEmail = result.get().trim();
-      currentUser.setEmail(newEmail);
-      lbEmail.setText(newEmail);
-      showAlert("Thành công", "Đã cập nhật số điện thoại mới vào Database!");
-    }
-  }
-
-  /** Mở hộp thoại thay đổi mật khẩu tài khoản người dùng trực tiếp. */
-  @FXML
-  void handleEditPassWord(ActionEvent event) {
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    TextInputDialog dialog = new TextInputDialog(currentUser.getPassword());
-    dialog.setTitle("Cập nhật thông tin");
-    dialog.setHeaderText("Chỉnh sửa mật khẩu");
-    dialog.setContentText("Nhập mật khẩu mới của bạn:");
-
-    Optional<String> result = dialog.showAndWait();
-    if (result.isPresent() && !result.get().trim().isEmpty()) {
-      String newPassWord = result.get().trim();
-      currentUser.setEmail(newPassWord); // Lưu ý logic gán thuộc tính gốc của bạn
-      lbPassWord.setText(newPassWord);
-      showAlert("Thành công", "Đã cập nhật mật khẩu mới vào Database!");
-    }
   }
 
   /**
@@ -185,47 +130,31 @@ public class PersonalController extends BaseController implements Initializable 
    * crash UI.
    */
   private void sendDepositToServer(DepositRequestDTO dto) {
-    Request req = new Request("DEPOSIT", dto);
-    String jsonReq = gson.toJson(req);
+    Request req = new Request(ActionType.DEPOSIT, dto);
 
-    new Thread(
-            () -> {
-              try {
-                String jsonRes = clientSocket.sendRequest(jsonReq);
-                logger.log(
-                    Level.INFO,
-                    "Phản hồi thô nhận về từ máy chủ cho tác vụ nạp tiền: {0}",
-                    jsonRes.trim());
+    new Thread(() -> {
+      try {
+        String jsonRes = clientSocket.sendRequest(gson.toJson(req));
+        Response res = gson.fromJson(jsonRes.trim(), Response.class);
 
-                Response res = gson.fromJson(jsonRes.trim(), Response.class);
-
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(res.getStatus())) {
-                        Object data = res.getData();
-                        if (data != null) {
-                          BigDecimal newBalance = new BigDecimal(data.toString());
-
-                          UserSession.getInstance().getCurrentUser().setBalance(newBalance);
-                          lbBalance.setText(String.format("%,.0f", newBalance));
-                          showAlert(
-                              "Thành công",
-                              "Nạp tiền thành công!\nSố dư mới: "
-                                  + String.format("%,.0f", newBalance)
-                                  + " VND");
-                        }
-                      } else {
-                        showAlert("Thất bại", res.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi kết nối", "Lỗi dữ liệu từ Server!"));
-                logger.log(
-                    Level.SEVERE,
-                    "Gặp ngoại lệ ngầm khi thực hiện giao tiếp nạp tiền qua Socket",
-                    e);
-              }
-            })
-        .start();
+        Platform.runLater(() -> {
+          if ("SUCCESS".equals(res.getStatus())) {
+            Object data = res.getData();
+            if (data != null) {
+              BigDecimal newBalance = new BigDecimal(data.toString());
+              UserSession.getInstance().getCurrentUser().setBalance(newBalance);
+              lbBalance.setText(String.format("%,.0f", newBalance));
+              showAlert("Thành công", "Nạp tiền thành công!\nSố dư mới: " + String.format("%,.0f", newBalance) + " VND");
+            }
+          } else {
+            int code = res.getData() instanceof Number ? ((Number) res.getData()).intValue() : -1;
+            String title = (code == 4000) ? "Sai thông tin (400)" : "Lỗi nạp tiền (" + code + ")";
+            showAlert(title, res.getMessage());
+          }
+        });
+      } catch (Exception e) {
+        Platform.runLater(() -> showAlert("Lỗi kết nối", "Lỗi dữ liệu từ Server!"));
+      }
+    }).start();
   }
 }

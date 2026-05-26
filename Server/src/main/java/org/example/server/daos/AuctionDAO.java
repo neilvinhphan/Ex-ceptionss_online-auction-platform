@@ -2,6 +2,8 @@ package org.example.server.daos;
 
 import org.example.core.dto.paymentDTO.PaidHistoryDTO;
 import org.example.core.dto.paymentDTO.PendingPaymentsDTO;
+import org.example.core.exception.DatabaseAccessException;
+import org.example.core.exception.ResourceNotFoundException;
 import org.example.core.models.entities.Auction;
 import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.ArtItem;
@@ -76,7 +78,7 @@ public class AuctionDAO {
     } catch (SQLException e) {
       logger.log(
           Level.SEVERE, "Lỗi khi tạo phiên đấu giá mới cho sản phẩm ID: " + item.getItemId(), e);
-      throw new RuntimeException("Không thể tạo phiên đấu giá mới", e);
+      throw new DatabaseAccessException("Không thể tạo phiên đấu giá mới", e);
     }
   }
 
@@ -90,7 +92,7 @@ public class AuctionDAO {
       ps.executeUpdate();
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi cập nhật trạng thái cho Auction ID: " + auctionId, e);
-      throw new RuntimeException("Cập nhật trạng thái phiên đấu giá thất bại", e);
+      throw new DatabaseAccessException("Cập nhật trạng thái phiên đấu giá thất bại", e);
     }
   }
 
@@ -104,7 +106,7 @@ public class AuctionDAO {
       return ps.executeUpdate() > 0;
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi cập nhật thời gian kết thúc phòng ID: " + auctionId, e);
-      throw new RuntimeException("Cập nhật thời gian kết thúc thất bại", e);
+      throw new DatabaseAccessException("Cập nhật thời gian kết thúc thất bại", e);
     }
   }
 
@@ -141,7 +143,7 @@ public class AuctionDAO {
           }
 
           try {
-            Item item = ItemDAO.getInstance().getItemById(auction.getItemId());
+            Item item = itemDAO.getItemById(auction.getItemId());
             auction.setItem(item);
           } catch (Exception e) {
             logger.log(
@@ -163,9 +165,9 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi truy vấn thông tin Auction ID: " + auctionId, e);
-      throw new RuntimeException("Truy vấn phòng đấu giá thất bại", e);
+      throw new DatabaseAccessException("Truy vấn phòng đấu giá thất bại", e);
     }
-    return null;
+    throw new ResourceNotFoundException("Không tìm thấy phòng đấu giá với ID: " + auctionId);
   }
 
   /**
@@ -183,9 +185,9 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi lấy bước giá phòng ID: " + auctionId, e);
-      throw new RuntimeException("Truy vấn bước giá thất bại", e);
+      throw new DatabaseAccessException("Truy vấn bước giá thất bại", e);
     }
-    return null;
+    throw new ResourceNotFoundException("Không tìm thấy bước giá cho phiên đấu giá ID: " + auctionId);
   }
 
   // --- NHÓM PHƯƠNG THỨC TRUY VẤN DANH SÁCH (READ LISTS / COLLECTIONS) ---
@@ -249,7 +251,7 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi dựng danh mục Catalog theo trạng thái: " + status, e);
-      throw new RuntimeException("Tải dữ liệu Catalog thất bại", e);
+      throw new DatabaseAccessException("Tải dữ liệu Catalog thất bại", e);
     }
     return auctions;
   }
@@ -318,7 +320,7 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi hệ thống khi trích xuất Market History", e);
-      throw new RuntimeException("Không thể lấy lịch sử giao dịch thị trường", e);
+      throw new DatabaseAccessException("Không thể lấy lịch sử giao dịch thị trường", e);
     }
     return auctions;
   }
@@ -344,7 +346,7 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi nạp hóa đơn chờ thanh toán của User ID: " + userId, e);
-      throw new RuntimeException("Tải danh sách hóa đơn chờ thanh toán thất bại", e);
+      throw new DatabaseAccessException("Tải danh sách hóa đơn chờ thanh toán thất bại", e);
     }
     return pendingPaymentsDTOs;
   }
@@ -374,7 +376,7 @@ public class AuctionDAO {
       return paidHistoryDTOs;
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi lấy lịch sử thanh toán thành công của User ID: " + userId, e);
-      throw new RuntimeException("Tải lịch sử giao dịch thanh toán thất bại", e);
+      throw new DatabaseAccessException("Tải lịch sử giao dịch thanh toán thất bại", e);
     }
   }
 
@@ -392,7 +394,7 @@ public class AuctionDAO {
       }
     } catch (SQLException e) {
       logger.log(Level.SEVERE, "Lỗi trích lọc mảng số nguyên Auction ID của User ID: " + userId, e);
-      throw new RuntimeException("Lấy danh sách ID phiên thắng cuộc thất bại", e);
+      throw new DatabaseAccessException("Lấy danh sách ID phiên thắng cuộc thất bại", e);
     }
     return auctionIds;
   }

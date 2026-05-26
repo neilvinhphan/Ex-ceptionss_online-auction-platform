@@ -20,6 +20,7 @@ import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.admin.AdminDashboardDTO;
+import org.example.core.shared.enums.ActionType;
 
 /** Controller quản lý giao diện Dashboard của Admin. */
 public class AdminDashboardController extends BaseController {
@@ -50,7 +51,7 @@ public class AdminDashboardController extends BaseController {
     if (UserSession.getInstance().getCurrentUser() == null) return;
 
     int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-    Request request = new Request("GET_ADMIN_DASHBOARD_STATS", adminId);
+    Request request = new Request(ActionType.GET_ADMIN_DASHBOARD_STATS, adminId);
 
     new Thread(
             () -> {
@@ -60,33 +61,33 @@ public class AdminDashboardController extends BaseController {
 
                 if (jsonResponse != null) {
                   Response response = gson.fromJson(jsonResponse, Response.class);
-                  if ("SUCCESS".equals(response.getStatus())) {
-                    String dataJson = gson.toJson(response.getData());
-                    AdminDashboardDTO dashboardData =
-                        gson.fromJson(dataJson, AdminDashboardDTO.class);
 
-                    Platform.runLater(
-                        () -> {
-                          updateKPIs(dashboardData.getKpis());
-                          updatePieChart(dashboardData.getCategories());
-                          updateBarChart(dashboardData.getAuctionStatus());
-                        });
-                  } else {
-                    logger.warning(
-                        "Lấy dữ liệu dashboard thất bại từ Server: " + response.getMessage());
-                    Platform.runLater(() -> showAlert("Lỗi phản hồi", response.getMessage()));
-                  }
+                  Platform.runLater(() -> {
+                    if ("SUCCESS".equals(response.getStatus())) {
+                      String dataJson = gson.toJson(response.getData());
+                      AdminDashboardDTO dashboardData = gson.fromJson(dataJson, AdminDashboardDTO.class);
+
+                      updateKPIs(dashboardData.getKpis());
+                      updatePieChart(dashboardData.getCategories());
+                      updateBarChart(dashboardData.getAuctionStatus());
+                    } else {
+                      int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+                      String errorTitle = switch (code) {
+                        case 4030 -> "Quyền truy cập bị từ chối (403)";
+                        case 5000 -> "Lỗi cơ sở dữ liệu hệ thống (500)";
+                        default -> "Lỗi tải Dashboard (" + code + ")";
+                      };
+                      logger.warning("Lấy dữ liệu thống kê thất bại [" + code + "]: " + response.getMessage());
+                      showAlert(errorTitle, response.getMessage());
+                    }
+                  });
                 }
               } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE,
-                    "Lỗi nghiêm trọng xảy ra trong quá trình tải dữ liệu Dashboard",
-                    e);
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
+                logger.log(Level.SEVERE, "Lỗi nghiêm trọng xảy ra trong quá trình tải dữ liệu Dashboard", e);
+                Platform.runLater(() -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
               }
             })
-        .start();
+            .start();
   }
 
   /**

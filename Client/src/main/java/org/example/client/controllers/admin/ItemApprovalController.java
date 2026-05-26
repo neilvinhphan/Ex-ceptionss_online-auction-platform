@@ -41,6 +41,7 @@ import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 
 /** Controller xử lý quy trình phê duyệt hoặc từ chối các tài sản (Item) do người dùng đăng tải. */
 public class ItemApprovalController extends BaseController implements Initializable {
@@ -163,7 +164,7 @@ public class ItemApprovalController extends BaseController implements Initializa
     }
 
     int adminId = currentUser.getUserId();
-    Request request = new Request("ADMIN_GET_ALL_PENDING_ITEMS", adminId);
+    Request request = new Request(ActionType.ADMIN_GET_ALL_PENDING_ITEMS, adminId);
 
     new Thread(
             () -> {
@@ -257,77 +258,60 @@ public class ItemApprovalController extends BaseController implements Initializa
    * @param isApproved Trạng thái duyệt (true là phê duyệt, false là từ chối).
    * @param actionName Tên hành động hiển thị lên hộp thoại xác nhận.
    */
-  private void processItemAction(boolean isApproved, String actionName) {
-    Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
-    if (selectedItem == null) return;
+    private void processItemAction(boolean isApproved, String actionName) {
+        Item selectedItem = itemTable.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) return;
 
-    User currentUser = UserSession.getInstance().getCurrentUser();
-    if (currentUser == null) {
-      showAlert("Lỗi", "Không tìm thấy phiên đăng nhập của Admin!");
-      return;
-    }
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            showAlert("Lỗi", "Không tìm thấy phiên đăng nhập của Admin!");
+            return;
+        }
 
-    Alert confirm =
-        new Alert(
-            Alert.AlertType.CONFIRMATION,
-            "Bạn có chắc chắn muốn "
-                + actionName
-                + " sản phẩm: "
-                + selectedItem.getItemName()
-                + "?",
-            ButtonType.YES,
-            ButtonType.NO);
-    confirm.setTitle("Xác nhận thao tác");
+        Alert confirm = new Alert(
+                Alert.AlertType.CONFIRMATION,
+                "Bạn có chắc chắn muốn " + actionName + " sản phẩm: " + selectedItem.getItemName() + "?",
+                ButtonType.YES,
+                ButtonType.NO);
+        confirm.setTitle("Xác nhận thao tác");
 
-    confirm
-        .showAndWait()
-        .ifPresent(
-            responseBtn -> {
-              if (responseBtn == ButtonType.YES) {
-                AdminProcessItemDTO payload =
-                    new AdminProcessItemDTO(
+        confirm.showAndWait().ifPresent(responseBtn -> {
+            if (responseBtn == ButtonType.YES) {
+                AdminProcessItemDTO payload = new AdminProcessItemDTO(
                         currentUser.getUserId(), isApproved, selectedItem.getItemId());
-                Request request = new Request("ADMIN_PROCESS_ITEM", payload);
-                String jsonRequest = gson.toJson(request);
+                Request request = new Request(ActionType.ADMIN_PROCESS_ITEM, payload);
 
-                new Thread(
-                        () -> {
-                          try {
-                            logger.info(
-                                "Đang gửi yêu cầu xử lý tài sản (ID: "
-                                    + selectedItem.getItemId()
-                                    + ") hành động: "
-                                    + actionName);
-                            String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                            Response response = gson.fromJson(jsonResponse, Response.class);
+                new Thread(() -> {
+                    try {
+                        String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+                        Response response = gson.fromJson(jsonResponse, Response.class);
 
-                            Platform.runLater(
-                                () -> {
-                                  if ("SUCCESS".equals(response.getStatus())) {
-                                    showAlert(
-                                        "Thành công", "Đã " + actionName + " sản phẩm thành công!");
-                                    pendingItemsList.remove(selectedItem);
-                                    clearDetailsPane();
-                                  } else {
-                                    logger.warning(
-                                        "Thao tác xử lý tài sản bị thất bại: "
-                                            + response.getMessage());
-                                    showAlert("Lỗi", response.getMessage());
-                                  }
-                                });
-                          } catch (Exception e) {
-                            logger.log(
-                                Level.SEVERE,
-                                "Lỗi kết nối mạng khi xử lý tác vụ phê duyệt/từ chối tài sản",
-                                e);
-                            Platform.runLater(
-                                () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
-                          }
-                        })
-                    .start();
-              }
-            });
-  }
+                        Platform.runLater(() -> {
+                            if ("SUCCESS".equals(response.getStatus())) {
+                                showAlert("Thành công", "Đã " + actionName + " sản phẩm thành công!");
+                                pendingItemsList.remove(selectedItem);
+                                clearDetailsPane();
+                            } else {
+                                int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+                                String errorTitle = switch (code) {
+                                    case 4040 -> "Không tìm thấy (404)";
+                                    case 4030 -> "Lỗi phân quyền (403)";
+                                    case 4000 -> "Lỗi nghiệp vụ (400)";
+                                    case 5000 -> "Lỗi máy chủ (500)";
+                                    default -> "Lỗi xử lý (" + code + ")";
+                                };
+                                logger.warning("Thao tác thất bại [" + code + "]: " + response.getMessage());
+                                showAlert(errorTitle, response.getMessage());
+                            }
+                        });
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, "Lỗi kết nối mạng khi xử lý tác vụ", e);
+                        Platform.runLater(() -> showAlert("Lỗi kết nối", "Chi tiết: " + e.getMessage()));
+                    }
+                }).start();
+            }
+        });
+    }
 
   /**
    * Làm mới lại danh sách dữ liệu tài sản chờ phê duyệt.

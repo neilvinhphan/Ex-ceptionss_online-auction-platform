@@ -92,7 +92,7 @@ class UserServiceTest {
         Exception exception = assertThrows(Exception.class, () ->
                 userService.balanceDeposit(userId, new BigDecimal("50000"), pass)
         );
-        assertEquals("Đã xảy ra lỗi hệ thống cục bộ khi cập nhật tăng số dư ví. Vui lòng thử lại sau ít phút!", exception.getMessage());
+        assertEquals("Đã xảy ra lỗi trong quá trình cập nhật số dư tài khoản! Vui lòng thử lại sau.", exception.getMessage());
     }
 
     @Test

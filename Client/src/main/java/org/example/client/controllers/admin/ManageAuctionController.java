@@ -38,6 +38,7 @@ import org.example.core.models.items.ElectronicsItem;
 import org.example.core.models.items.Item;
 import org.example.core.models.items.VehicleItem;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.AuctionStatus;
 
 /**
@@ -120,7 +121,7 @@ public class ManageAuctionController extends BaseController implements Initializ
       return;
     }
 
-    Request request = new Request("ADMIN_GET_ALL_AUCTIONS", null);
+    Request request = new Request(ActionType.ADMIN_GET_ALL_AUCTIONS, null);
     String jsonRequest = gson.toJson(request);
 
     new Thread(
@@ -244,71 +245,50 @@ public class ManageAuctionController extends BaseController implements Initializ
    */
   @FXML
   public void handleCancelAuction(ActionEvent event) {
-    Auction selectedAuction = auctionTable.getSelectionModel().getSelectedItem();
+      Auction selectedAuction = auctionTable.getSelectionModel().getSelectedItem();
 
-    if (selectedAuction == null) {
-      showAlert("Thông báo", "Vui lòng click chọn một phiên đấu giá trên bảng để hủy!");
-      return;
-    }
+      if (selectedAuction == null) {
+          showAlert("Thông báo", "Vui lòng click chọn một phiên đấu giá trên bảng để hủy!");
+          return;
+      }
 
-    if (selectedAuction.getStatus() != AuctionStatus.RUNNING
-        && selectedAuction.getStatus() != null) {
-      showAlert("Từ chối", "Chỉ có thể hủy những phiên đang chạy (RUNNING).");
-      return;
-    }
+      if (selectedAuction.getStatus() != AuctionStatus.RUNNING && selectedAuction.getStatus() != null) {
+          showAlert("Từ chối", "Chỉ có thể hủy những phiên đang chạy (RUNNING).");
+          return;
+      }
 
-    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-    confirm.setTitle("CẢNH BÁO KHẨN CẤP");
-    confirm.setHeaderText(
-        "Hủy phiên ID: "
-            + selectedAuction.getAuctionId()
-            + " - "
-            + selectedAuction.getItem().getItemName()
-            + "?");
-    confirm.setContentText("Hành động này sẽ đóng phiên ngay lập tức. Không thể hoàn tác!");
+      Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+      confirm.setTitle("CẢNH BÁO KHẨN CẤP");
+      confirm.setHeaderText("Hủy phiên ID: " + selectedAuction.getAuctionId());
+      confirm.setContentText("Hành động này sẽ đóng phiên ngay lập tức. Không thể hoàn tác!");
 
-    confirm
-        .showAndWait()
-        .ifPresent(
-            responseBtn -> {
-              if (responseBtn == ButtonType.OK) {
-                logger.info(
-                    "Đang gửi lệnh CANCEL_AUCTION lên Server cho ID: "
-                        + selectedAuction.getAuctionId());
-                Request request =
-                    new Request("ADMIN_CANCEL_AUCTION", selectedAuction.getAuctionId());
-                String jsonRequest = gson.toJson(request);
+      confirm.showAndWait().ifPresent(responseBtn -> {
+          if (responseBtn == ButtonType.OK) {
+              Request request = new Request(ActionType.ADMIN_CANCEL_AUCTION, selectedAuction.getAuctionId());
 
-                new Thread(
-                        () -> {
-                          try {
-                            String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                            Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+              new Thread(() -> {
+                  try {
+                      String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+                      Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                            Platform.runLater(
-                                () -> {
-                                  if ("SUCCESS".equals(serverResponse.getStatus())) {
-                                    showAlert("Thành công", "Đã hủy phiên đấu giá thành công!");
-                                    selectedAuction.setStatus(AuctionStatus.CANCELED);
-                                    auctionTable.refresh();
-                                  } else {
-                                    logger.warning(
-                                        "Server từ chối thực hiện lệnh hủy phiên: "
-                                            + serverResponse.getMessage());
-                                    showAlert("Lỗi khi hủy", serverResponse.getMessage());
-                                  }
-                                });
-                          } catch (Exception e) {
-                            logger.log(
-                                Level.SEVERE,
-                                "Lỗi mạng khi thực hiện yêu cầu hủy phiên đấu giá",
-                                e);
-                            Platform.runLater(
-                                () -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
+                      Platform.runLater(() -> {
+                          if ("SUCCESS".equals(serverResponse.getStatus())) {
+                              showAlert("Thành công", "Đã hủy phiên đấu giá thành công!");
+                              selectedAuction.setStatus(AuctionStatus.CANCELED);
+                              auctionTable.refresh();
+                          } else {
+                              int code = serverResponse.getData() instanceof Number ? ((Number) serverResponse.getData()).intValue() : -1;
+                              String title = (code == 4040) ? "Phòng không tồn tại" :
+                                      (code == 5000) ? "Lỗi cơ sở dữ liệu" : "Từ chối thực thi";
+                              showAlert(title, serverResponse.getMessage());
                           }
-                        })
-                    .start();
-              }
-            });
+                      });
+                  } catch (Exception e) {
+                      logger.log(Level.SEVERE, "Lỗi mạng khi hủy phiên đấu giá", e);
+                      Platform.runLater(() -> showAlert("Lỗi kết nối", "Chi tiết lỗi: " + e.getMessage()));
+                  }
+              }).start();
+          }
+      });
   }
 }

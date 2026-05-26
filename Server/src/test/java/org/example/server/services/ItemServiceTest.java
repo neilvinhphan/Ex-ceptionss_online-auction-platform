@@ -52,7 +52,7 @@ class ItemServiceTest {
         dto.setBase64Image("data:image/png;base64,...");
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Tên gọi hiển thị của vật phẩm không được phép để trống!", exception.getMessage());
+        assertEquals("Tên gọi hiển thị không được phép để trống!", exception.getMessage());
     }
 
     @Test
@@ -68,7 +68,7 @@ class ItemServiceTest {
         dto.setBase64Image("data:image/png;base64,...");
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Số tiền giá sàn khởi điểm đấu giá (Starting Price) buộc phải lớn hơn 0 VNĐ!", exception.getMessage());
+        assertEquals("Giá sàn khởi điểm buộc phải lớn hơn 0 VNĐ!", exception.getMessage());
     }
 
     @Test
@@ -86,7 +86,7 @@ class ItemServiceTest {
         when(itemDAOMock.insertIntoItemTable(any(Item.class))).thenReturn(0);
 
         Exception exception = assertThrows(Exception.class, () -> itemService.createItem(dto));
-        assertEquals("Ghi nhận thất bại: Hệ thống cơ sở dữ liệu từ chối cấp phép lưu vật phẩm mới.", exception.getMessage());
+        assertEquals("Không thể lưu trữ thông tin chi tiết của vật phẩm vào cơ sở dữ liệu!", exception.getMessage());
     }
 
     // =========================================================================
@@ -136,7 +136,7 @@ class ItemServiceTest {
         when(itemDAOMock.updateItemDescriptionByItemId(anyInt(), anyString())).thenReturn(false);
 
         Exception exception = assertThrows(Exception.class, () -> itemService.updateItemFull(dto));
-        assertEquals("Lỗi hệ thống: Quá trình cập nhật thuộc tính vật phẩm vào Database thất bại.", exception.getMessage());
+        assertEquals("Không thể cập nhật vật phẩm!", exception.getMessage());
     }
 
     @Test

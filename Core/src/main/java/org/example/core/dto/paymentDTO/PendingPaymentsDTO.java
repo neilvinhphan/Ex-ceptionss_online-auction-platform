@@ -13,18 +13,6 @@ public class PendingPaymentsDTO implements Serializable {
 
   public PendingPaymentsDTO() {}
 
-  public PendingPaymentsDTO(int userId) {
-    this.userId = userId;
-  }
-
-  public PendingPaymentsDTO(
-      int auctionId, String itemName, BigDecimal winPrice, LocalDateTime endDate) {
-    this.auctionId = auctionId;
-    this.itemName = itemName;
-    this.winPrice = winPrice;
-    this.endDate = endDate;
-  }
-
   public int getAuctionId() {
     return auctionId;
   }
@@ -47,10 +35,6 @@ public class PendingPaymentsDTO implements Serializable {
 
   public void setWinPrice(BigDecimal winPrice) {
     this.winPrice = winPrice;
-  }
-
-  public LocalDateTime getEndDate() {
-    return endDate;
   }
 
   public void setEndDate(LocalDateTime endDate) {
