@@ -178,6 +178,14 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  public void forceLogout() {
+    if (this.userId != -1) {
+      activeUsers.remove(this.userId);
+      System.out.println("[SERVER] Đã tự động gạch tên (Logout ngầm) User ID " + this.userId);
+      this.userId = -1;
+    }
+  }
+
   private Gson configureGson() {
     return new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())

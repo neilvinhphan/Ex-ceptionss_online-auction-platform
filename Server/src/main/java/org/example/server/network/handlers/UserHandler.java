@@ -32,20 +32,21 @@ public class UserHandler implements RequestHandler {
         }
     }
 
-    private void handleUpdateRole(Request request, ClientHandler client) {
+    private void handleUpdateRole(Request request, ClientHandler clientHandler) {
         try {
             UpdateRoleRequestDTO requestDTO = gson.fromJson(gson.toJson(request.getData()), UpdateRoleRequestDTO.class);
 
-            if (!userService.updateRole(requestDTO.getUserId())) {
-                throw new DatabaseAccessException("Nâng cấp thất bại! Lỗi cơ sở dữ liệu.", null);
-            }
-            client.sendMessage(gson.toJson(new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!!!!")));
+            if (userService.updateRole(requestDTO.getUserId())) {
 
-        } catch (AuctionException e) {
-            client.sendMessage(gson.toJson(new Response("ERROR", e.getMessage(), e.getErrorCode())));
+                clientHandler.forceLogout();
+
+                clientHandler.sendMessage(gson.toJson(new Response("SUCCESS", "Đã nâng cấp lên Seller thành công!")));
+            } else {
+                clientHandler.sendMessage(gson.toJson(new Response("ERROR", "Nâng cấp thất bại! Lỗi cơ sở dữ liệu.")));
+            }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Lỗi nâng cấp định danh vai trò User", e);
-            client.sendMessage(gson.toJson(new Response("ERROR", "Không thể nâng cấp lên Seller???", 5000)));
+            logger.log(Level.SEVERE, "Lỗi nâng cấp định danh", e);
+            clientHandler.sendMessage(gson.toJson(new Response("ERROR", "Lỗi server.")));
         }
     }
 
