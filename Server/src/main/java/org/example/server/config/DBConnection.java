@@ -48,7 +48,7 @@ public class DBConnection {
       config.addDataSourceProperty("useServerPrepStmts", "true");
 
       dataSource = new HikariDataSource(config);
-      logger.info("🚀 [DATABASE POOL] Đã kích hoạt hệ thống HikariCP bọc thép thành công!");
+      logger.info("[DATABASE POOL] Đã kích hoạt hệ thống HikariCP bọc thép thành công!");
 
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Lỗi nghiêm trọng khi khởi tạo cấu hình DB Pool", e);
@@ -75,7 +75,7 @@ public class DBConnection {
   public static void shutdown() {
     if (dataSource != null && !dataSource.isClosed()) {
       dataSource.close();
-      logger.info("💤 [DATABASE POOL] Đã đóng toàn bộ kết nối DB an toàn.");
+      logger.info("[DATABASE POOL] Đã đóng toàn bộ kết nối DB an toàn.");
     }
   }
 }

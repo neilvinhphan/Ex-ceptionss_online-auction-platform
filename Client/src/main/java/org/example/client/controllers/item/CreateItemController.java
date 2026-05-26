@@ -23,6 +23,7 @@ import org.example.core.dto.itemsDTO.CreateArtItemDTO;
 import org.example.core.dto.itemsDTO.CreateElectronicsItemDTO;
 import org.example.core.dto.itemsDTO.CreateItemRequestDTO;
 import org.example.core.dto.itemsDTO.CreateVehicleItemDTO;
+import org.example.core.shared.enums.ActionType;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -121,7 +122,6 @@ public class CreateItemController extends BaseController implements Initializabl
   @FXML
   void handleSubmit(ActionEvent event) {
     CreateItemRequestDTO itemDTO;
-
     String name = tfItemName.getText().trim();
     String category = cbCategory.getValue();
     String description = tfDescription.getText().trim();
@@ -140,7 +140,6 @@ public class CreateItemController extends BaseController implements Initializabl
           artDTO.setCreationYear(Integer.parseInt(tfCreationYear.getText().trim()));
           itemDTO = artDTO;
           break;
-
         case "ELECTRONICS":
           CreateElectronicsItemDTO elecDTO = new CreateElectronicsItemDTO();
           elecDTO.setBrand(tfBrand.getText());
@@ -148,7 +147,6 @@ public class CreateItemController extends BaseController implements Initializabl
           elecDTO.setCondition(tfCondition.getText());
           itemDTO = elecDTO;
           break;
-
         case "VEHICLE":
           CreateVehicleItemDTO vehDTO = new CreateVehicleItemDTO();
           vehDTO.setBrand(tfVehicleBrand.getText());
@@ -177,54 +175,41 @@ public class CreateItemController extends BaseController implements Initializabl
 
       if (selectedImageFile != null) {
         String base64String = encodeFileToBase64(selectedImageFile);
-        if (base64String != null) {
-          itemDTO.setBase64Image(base64String);
+        if (base64String != null) itemDTO.setBase64Image(base64String);
+      }
+
+      Request request = new Request(ActionType.CREATE_ITEM, itemDTO);
+      String jsonRequest = gson.toJson(request);
+
+      new Thread(() -> {
+        try {
+          String jsonResponse = clientSocket.sendRequest(jsonRequest);
+          Response response = gson.fromJson(jsonResponse, Response.class);
+
+          Platform.runLater(() -> {
+            if (response.getStatus().equals("SUCCESS")) {
+              showAlert("Thành công", "Tạo sản phẩm thành công! Chuyển sang trang kho hàng...");
+              UserSidebarController.currentView = "WareHouseView.fxml";
+              switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
+            } else {
+              int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : 0;
+              String title = switch (code) {
+                case 4000 -> "Dữ liệu không hợp lệ (400)";
+                case 5000 -> "Lỗi cơ sở dữ liệu (500)";
+                default -> "Tạo sản phẩm thất bại (" + code + ")";
+              };
+              showAlert(title, response.getMessage());
+            }
+          });
+        } catch (Exception ex) {
+          Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
         }
-      }
-
-      try {
-        Request request = new Request("CREATE_ITEM", itemDTO);
-        String jsonRequest = gson.toJson(request);
-
-        new Thread(
-                () -> {
-                  try {
-                    String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                    Response response = gson.fromJson(jsonResponse, Response.class);
-
-                    Platform.runLater(
-                        () -> {
-                          if (response.getStatus().equals("SUCCESS")) {
-                            showAlert(
-                                "Thành công",
-                                "Tạo sản phẩm đấu giá thành công! Chuyển sang trang kho hàng...");
-                            UserSidebarController.currentView = "WareHouseView.fxml";
-                            switchScene(event, "/views/WareHouseView.fxml", "Kho hàng");
-                          } else {
-                            showAlert("Tạo sản phẩm đấu giá thất bại!", response.getMessage());
-                          }
-                        });
-                  } catch (Exception ex) {
-                    Platform.runLater(
-                        () ->
-                            showAlert(
-                                "Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
-                    logger.log(
-                        Level.SEVERE,
-                        "Lỗi xảy ra khi truyền nhận dữ liệu tạo tài sản qua Socket",
-                        ex);
-                  }
-                })
-            .start();
-      } catch (Exception e) {
-        showAlert("Tạo sản phẩm đấu giá thất bại!", e.getMessage());
-      }
+      }).start();
 
     } catch (NumberFormatException e) {
-      showAlert("Lỗi nhập liệu", "Vui lòng nhập số hợp lệ!");
+      showAlert("Lỗi nhập liệu", "Vui lòng kiểm tra lại định dạng số!");
     } catch (Exception e) {
       showAlert("Lỗi hệ thống", e.getMessage());
-      logger.log(Level.SEVERE, "Lỗi bất định phát sinh trong phương thức handleSubmit", e);
     }
   }
 

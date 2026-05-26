@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 public class VehicleItem extends Item {
   private String brand;
   private String model;
-  private int manufacturingYear; // Năm sản xuất
-  private double mileage; // số km đã đi
+  private int manufacturingYear;
+  private double mileage;
 
   public VehicleItem() {
     super();

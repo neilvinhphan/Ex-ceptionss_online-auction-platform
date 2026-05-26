@@ -29,6 +29,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.admin.AdminBanUserDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.RoleType;
 import org.example.core.shared.enums.UserStatus;
 
@@ -95,7 +96,7 @@ public class ManageUserController extends BaseController implements Initializabl
             () -> {
               try {
                 int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-                Request request = new Request("ADMIN_GET_ALL_USERS", adminId);
+                Request request = new Request(ActionType.ADMIN_GET_ALL_USERS, adminId);
                 String requestJson = gson.toJson(request);
                 String jsonResponse = clientSocket.sendRequest(requestJson);
 
@@ -207,45 +208,32 @@ public class ManageUserController extends BaseController implements Initializabl
       return;
     }
 
-    logger.info("Gửi lệnh BAN user ID: " + selectedUser.getUserId() + " lên server...");
+    new Thread(() -> {
+      try {
+        int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+        AdminBanUserDTO banDto = new AdminBanUserDTO(adminId, selectedUser.getUserId(), true);
+        Request request = new Request(ActionType.ADMIN_BAN_USER, banDto);
 
-    new Thread(
-            () -> {
-              try {
-                int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-                AdminBanUserDTO banDto =
-                    new AdminBanUserDTO(adminId, selectedUser.getUserId(), true);
-                Request request = new Request("ADMIN_BAN_USER", banDto);
+        clientSocket.getOut().println(gson.toJson(request));
+        String responseStr = clientSocket.getIn().readLine();
 
-                clientSocket.getOut().println(gson.toJson(request));
+        if (responseStr != null) {
+          Response response = gson.fromJson(responseStr, Response.class);
 
-                String responseStr = clientSocket.getIn().readLine();
-                if (responseStr != null) {
-                  Response response = gson.fromJson(responseStr, Response.class);
-
-                  Platform.runLater(
-                      () -> {
-                        if ("SUCCESS".equals(response.getStatus())) {
-                          showAlert("Thành công", response.getMessage());
-                          loadUsersFromServer();
-                        } else {
-                          logger.warning(
-                              "Yêu cầu khóa tài khoản bị Server từ chối: " + response.getMessage());
-                          showAlert("Lỗi", response.getMessage());
-                        }
-                      });
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE, "Lỗi mạng xảy ra khi thực hiện gửi yêu cầu khóa tài khoản", e);
-                Platform.runLater(
-                    () ->
-                        showAlert(
-                            "Lỗi kết nối",
-                            "Không thể thực hiện tác vụ. Chi tiết lỗi: " + e.getMessage()));
-              }
-            })
-        .start();
+          Platform.runLater(() -> {
+            if ("SUCCESS".equals(response.getStatus())) {
+              showAlert("Thành công", response.getMessage());
+              loadUsersFromServer();
+            } else {
+              handleServerErrorResponse(response); // Gọi hàm tiện ích xử lý lỗi
+            }
+          });
+        }
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, "Lỗi mạng khi khóa tài khoản", e);
+        Platform.runLater(() -> showAlert("Lỗi kết nối", "Chi tiết: " + e.getMessage()));
+      }
+    }).start();
   }
 
   /**
@@ -261,45 +249,46 @@ public class ManageUserController extends BaseController implements Initializabl
       return;
     }
 
-    logger.info("Gửi lệnh UNBAN user ID: " + selectedUser.getUserId() + " lên server...");
+    new Thread(() -> {
+      try {
+        int adminId = UserSession.getInstance().getCurrentUser().getUserId();
+        AdminBanUserDTO unbanDto = new AdminBanUserDTO(adminId, selectedUser.getUserId(), false);
+        Request request = new Request(ActionType.ADMIN_BAN_USER, unbanDto);
 
-    new Thread(
-            () -> {
-              try {
-                int adminId = UserSession.getInstance().getCurrentUser().getUserId();
-                AdminBanUserDTO unbanDto =
-                    new AdminBanUserDTO(adminId, selectedUser.getUserId(), false);
-                Request request = new Request("ADMIN_BAN_USER", unbanDto);
+        clientSocket.getOut().println(gson.toJson(request));
+        String responseStr = clientSocket.getIn().readLine();
 
-                clientSocket.getOut().println(gson.toJson(request));
+        if (responseStr != null) {
+          Response response = gson.fromJson(responseStr, Response.class);
 
-                String responseStr = clientSocket.getIn().readLine();
-                if (responseStr != null) {
-                  Response response = gson.fromJson(responseStr, Response.class);
-
-                  Platform.runLater(
-                      () -> {
-                        if ("SUCCESS".equals(response.getStatus())) {
-                          showAlert("Thành công", response.getMessage());
-                          loadUsersFromServer();
-                        } else {
-                          logger.warning(
-                              "Yêu cầu mở khóa tài khoản bị Server từ chối: "
-                                  + response.getMessage());
-                          showAlert("Lỗi", response.getMessage());
-                        }
-                      });
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE, "Lỗi mạng xảy ra khi thực hiện gửi yêu cầu mở khóa tài khoản", e);
-                Platform.runLater(
-                    () ->
-                        showAlert(
-                            "Lỗi kết nối",
-                            "Không thể thực hiện tác vụ. Chi tiết lỗi: " + e.getMessage()));
-              }
-            })
-        .start();
+          Platform.runLater(() -> {
+            if ("SUCCESS".equals(response.getStatus())) {
+              showAlert("Thành công", response.getMessage());
+              loadUsersFromServer();
+            } else {
+              handleServerErrorResponse(response); // Gọi hàm tiện ích xử lý lỗi
+            }
+          });
+        }
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, "Lỗi mạng khi mở khóa tài khoản", e);
+        Platform.runLater(() -> showAlert("Lỗi kết nối", "Chi tiết: " + e.getMessage()));
+      }
+    }).start();
+  }
+  /**
+   * Hàm tiện ích giúp phân loại mã lỗi trả về từ Server để hiển thị tiêu đề chính xác.
+   */
+  private void handleServerErrorResponse(Response response) {
+    int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+    String errorTitle = switch (code) {
+      case 4030 -> "Không đủ quyền hạn (403)";
+      case 4040 -> "User không tồn tại (404)";
+      case 4090 -> "Xung đột trạng thái (409)";
+      case 5000 -> "Lỗi hệ thống Server (500)";
+      default -> "Lỗi (" + code + ")";
+    };
+    logger.warning("Thao tác user thất bại [" + code + "]: " + response.getMessage());
+    showAlert(errorTitle, response.getMessage());
   }
 }

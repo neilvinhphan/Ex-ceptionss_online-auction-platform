@@ -54,7 +54,7 @@ class AuthServiceTest {
         RegisterRequestDTO dto = new RegisterRequestDTO("thongnh", "password123", "test@gmail.com", "123456");
 
         Exception exception = assertThrows(Exception.class, () -> authService.register(dto));
-        assertEquals("Số điện thoại không hợp lệ (Phải bao gồm chính xác 10 chữ số và bắt đầu bằng đầu số 0).", exception.getMessage());
+        assertEquals("Số điện thoại không hợp lệ (Phải bao gồm chính xác 10 chữ số và bắt đầu bằng số 0).", exception.getMessage());
     }
 
     @Test
@@ -140,7 +140,7 @@ class AuthServiceTest {
         when(userDAOMock.getUserByUsername("bannedUser")).thenReturn(mockUser);
 
         Exception exception = assertThrows(Exception.class, () -> authService.login(dto));
-        assertEquals("Tài khoản của bạn đã bị khóa (Ban) hoặc đình chỉ hoạt động bởi ban quản trị hệ thống.", exception.getMessage());
+        assertEquals("Tài khoản của bạn đã bị khóa hoặc đình chỉ hoạt động bởi ban quản trị.", exception.getMessage());
     }
 
     @Test

@@ -22,6 +22,7 @@ import org.example.client.utils.ImageUtils;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.models.entities.Auction;
+import org.example.core.shared.enums.ActionType;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -177,37 +178,29 @@ public class MarketHistoryController extends BaseController implements Initializ
    * trường.
    */
   private void loadMarketHistory() {
-    Request request = new Request("GET_MARKET_HISTORY", null);
-    Gson managerGson = ClientManager.getInstance().getGson();
+      Request request = new Request(ActionType.GET_MARKET_HISTORY, null);
+      Gson managerGson = ClientManager.getInstance().getGson();
 
-    new Thread(
-            () -> {
-              try {
-                String resJson =
-                    ClientManager.getInstance()
-                        .getClient()
-                        .sendRequest(managerGson.toJson(request));
-                Response res = managerGson.fromJson(resJson, Response.class);
+      new Thread(() -> {
+          try {
+              String resJson = ClientManager.getInstance().getClient().sendRequest(managerGson.toJson(request));
+              Response res = managerGson.fromJson(resJson, Response.class);
 
-                if ("SUCCESS".equals(res.getStatus())) {
+              if ("SUCCESS".equals(res.getStatus())) {
                   Type listType = new TypeToken<List<Auction>>() {}.getType();
-                  List<Auction> list =
-                      managerGson.fromJson(managerGson.toJson(res.getData()), listType);
-
-                  Platform.runLater(
-                      () -> {
-                        historyList.setAll(list);
-                        tvMarketHistory.setItems(historyList);
-                      });
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE,
-                    "Gặp sự cố kết nối khi gửi lệnh GET_MARKET_HISTORY lên máy chủ",
-                    e);
+                  List<Auction> list = managerGson.fromJson(managerGson.toJson(res.getData()), listType);
+                  Platform.runLater(() -> {
+                      historyList.setAll(list);
+                      tvMarketHistory.setItems(historyList);
+                  });
+              } else {
+                  int code = res.getData() instanceof Number ? ((Number) res.getData()).intValue() : -1;
+                  Platform.runLater(() -> showAlert("Lỗi tải lịch sử (" + code + ")", res.getMessage()));
               }
-            })
-        .start();
+          } catch (Exception e) {
+              logger.log(Level.SEVERE, "Gặp sự cố kết nối khi gửi lệnh GET_MARKET_HISTORY lên máy chủ", e);
+          }
+      }).start();
   }
 
   /**
@@ -291,7 +284,7 @@ public class MarketHistoryController extends BaseController implements Initializ
                     "Gặp lỗi khi thực hiện gọi phương thức analyzeMarket của GroqAIService",
                     e);
                 Platform.runLater(
-                    () -> lblAnalysis.setText("❌ Lỗi khi phân tích dữ liệu: " + e.getMessage()));
+                    () -> lblAnalysis.setText("Lỗi khi phân tích dữ liệu: " + e.getMessage()));
               }
             })
         .start();

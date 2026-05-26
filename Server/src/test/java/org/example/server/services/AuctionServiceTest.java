@@ -148,7 +148,7 @@ class AuctionServiceTest {
         int wrongWinnerId = 999;
 
         Exception exception = assertThrows(Exception.class, () -> auctionService.checkoutAuction(auctionId, wrongWinnerId));
-        assertEquals("Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp của phiên đấu giá này!", exception.getMessage());
+        assertEquals("Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp!", exception.getMessage());
     }
 
     @Test

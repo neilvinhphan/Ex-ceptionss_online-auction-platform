@@ -13,6 +13,8 @@ import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.UserSession;
 import org.example.core.dto.Request;
+import org.example.core.dto.Response;
+import org.example.core.shared.enums.ActionType;
 
 /** Controller quản lý thanh menu điều hướng của hệ thống Admin Panel. */
 public class AdminMenuController extends BaseController {
@@ -46,21 +48,27 @@ public class AdminMenuController extends BaseController {
     Optional<ButtonType> result = alert.showAndWait();
 
     if (result.isPresent() && result.get() == ButtonType.OK) {
-      System.out.println("Admin xác nhận đăng xuất. Đang gửi yêu cầu gạch tên lên Server...");
+      logger.info("Admin xác nhận đăng xuất. Đang gửi yêu cầu giải phóng luồng lên Server...");
 
       try {
         Gson gson = ClientManager.getInstance().getGson();
         AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
-        Request logoutRequest = new Request("LOGOUT", null);
+        Request logoutRequest = new Request(ActionType.LOGOUT, null);
         String jsonRequest = gson.toJson(logoutRequest);
 
-        clientSocket.sendRequest(jsonRequest);
+        String jsonResponse = clientSocket.sendRequest(jsonRequest);
+        if (jsonResponse != null) {
+          Response response = gson.fromJson(jsonResponse, Response.class);
+          if (!"SUCCESS".equals(response.getStatus())) {
+            logger.warning("Server phản hồi lỗi xử lý đăng xuất [" + response.getData() + "]: " + response.getMessage());
+          }
+        }
       } catch (Exception e) {
-        System.err.println("Lỗi khi gửi yêu cầu LOGOUT của Admin: " + e.getMessage());
+        logger.severe("Lỗi kết nối mạng khi thực hiện gạch tên LOGOUT của Admin: " + e.getMessage());
       }
 
-      org.example.client.utils.UserSession.getInstance().cleanUserSession();
+      UserSession.getInstance().cleanUserSession();
       switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
     }
   }

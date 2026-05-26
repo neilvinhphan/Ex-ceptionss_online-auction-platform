@@ -51,7 +51,7 @@ class BiddingServiceTest {
         when(auctionDAOMock.getAuctionByAuctionId(1)).thenReturn(null);
 
         Exception exception = assertThrows(Exception.class, () -> biddingService.placeBid(request));
-        assertEquals("Không tìm thấy dữ liệu của phiên đấu giá này trên hệ thống.", exception.getMessage());
+        assertEquals("Không tìm thấy dữ liệu của phiên đấu giá này.", exception.getMessage());
     }
 
     @Test
@@ -84,7 +84,7 @@ class BiddingServiceTest {
         when(walletDAOMock.getAvailableBalance(10)).thenReturn(new BigDecimal("50000"));
 
         Exception exception = assertThrows(Exception.class, () -> biddingService.placeBid(request));
-        assertEquals("Số dư khả dụng trong tài khoản ví của bạn không đủ để thực hiện lượt trả giá này!", exception.getMessage());
+        assertEquals("Số dư khả dụng trong tài khoản ví không đủ thực hiện lượt trả giá!", exception.getMessage());
     }
 
     @Test

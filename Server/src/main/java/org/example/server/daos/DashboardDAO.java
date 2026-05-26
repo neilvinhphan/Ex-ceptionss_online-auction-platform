@@ -1,6 +1,7 @@
 package org.example.server.daos;
 
 import org.example.core.dto.userDTO.SellerDashboardDTO;
+import org.example.core.exception.DatabaseAccessException;
 import org.example.server.config.DBConnection;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -22,9 +23,6 @@ public class DashboardDAO {
 
     private DashboardDAO() {}
 
-    /**
-     * Lấy instance duy nhất (Singleton) của DashboardDAO (Thread-safe).
-     */
     public static DashboardDAO getInstance() {
         if (instance == null) {
             synchronized (DashboardDAO.class) {
@@ -36,10 +34,7 @@ public class DashboardDAO {
         return instance;
     }
 
-    /**
-     * Lấy bộ chỉ số KPI tổng quan hệ thống hiển thị trên màn hình Admin Dashboard.
-     * * @return Map chứa các cặp Key-Value tương ứng với từng chỉ số KPI.
-     */
+    /** Lấy bộ chỉ số KPI tổng quan hệ thống hiển thị trên màn hình Admin Dashboard. */
     public Map<String, String> getKPIs() {
         Map<String, String> kpis = new HashMap<>();
 
@@ -90,9 +85,7 @@ public class DashboardDAO {
         return kpis;
     }
 
-    /**
-     * Thống kê tỷ lệ phân bổ sản phẩm theo từng ngành hàng phục vụ vẽ biểu đồ tròn (PieChart).
-     */
+    /** Thống kê tỷ lệ phân bổ sản phẩm theo từng ngành hàng phục vụ vẽ biểu đồ tròn (PieChart). */
     public Map<String, Integer> getCategoryDistribution() {
         Map<String, Integer> map = new HashMap<>();
         String sql = "SELECT i.type, COUNT(a.auction_id) FROM auction a JOIN items i ON a.items_id = i.items_id GROUP BY i.type";
@@ -104,14 +97,12 @@ public class DashboardDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi thống kê phân bổ ngành hàng", e);
-            throw new RuntimeException("Tải dữ liệu biểu đồ ngành hàng thất bại", e);
+            throw new DatabaseAccessException("Tải dữ liệu biểu đồ phân bổ ngành hàng thất bại.", e);
         }
         return map;
     }
 
-    /**
-     * Thống kê số lượng phiên đấu giá theo từng trạng thái phục vụ vẽ biểu đồ cột (BarChart).
-     */
+    /** Thống kê số lượng phiên đấu giá theo từng trạng thái phục vụ vẽ biểu đồ cột (BarChart). */
     public Map<String, Integer> getAuctionStatusDistribution() {
         Map<String, Integer> map = new HashMap<>();
         String sql = "SELECT status, COUNT(auction_id) FROM auction GROUP BY status";
@@ -123,23 +114,18 @@ public class DashboardDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi thống kê trạng thái phiên đấu giá", e);
-            throw new RuntimeException("Tải dữ liệu biểu đồ trạng thái thất bại", e);
+            throw new DatabaseAccessException("Tải dữ liệu biểu đồ trạng thái phiên đấu giá thất bại.", e);
         }
         return map;
     }
 
-    /**
-     * Tổng hợp toàn bộ dữ liệu thống kê doanh thu, ngành hàng và tăng trưởng lũy kế của riêng một Người bán (Seller).
-     * * @param sellerId ID người bán cần tra cứu.
-     * @return Đối tượng DTO chứa đầy đủ số liệu KPI và danh sách vẽ biểu đồ.
-     */
+    /** Tổng hợp toàn bộ dữ liệu thống kê của riêng một Người bán (Seller). */
     public SellerDashboardDTO getSellerDashboardStats(int sellerId) {
         double totalRevenue = 0;
         int totalSold = 0;
         Map<String, Integer> categories = new HashMap<>();
         Map<String, Double> revenueGrowth = new LinkedHashMap<>();
 
-        // 1. Truy vấn KPI doanh thu và tổng số lượng hàng đã bán của Seller
         String sqlKpi = "SELECT SUM(amount), COUNT(transaction_id) FROM wallet_transaction WHERE user_id = ? AND transaction_type = 'SELL_REVENUE'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sqlKpi)) {
@@ -152,9 +138,9 @@ public class DashboardDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi lấy dữ liệu KPI người bán cho Seller ID: " + sellerId, e);
+            throw new DatabaseAccessException("Tải dữ liệu KPI thống kê của người bán thất bại.", e);
         }
 
-        // 2. Truy vấn số liệu biểu đồ tròn phân bổ ngành hàng của Seller
         String sqlPie = """
             SELECT i.type, COUNT(wt.reference_id) 
             FROM wallet_transaction wt
@@ -173,9 +159,9 @@ public class DashboardDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi lấy số liệu ngành hàng cho Seller ID: " + sellerId, e);
+            throw new DatabaseAccessException("Tải số liệu phân bổ ngành hàng biểu đồ tròn thất bại.", e);
         }
 
-        // 3. Truy vấn số liệu biểu đồ đường tính doanh thu cộng dồn lũy kế tăng trưởng qua từng đơn hàng
         String sqlLine = """
             SELECT reference_id, amount 
             FROM wallet_transaction 
@@ -198,6 +184,7 @@ public class DashboardDAO {
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Lỗi dựng biểu đồ đường tăng trưởng doanh thu cho Seller ID: " + sellerId, e);
+            throw new DatabaseAccessException("Tải lịch sử doanh thu tăng trưởng biểu đồ đường thất bại.", e);
         }
 
         return new SellerDashboardDTO(totalRevenue, totalSold, categories, revenueGrowth);

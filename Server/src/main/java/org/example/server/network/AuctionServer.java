@@ -42,17 +42,17 @@ public class AuctionServer {
    */
   public void start() {
     try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-      logger.info("🚀 [AUCTION SERVER] Started and listening on port " + PORT);
+      logger.info("[AUCTION SERVER] Started and listening on port " + PORT);
 
       while (true) {
         Socket clientSocket = serverSocket.accept();
-        logger.info("📡 [CONNECTION] New client connected from: " + clientSocket.getInetAddress());
+        logger.info("[CONNECTION] New client connected from: " + clientSocket.getInetAddress());
 
         ClientHandler handler = new ClientHandler(clientSocket);
         executor.execute(handler);
       }
     } catch (IOException e) {
-      logger.log(Level.SEVERE, "❌ Lỗi nghiêm trọng khi vận hành máy chủ Socket", e);
+      logger.log(Level.SEVERE, "Lỗi nghiêm trọng khi vận hành máy chủ Socket", e);
       throw new RuntimeException("Không thể khởi động Auction Server: " + e.getMessage(), e);
     }
   }
@@ -78,7 +78,7 @@ public class AuctionServer {
           }
         });
       }
-      logger.info("📢 Broadcasted [" + response.getStatus() + "] to " + clientsInRoom.size() + " users in Room " + auctionId);
+      logger.info("Broadcasted [" + response.getStatus() + "] to " + clientsInRoom.size() + " users in Room " + auctionId);
     }
   }
 

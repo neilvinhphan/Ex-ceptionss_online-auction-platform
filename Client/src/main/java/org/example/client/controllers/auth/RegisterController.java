@@ -14,6 +14,7 @@ import org.example.client.network.ClientManager;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.userDTO.RegisterRequestDTO;
+import org.example.core.shared.enums.ActionType;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,56 +61,48 @@ public class RegisterController extends BaseController {
     String repassword = repassHidden.isVisible() ? repassHidden.getText() : repassShow.getText();
 
     if (userName.isEmpty() || phone.isEmpty() || email.isEmpty() || password.isEmpty()) {
-      showAlert("Error", "Vui lòng nhập đầy đủ các trường thông tin bắt buộc!");
+      showAlert("Lỗi", "Vui lòng nhập đầy đủ các trường thông tin bắt buộc!");
       return;
     }
 
     if (!password.equals(repassword)) {
-      showAlert("Error", "Mật khẩu xác nhận không trùng khớp!");
+      showAlert("Lỗi", "Mật khẩu xác nhận không trùng khớp!");
       return;
     }
 
     try {
-      RegisterRequestDTO registerRequestDTO =
-          new RegisterRequestDTO(userName, phone, email, password);
-      Request request = new Request("REGISTER", registerRequestDTO);
+      RegisterRequestDTO registerRequestDTO = new RegisterRequestDTO(userName, phone, email, password);
+      Request request = new Request(ActionType.REGISTER, registerRequestDTO);
       String jsonRequest = gson.toJson(request);
 
-      new Thread(
-              () -> {
-                try {
-                  logger.info("Đang truyền gói tin REGISTER lên máy chủ hệ thống...");
-                  String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                  Response response = gson.fromJson(jsonResponse, Response.class);
+      new Thread(() -> {
+        try {
+          String jsonResponse = clientSocket.sendRequest(jsonRequest);
+          Response response = gson.fromJson(jsonResponse, Response.class);
 
-                  Platform.runLater(
-                      () -> {
-                        if ("SUCCESS".equals(response.getStatus())) {
-                          logger.log(Level.INFO, "Đăng ký thành công tài khoản mới: {0}", userName);
-                          showAlert(
-                              "Thành công", "Đăng ký thành công! Chuyển sang trang đăng nhập...");
-                          switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
-                        } else {
-                          logger.log(
-                              Level.WARNING,
-                              "Máy chủ báo lỗi tạo tài khoản: {0}",
-                              response.getMessage());
-                          showAlert("Đăng ký thất bại!", response.getMessage());
-                        }
-                      });
-                } catch (Exception ex) {
-                  Platform.runLater(
-                      () ->
-                          showAlert(
-                              "Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
-                  logger.log(
-                      Level.SEVERE, "Gặp ngoại lệ luồng mạng khi xử lý đăng ký tài khoản", ex);
-                }
-              })
-          .start();
+          Platform.runLater(() -> {
+            if ("SUCCESS".equals(response.getStatus())) {
+              showAlert("Thành công", "Đăng ký thành công! Chuyển sang trang đăng nhập...");
+              switchScene(event, "/views/LoginView.fxml", "Đăng nhập");
+            } else {
+              // GIẢI MÃ LỖI ĐĂNG KÝ
+              int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
+              String title = switch (code) {
+                case 4090 -> "Dữ liệu trùng lặp (409)";
+                case 4000 -> "Dữ liệu không hợp lệ (400)";
+                case 5000 -> "Lỗi hệ thống Server (500)";
+                default -> "Đăng ký thất bại (" + code + ")";
+              };
+              logger.log(Level.WARNING, "Máy chủ báo lỗi tạo tài khoản: {0}", response.getMessage());
+              showAlert(title, response.getMessage());
+            }
+          });
+        } catch (Exception ex) {
+          Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể kết nối đến server: " + ex.getMessage()));
+        }
+      }).start();
     } catch (Exception e) {
-      showAlert("Register Failed!", e.getMessage());
-      logger.log(Level.SEVERE, "Lỗi không xác định khi đăng ký", e);
+      showAlert("Lỗi hệ thống", e.getMessage());
     }
   }
 

@@ -16,12 +16,4 @@ public class AdminCancelAuctionDTO {
   public void setAuctionId(int auctionId) {
     this.auctionId = auctionId;
   }
-
-  public int getAdminId() {
-    return adminId;
-  }
-
-  public void setAdminId(int adminId) {
-    this.adminId = adminId;
-  }
 }

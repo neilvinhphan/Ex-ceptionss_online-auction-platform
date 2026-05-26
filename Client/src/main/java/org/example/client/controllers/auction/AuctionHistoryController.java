@@ -17,6 +17,7 @@ import org.example.client.utils.UserSession;
 import org.example.core.dto.paymentDTO.PaidHistoryDTO;
 import org.example.core.dto.Request;
 import org.example.core.dto.Response;
+import org.example.core.shared.enums.ActionType;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -94,26 +95,27 @@ public class AuctionHistoryController extends BaseController implements Initiali
    * chủ.
    */
   private void loadHistory() {
-    int userId = UserSession.getInstance().getCurrentUser().getUserId();
-    Request request = new Request("GET_PAID_HISTORY", userId);
+      int userId = UserSession.getInstance().getCurrentUser().getUserId();
+      Request request = new Request(ActionType.GET_PAID_HISTORY, userId);
 
-    new Thread(
-            () -> {
-              try {
-                String resJson = clientSocket.sendRequest(gson.toJson(request));
-                Response res = gson.fromJson(resJson, Response.class);
-                if ("SUCCESS".equals(res.getStatus())) {
-                  Type listType = new TypeToken<List<PaidHistoryDTO>>() {}.getType();
-                  List<PaidHistoryDTO> list = gson.fromJson(gson.toJson(res.getData()), listType);
-                  Platform.runLater(() -> historyData.setAll(list));
-                }
-              } catch (Exception e) {
-                logger.log(
-                    Level.SEVERE,
-                    "Không thể tải thành công lịch sử thanh toán đấu giá từ máy chủ",
-                    e);
-              }
-            })
-        .start();
+      new Thread(() -> {
+          try {
+              String resJson = clientSocket.sendRequest(gson.toJson(request));
+              Response res = gson.fromJson(resJson, Response.class);
+
+              Platform.runLater(() -> {
+                  if ("SUCCESS".equals(res.getStatus())) {
+                      Type listType = new TypeToken<List<PaidHistoryDTO>>() {}.getType();
+                      List<PaidHistoryDTO> list = gson.fromJson(gson.toJson(res.getData()), listType);
+                      historyData.setAll(list);
+                  } else {
+                      int code = res.getData() instanceof Number ? ((Number) res.getData()).intValue() : -1;
+                      showAlert("Lỗi tải lịch sử (" + code + ")", res.getMessage());
+                  }
+              });
+          } catch (Exception e) {
+              logger.log(Level.SEVERE, "Không thể tải thành công lịch sử thanh toán đấu giá từ máy chủ", e);
+          }
+      }).start();
   }
 }

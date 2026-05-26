@@ -20,6 +20,7 @@ import org.example.core.dto.Request;
 import org.example.core.dto.Response;
 import org.example.core.dto.userDTO.UpdateRoleRequestDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -61,7 +62,6 @@ public class MainController extends BaseController implements Initializable {
         upgradeBanner.setManaged(true);
       }
     }
-    loadPromotedAuctionsFromServer();
   }
 
   /**
@@ -130,7 +130,7 @@ public class MainController extends BaseController implements Initializable {
    */
   private void sendUpgradeRequestToServer(int userId, ActionEvent event) {
     UpdateRoleRequestDTO updateRoleRequestDTO = new UpdateRoleRequestDTO(userId);
-    Request request = new Request("UPDATE_ROLE", updateRoleRequestDTO);
+    Request request = new Request(ActionType.UPDATE_ROLE, updateRoleRequestDTO);
     String jsonRequest = gson.toJson(request);
 
     new Thread(
@@ -159,13 +159,5 @@ public class MainController extends BaseController implements Initializable {
               }
             })
         .start();
-  }
-
-  /**
-   * Nhận danh sách phân vùng các phòng đấu giá được đẩy lên trang đầu (Promoted) từ phía máy chủ.
-   */
-  private void loadPromotedAuctionsFromServer() {
-    // TODO: Thực hiện kết nối Socket nhận dữ liệu vẽ thẻ Card nổi bật thông qua hành động
-    // "GET_PROMOTED_AUCTIONS"
   }
 }

@@ -20,6 +20,7 @@ import org.example.core.dto.Response;
 import org.example.core.dto.itemsDTO.PendingItemsDTO;
 import org.example.core.dto.paymentDTO.PendingPaymentsDTO;
 import org.example.core.models.users.User;
+import org.example.core.shared.enums.ActionType;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -163,7 +164,7 @@ public class WaitPaymentController extends BaseController implements Initializab
     PendingItemsDTO payload = new PendingItemsDTO(userId);
     payload.setSellerId(userId);
 
-    Request request = new Request("GET_PENDING_PAYMENTS", payload.getSellerId());
+    Request request = new Request(ActionType.GET_PENDING_PAYMENTS, payload.getSellerId());
     String jsonRequest = gson.toJson(request);
 
     new Thread(
@@ -225,60 +226,57 @@ public class WaitPaymentController extends BaseController implements Initializab
 
   /** Bắn gói tin yêu cầu trừ tiền tài khoản cho một vật phẩm đấu giá lên máy chủ. */
   private void sendPaymentRequest(PendingPaymentsDTO itemToPay) {
-    Request request = new Request("PAY_ITEM", itemToPay);
-    String jsonRequest = gson.toJson(request);
+      Request request = new Request(ActionType.PAY_ITEM, itemToPay);
 
-    new Thread(
-            () -> {
-              try {
-                String jsonResponse = clientSocket.sendRequest(jsonRequest);
-                Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+      new Thread(() -> {
+          try {
+              String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+              Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(serverResponse.getStatus())) {
-                        showAlert("Thành công", "Thanh toán thành công! Số dư đã được cập nhật.");
-                        observableList.remove(itemToPay);
-                      } else {
-                        showAlert("Lỗi thanh toán", serverResponse.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(
-                    () -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu thanh toán."));
-                logger.log(Level.SEVERE, "Ngoại lệ kết nối khi gửi lệnh PAY_ITEM", e);
-              }
-            })
-        .start();
+              Platform.runLater(() -> {
+                  if ("SUCCESS".equals(serverResponse.getStatus())) {
+                      showAlert("Thành công", "Thanh toán thành công! Số dư đã được cập nhật.");
+                      observableList.remove(itemToPay);
+                  } else {
+                      int code = serverResponse.getData() instanceof Number ? ((Number) serverResponse.getData()).intValue() : -1;
+                      String title = switch (code) {
+                          case 4001 -> "Số dư ví không đủ (4001)";
+                          case 4090 -> "Trạng thái không hợp lệ (409)";
+                          case 5000 -> "Lỗi cơ sở dữ liệu (500)";
+                          default -> "Thanh toán thất bại (" + code + ")";
+                      };
+                      showAlert(title, serverResponse.getMessage());
+                  }
+              });
+          } catch (Exception e) {
+              Platform.runLater(() -> showAlert("Lỗi kết nối", "Không thể gửi yêu cầu thanh toán."));
+          }
+      }).start();
   }
 
   /** Gửi yêu cầu xóa nợ và thanh toán đồng loạt cho toàn bộ các vật phẩm đã thắng. */
   private void sendPayAllRequest() {
-    if (currentUser == null) return;
-    int userId = currentUser.getUserId();
-    Request request = new Request("PAY_ALL", userId);
+      if (currentUser == null) return;
+      Request request = new Request(ActionType.PAY_ALL, currentUser.getUserId());
 
-    new Thread(
-            () -> {
-              try {
-                String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
-                Response serverResponse = gson.fromJson(jsonResponse, Response.class);
+      new Thread(() -> {
+          try {
+              String jsonResponse = clientSocket.sendRequest(gson.toJson(request));
+              Response serverResponse = gson.fromJson(jsonResponse, Response.class);
 
-                Platform.runLater(
-                    () -> {
-                      if ("SUCCESS".equals(serverResponse.getStatus())) {
-                        showAlert("Thành công", "Đã thanh toán tất cả sản phẩm!");
-                        observableList.clear();
-                      } else {
-                        showAlert("Lỗi", serverResponse.getMessage());
-                      }
-                    });
-              } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Lỗi", "Kết nối Server thất bại"));
-                logger.log(
-                    Level.SEVERE, "Gặp sự cố kết nối máy chủ khi xử lý thanh toán PAY_ALL", e);
-              }
-            })
-        .start();
+              Platform.runLater(() -> {
+                  if ("SUCCESS".equals(serverResponse.getStatus())) {
+                      showAlert("Thành công", "Đã thanh toán tất cả sản phẩm!");
+                      observableList.clear();
+                  } else {
+                      int code = serverResponse.getData() instanceof Number ? ((Number) serverResponse.getData()).intValue() : -1;
+                      String title = (code == 4001) ? "Số dư ví không đủ (4001)" : "Thanh toán thất bại (" + code + ")";
+                      showAlert(title, serverResponse.getMessage());
+                  }
+              });
+          } catch (Exception e) {
+              Platform.runLater(() -> showAlert("Lỗi", "Kết nối Server thất bại"));
+          }
+      }).start();
   }
 }
