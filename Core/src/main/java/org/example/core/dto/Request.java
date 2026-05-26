@@ -1,17 +1,18 @@
 package org.example.core.dto;
 
+import org.example.core.shared.enums.ActionType;
 public class Request {
-    private String action;
+    private ActionType action;
     private Object data;
 
     public Request() {}
 
-    public Request(String action, Object data) {
+    public Request(ActionType action, Object data) {
         this.action = action;
         this.data = data;
     }
 
-    public String getAction() {return action;}
+    public ActionType getAction() {return action;}
 
     public Object getData() {return data;}
 }

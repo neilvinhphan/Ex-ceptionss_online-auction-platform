@@ -18,23 +18,6 @@ public class BidTransaction extends Entity {
     this.bidderName = bidderName;
   }
 
-  public BidTransaction() {}
-
-  public BidTransaction(
-      int bidId,
-      int bidderID,
-      int auctionId,
-      BigDecimal amount,
-      LocalDateTime bidTime,
-      String bidderName) {
-    this.bidId = bidId;
-    this.bidderID = bidderID;
-    this.auctionId = auctionId;
-    this.amount = amount;
-    this.time = bidTime;
-    this.bidderName = bidderName;
-  }
-
   public void setAuctionId(int auctionId) {
     this.auctionId = auctionId;
   }

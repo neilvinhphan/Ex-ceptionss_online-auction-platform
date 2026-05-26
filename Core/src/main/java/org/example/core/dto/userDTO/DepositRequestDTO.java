@@ -21,9 +21,6 @@ public class DepositRequestDTO {
     public BigDecimal getAmount() {
         return amount;
     }
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
     public String getPassword() { return password; }
     public void setPassword(String password){this.password=password;}
 }

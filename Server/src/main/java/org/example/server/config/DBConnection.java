@@ -2,62 +2,67 @@ package org.example.server.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Lớp quản lý kết nối Database được bọc giáp bằng HikariCP Connection Pool.
- * Triệt tiêu hoàn toàn lỗi "Communications link failure", gánh tải mượt mà cho 50+ phòng real-time.
+ * Lớp cấu hình và quản lý kết nối cơ sở dữ liệu sử dụng HikariCP Connection Pool. Đảm bảo hiệu năng
+ * cao, chống rớt kết nối ngầm và gánh tải real-time.
  */
 public class DBConnection {
+  private static final Logger logger = Logger.getLogger(DBConnection.class.getName());
   private static final HikariDataSource dataSource;
 
   static {
     try {
       Properties properties = new Properties();
-      // 1. Đọc file cấu hình từ tài nguyên hệ thống
-      try (InputStream is = DBConnection.class.getClassLoader().getResourceAsStream("database.properties")) {
+      try (InputStream is =
+          DBConnection.class.getClassLoader().getResourceAsStream("database.properties")) {
         if (is == null) {
-          throw new RuntimeException("Không tìm thấy file cấu hình database.properties!");
+          throw new IllegalStateException("Không tìm thấy file cấu hình database.properties!");
         }
         properties.load(is);
       }
 
-      // Thiết lập cấu hình chuẩn xác dựa trên các key trong file database.properties
       HikariConfig config = new HikariConfig();
       config.setDriverClassName("com.mysql.cj.jdbc.Driver");
       config.setJdbcUrl(properties.getProperty("db.url"));
-      config.setUsername(properties.getProperty("db.username")); // Khớp chuẩn db.username
-      config.setPassword(properties.getProperty("db.password")); // Khớp chuẩn db.password
+      config.setUsername(properties.getProperty("db.username"));
+      config.setPassword(properties.getProperty("db.password"));
 
-      // --- THÔNG SỐ CẤU HÌNH GÁNH TẢI SIÊU TỐC ---
-      config.setMaximumPoolSize(25);      // Giữ cố định tối đa 25 kết nối mở sẵn trong RAM
-      config.setMinimumIdle(5);            // Duy trì tối thiểu 5 kết nối nhàn rỗi phòng hờ
-      config.setIdleTimeout(30000);        // Giải phóng kết nối thừa sau 30 giây không dùng
-      config.setMaxLifetime(1800000);      // Làm mới kết nối sau mỗi 30 phút để chống rớt mạng ngầm MySQL
-      config.setConnectionTimeout(10000);  // Chờ mượn kết nối tối đa 10 giây trước khi báo bận
+      // Cấu hình tải và tối ưu kết nối
+      config.setMaximumPoolSize(25);
+      config.setMinimumIdle(5);
+      config.setIdleTimeout(30000);
+      config.setMaxLifetime(1800000);
+      config.setConnectionTimeout(10000);
 
-      // --- TỐI ƯU HOÁ HIỆU NĂNG RIÊNG CHO MÁY CHỦ MYSQL ---
+      // Tối ưu hóa hiệu năng MySQL Statements
       config.addDataSourceProperty("cachePrepStmts", "true");
       config.addDataSourceProperty("prepStmtCacheSize", "250");
       config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
       config.addDataSourceProperty("useServerPrepStmts", "true");
 
-      // Khởi tạo nguồn cấp dữ liệu duy nhất (Singleton DataSource)
       dataSource = new HikariDataSource(config);
-      System.out.println("🚀 [DATABASE POOL] Đã kích hoạt hệ thống HikariCP bọc thép thành công!");
+      logger.info("[DATABASE POOL] Đã kích hoạt hệ thống HikariCP bọc thép thành công!");
 
     } catch (Exception e) {
-      throw new ExceptionInInitializerError("Lỗi nghiêm trọng khi khởi tạo cấu hình DB Pool: " + e.getMessage());
+      logger.log(Level.SEVERE, "Lỗi nghiêm trọng khi khởi tạo cấu hình DB Pool", e);
+      throw new ExceptionInInitializerError(e);
     }
   }
 
+  private DBConnection() {}
+
   /**
-   * Mượn một kết nối sạch từ Pool có sẵn.
-   * Tốc độ phản hồi cực nhanh (< 1ms) và an toàn tuyệt đối trước các đợt bão kết nối.
+   * Lấy một kết nối sạch từ Connection Pool.
+   *
+   * @return Đối tượng {@link Connection} sẵn sàng sử dụng.
+   * @throws SQLException Nếu không thể mượn kết nối từ pool hoặc pool chưa khởi tạo.
    */
   public static Connection getConnection() throws SQLException {
     if (dataSource == null) {
@@ -66,13 +71,11 @@ public class DBConnection {
     return dataSource.getConnection();
   }
 
-  /**
-   * Giải phóng Pool an toàn khi tắt máy chủ Server.
-   */
+  /** Đóng toàn bộ kết nối trong Pool an toàn khi shutdown máy chủ. */
   public static void shutdown() {
     if (dataSource != null && !dataSource.isClosed()) {
       dataSource.close();
-      System.out.println("💤 [DATABASE POOL] Đã đóng toàn bộ kết nối DB an toàn.");
+      logger.info("[DATABASE POOL] Đã đóng toàn bộ kết nối DB an toàn.");
     }
   }
 }

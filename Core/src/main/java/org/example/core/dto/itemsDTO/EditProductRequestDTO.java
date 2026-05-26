@@ -18,7 +18,11 @@ public class EditProductRequestDTO {
     this.itemType = type;
   }
 
-  public int getItemId() {
+    public EditProductRequestDTO() {
+
+    }
+
+    public int getItemId() {
     return itemId;
   }
 
@@ -36,10 +40,6 @@ public class EditProductRequestDTO {
 
   public String getDescription() {
     return description;
-  }
-
-  public String getItemType() {
-    return itemType;
   }
 
   public void setItemEditName(String itemEditName) {

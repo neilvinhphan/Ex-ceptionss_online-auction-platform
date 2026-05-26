@@ -16,7 +16,7 @@
 <AnchorPane prefHeight="700.0" prefWidth="1100.0" style="-fx-background-color: #1e1e1e;"
             stylesheets="@style.css" xmlns="http://javafx.com/javafx/25"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.client.controllers.AuctionApprovalController">
+            fx:controller="org.example.client.controllers.admin.AuctionApprovalController">
     <children>
         <VBox spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
               AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">

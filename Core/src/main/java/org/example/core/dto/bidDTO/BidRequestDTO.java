@@ -4,13 +4,15 @@ import java.math.BigDecimal;
 
 public class BidRequestDTO {
   private int auctionId;
-  private int userId; // Hoặc username của người đang đăng nhập
-  private BigDecimal bidAmount; // Số tiền đặt
+  private int userId;
+  private BigDecimal bidAmount;
+  private String userName;
 
-  public BidRequestDTO(int auctionId, int userId, BigDecimal bidAmount) {
+  public BidRequestDTO(int auctionId, int userId, BigDecimal bidAmount, String userName) {
     this.auctionId = auctionId;
     this.userId = userId;
     this.bidAmount = bidAmount;
+    this.userName = userName;
   }
 
   public int getAuctionId() {
@@ -32,4 +34,6 @@ public class BidRequestDTO {
   public BigDecimal getBidAmount() {
     return bidAmount;
   }
+
+  public String getUserName() {return userName;}
 }
