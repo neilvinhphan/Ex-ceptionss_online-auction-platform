@@ -96,9 +96,10 @@ public class CreateItemController extends BaseController implements Initializabl
         .getExtensionFilters()
         .addAll(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
 
-    selectedImageFile = fileChooser.showOpenDialog(window);
+    File chosenFile = fileChooser.showOpenDialog(window);
 
-    if (selectedImageFile != null) {
+    if (chosenFile != null) {
+      selectedImageFile = chosenFile;
       try {
         Image image = new Image(selectedImageFile.toURI().toString());
         imagePreview.setImage(image);
@@ -111,7 +112,11 @@ public class CreateItemController extends BaseController implements Initializabl
       } catch (Exception e) {
         logger.log(Level.SEVERE, "Không thể chuyển đổi uri và tải ảnh preview sản phẩm", e);
         showAlert("Lỗi", "Không thể hiển thị ảnh xem trước!");
+        selectedImageFile = null;
       }
+    }
+    else {
+      logger.log(Level.INFO, "Người dùng đã hủy chọn ảnh");
     }
   }
 
@@ -132,21 +137,34 @@ public class CreateItemController extends BaseController implements Initializabl
       return;
     }
 
+
+    // 2. Gộp mô tả
+    StringBuilder finalDescription = new StringBuilder(description);
+    finalDescription.append("\n\n--- THÔNG TIN CHI TIẾT ---");
     try {
+      // ===== TẠO DTO THEO CATEGORY VÀ GỘP CHUỖI MÔ TẢ =====
       switch (category) {
         case "ART":
           CreateArtItemDTO artDTO = new CreateArtItemDTO();
           artDTO.setArtist(tfArtist.getText());
           artDTO.setCreationYear(Integer.parseInt(tfCreationYear.getText().trim()));
           itemDTO = artDTO;
+          // Nối chuỗi hiển thị
+          finalDescription.append("\n🎨 Nghệ sĩ: ").append(tfArtist.getText());
+          finalDescription.append("\n📅 Năm sáng tác: ").append(tfCreationYear.getText().trim());
           break;
+
         case "ELECTRONICS":
           CreateElectronicsItemDTO elecDTO = new CreateElectronicsItemDTO();
           elecDTO.setBrand(tfBrand.getText());
           elecDTO.setWarrantyMonths(Integer.parseInt(tfWarranty.getText().trim()));
           elecDTO.setCondition(tfCondition.getText());
           itemDTO = elecDTO;
+          finalDescription.append("\n⚙ Thương hiệu: ").append(tfBrand.getText());
+          finalDescription.append("\n🛡 Tháng bảo hành: ").append(tfWarranty.getText().trim());
+          finalDescription.append("\n📌 Tình trạng: ").append(tfCondition.getText());
           break;
+
         case "VEHICLE":
           CreateVehicleItemDTO vehDTO = new CreateVehicleItemDTO();
           vehDTO.setBrand(tfVehicleBrand.getText());
@@ -154,7 +172,12 @@ public class CreateItemController extends BaseController implements Initializabl
           vehDTO.setManufacturingYear(Integer.parseInt(tfMfgYear.getText().trim()));
           vehDTO.setMileage(Double.parseDouble(tfMileage.getText()));
           itemDTO = vehDTO;
+          finalDescription.append("\n🚗 Hãng xe: ").append(tfVehicleBrand.getText());
+          finalDescription.append("\n🚙 Dòng xe: ").append(tfModel.getText());
+          finalDescription.append("\n📅 Năm sản xuất: ").append(tfMfgYear.getText().trim());
+          finalDescription.append("\n🛣 Số KM đã đi: ").append(tfMileage.getText().trim());
           break;
+
         default:
           showAlert("Lỗi", "Danh mục không hợp lệ!");
           return;
@@ -165,12 +188,15 @@ public class CreateItemController extends BaseController implements Initializabl
         itemDTO.setStartingPrice(startingPrice);
       } catch (Exception e) {
         showAlert("Lỗi", "Giá khởi điểm không hợp lệ");
-        return;
+        return; // Dừng lại nếu lỗi giá tiền
       }
 
+      // ===== 3. SET FIELD CHUNG =====
       itemDTO.setItemName(name);
       itemDTO.setType(category);
-      itemDTO.setDescription(description);
+      // TRUYỀN CHUỖI ĐÃ GỘP XUỐNG DTO THAY VÌ CHUỖI NGẮN GỐC
+      itemDTO.setDescription(finalDescription.toString());
+
       itemDTO.setSellerID(sellerId);
 
       if (selectedImageFile != null) {

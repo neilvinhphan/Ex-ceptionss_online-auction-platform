@@ -277,10 +277,12 @@ public class AuctionService {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.FINISHED);
         logger.info("Phiên " + auctionId + " ĐÃ KẾT THÚC THÀNH CÔNG (FINISHED)!");
 
-        String winnerName = "Không có ai";
-        if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-          winnerName = auction.getBidHistory().get(0).getBidderName();
-        }
+        int lastIndex = auction.getBidHistory().size();
+        String winnerName = auction.getBidHistory().get(lastIndex).getBidderName();
+//        if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
+//          int lastIndex = auction.getBidHistory().size() - 1;
+//          winnerName = auction.getBidHistory().get(lastIndex).getBidderName();
+//        }
 
         AuctionServer.broadcastToRoom(auctionId, new Response("AUCTION_ENDED", winnerName));
         scheduler.schedule(() -> cancelIfNotPaid(auctionId), 24, TimeUnit.HOURS);

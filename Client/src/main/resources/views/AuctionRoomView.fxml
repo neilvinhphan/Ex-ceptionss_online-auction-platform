@@ -1,22 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.auction.AuctionRoomController">
+<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.auction.AuctionRoomController">
 
     <content>
         <BorderPane style="-fx-background-color:#f3f4f6;">
@@ -53,7 +42,7 @@
                         </VBox>
 
                         <VBox spacing="5" VBox.vgrow="ALWAYS">
-                            <Label style="-fx-font-weight:bold; -fx-text-fill:#2c3e50;" text="Mô tả chi tiết tài sản:" />
+                            <Label style="-fx-font-weight:bold; -fx-text-fill:#2c3e50;" text="Mô tả:" />
                             <TextArea fx:id="taDescription" editable="false" minHeight="90" prefHeight="110" style="-fx-background-radius:10; -fx-font-size:13;" wrapText="true" />
                         </VBox>
 
@@ -61,7 +50,12 @@
                         <StackPane>
                         <VBox fx:id="vboxBidderControls" spacing="12" style="-fx-padding:15; -fx-background-color:#f8f9fa; -fx-background-radius:12; -fx-border-color:#dee2e6; -fx-border-radius:12;">
                             <Label style="-fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:#2c3e50;" text="🎮 KHU VỰC ĐIỀU KHIỂN ĐẶT THẦU" />
-
+                            <HBox spacing="8">
+                                <Button maxWidth="Infinity" onAction="#handleQuickBidStep" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;" text="+ Bước giá" HBox.hgrow="ALWAYS" />
+                                <Button maxWidth="Infinity" onAction="#handleQuickBid50" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;" text="+ 50K" HBox.hgrow="ALWAYS" />
+                                <Button maxWidth="Infinity" onAction="#handleQuickBid100" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;" text="+ 100K" HBox.hgrow="ALWAYS" />
+                                <Button maxWidth="Infinity" onAction="#handleQuickBid500" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6;" text="+ 500K" HBox.hgrow="ALWAYS" />
+                            </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="10">
                                 <TextField fx:id="tfBidAmount" prefHeight="38" promptText="Nhập số tiền muốn đặt (VND)..." style="-fx-font-size:14; -fx-background-radius:6;" HBox.hgrow="ALWAYS" />
                                 <Button fx:id="btnPlaceBid" onAction="#handlePlaceBid" prefHeight="38" prefWidth="140" style="-fx-background-color:#28a745; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13; -fx-background-radius:6; -fx-cursor:hand;" text="GỬI GIÁ ĐẤU" />

@@ -28,6 +28,7 @@ import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.ActionType;
+import org.example.core.shared.enums.AuctionStatus;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -68,7 +69,7 @@ public class AuctionRoomController extends BaseController implements Initializab
   @FXML private Button btnToggleAutoBid;
   @FXML private VBox vboxPriceBox;
   @FXML private VBox vboxWinnerBox;
-
+@FXML private Button btnCheckout;
   private XYChart.Series<Number, Number> priceSeries;
   private ScheduledExecutorService timerService;
   private Auction currentAuction;
@@ -288,13 +289,6 @@ public class AuctionRoomController extends BaseController implements Initializab
     cleanUpBeforeExit();
     switchScene(event, "/views/WaitPaymentView.fxml", "Sản phẩm chờ thanh toán");
   }
-
-  @FXML
-  private void handleMain(ActionEvent event) {
-    cleanUpBeforeExit();
-    switchScene(event, "/views/MainView.fxml", "Trang chủ");
-  }
-
   /** Dựng khung phòng đấu giá dựa trên dữ liệu Auction truyền từ màn hình chính. */
   private void setupRoom(Auction auction, Item item) {
     this.currentAuction = auction;
@@ -413,14 +407,14 @@ public class AuctionRoomController extends BaseController implements Initializab
               });
             } else if ("AUCTION_STARTED".equals(response.getStatus())) {
               Platform.runLater(() -> {
-                if (currentAuction != null) currentAuction.setStatus(org.example.core.shared.enums.AuctionStatus.RUNNING);
+                if (currentAuction != null) currentAuction.setStatus(AuctionStatus.RUNNING);
                 lblStatus.setText("RUNNING");
                 updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.RUNNING);
                 lblBidError.setStyle("-fx-text-fill: green;");
                 lblBidError.setText(response.getMessage());
                 startCountdown();
               });
-            } else if ("AUCTION_END".equals(response.getStatus())) {
+            } else if ("AUCTION_ENDED".equals(response.getStatus())) {
               String additionalData = response.getData() != null ? response.getData().toString().replace("\"", "") : "";
 
               if ("ADMIN_CANCELLED".equals(additionalData)) {
@@ -433,11 +427,13 @@ public class AuctionRoomController extends BaseController implements Initializab
                   lblStatus.setText("FINISHED");
                   showWinnerBox(winnerName);
                   lblWinner.setText(winnerName != null ? winnerName : "Không có");
-                  updateUiComponentsByStatus(org.example.core.shared.enums.AuctionStatus.FINISHED);
+                  updateUiComponentsByStatus(AuctionStatus.FINISHED);
 
                   User user = UserSession.getInstance().getCurrentUser();
-                  if (winnerName != null && user != null && winnerName.equals(user.getUserName())) {
+                  if (winnerName != null && winnerName.equals(user.getUserName())) {
                     showAlert("Thông báo", "CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH CHỦ NHÂN CỦA MÓN ĐỒ!");
+                    btnCheckout.setVisible(true);
+                    btnCheckout.setManaged(true);
                   } else {
                     showAlert("Thông báo", "Phiên đấu giá đã kết thúc!\nNgười chiến thắng: " + winnerName);
                   }
@@ -754,5 +750,30 @@ public class AuctionRoomController extends BaseController implements Initializab
                   "/views/AuctionCatalogView.fxml",
                   "Danh mục đấu giá");
             });
+  }
+  @FXML
+  private void handleQuickBidStep(ActionEvent event) {
+    if (currentAuction == null || currentAuction.getBidIncrement() == null) return;
+    BigDecimal step = currentAuction.getBidIncrement();
+    BigDecimal newAmount = currentMaxPrice.add(step);
+    tfBidAmount.setText(newAmount.toPlainString());
+  }
+
+  @FXML
+  private void handleQuickBid50(ActionEvent event) {
+    BigDecimal newAmount = currentMaxPrice.add(new BigDecimal("50000"));
+    tfBidAmount.setText(newAmount.toPlainString());
+  }
+
+  @FXML
+  private void handleQuickBid100(ActionEvent event) {
+    BigDecimal newAmount = currentMaxPrice.add(new BigDecimal("100000"));
+    tfBidAmount.setText(newAmount.toPlainString());
+  }
+
+  @FXML
+  private void handleQuickBid500(ActionEvent event) {
+    BigDecimal newAmount = currentMaxPrice.add(new BigDecimal("500000"));
+    tfBidAmount.setText(newAmount.toPlainString());
   }
 }
