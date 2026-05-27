@@ -9,6 +9,7 @@ import org.example.core.exception.InvalidUserDataException;
 import org.example.core.exception.ResourceNotFoundException;
 import org.example.core.exception.InsufficientBalanceException;
 import org.example.core.models.entities.Auction;
+import org.example.core.models.entities.BidTransaction;
 import org.example.core.models.items.Item;
 import org.example.core.models.users.User;
 import org.example.core.shared.enums.AuctionStatus;
@@ -31,9 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Dịch vụ quản lý vòng đời phiên đấu giá.
- */
+/** Dịch vụ quản lý vòng đời phiên đấu giá. */
 public class AuctionService {
   private static final Logger logger = Logger.getLogger(AuctionService.class.getName());
   private static volatile AuctionService instance;
@@ -56,12 +55,12 @@ public class AuctionService {
     if (instance == null) {
       synchronized (AuctionService.class) {
         if (instance == null) {
-          instance = new AuctionService(
+          instance =
+              new AuctionService(
                   AuctionDAO.getInstance(),
                   UserDAO.getInstance(),
                   ItemDAO.getInstance(),
-                  WalletDAO.getInstance()
-          );
+                  WalletDAO.getInstance());
         }
       }
     }
@@ -80,20 +79,28 @@ public class AuctionService {
 
     validateAuctionPayload(checkItem, durationMinutes, bidIncrement, startTime);
 
-    int auctionId = auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
+    int auctionId =
+        auctionDAO.createNewAuctionItem(checkItem, durationMinutes, bidIncrement, startTime);
     if (auctionId <= 0) {
-      throw new ResourceNotFoundException("Lỗi hệ thống: Không thể khởi tạo phiên đấu giá mới trong cơ sở dữ liệu!");
+      throw new ResourceNotFoundException(
+          "Lỗi hệ thống: Không thể khởi tạo phiên đấu giá mới trong cơ sở dữ liệu!");
     }
 
     Auction newAuction = auctionDAO.getAuctionByAuctionId(auctionId);
 
     if (newAuction != null) {
-      long delayToStart = Duration.between(LocalDateTime.now(), newAuction.getStartTime()).getSeconds();
+      long delayToStart =
+          Duration.between(LocalDateTime.now(), newAuction.getStartTime()).getSeconds();
       if (delayToStart <= 0) {
         scheduler.submit(() -> startAuction(auctionId));
       } else {
         scheduler.schedule(() -> startAuction(auctionId), delayToStart, TimeUnit.SECONDS);
-        logger.info("[HẸN GIỜ] Phiên đấu giá mới tạo ID: " + auctionId + " sẽ mở cửa sau " + delayToStart + " giây.");
+        logger.info(
+            "[HẸN GIỜ] Phiên đấu giá mới tạo ID: "
+                + auctionId
+                + " sẽ mở cửa sau "
+                + delayToStart
+                + " giây.");
       }
     }
     return newAuction;
@@ -105,21 +112,25 @@ public class AuctionService {
     }
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
     if (auction == null) {
-      throw new ResourceNotFoundException("Không tìm thấy phiên đấu giá cần hủy có mã: " + auctionId);
+      throw new ResourceNotFoundException(
+          "Không tìm thấy phiên đấu giá cần hủy có mã: " + auctionId);
     }
     if (auction.getStatus() == AuctionStatus.CANCELED) {
       throw new DataConflictException("Phiên đấu giá này đã bị hủy bỏ từ trước đó!");
     }
     if (auction.getStatus() == AuctionStatus.PAID) {
-      throw new DataConflictException("Không thể hủy phiên đấu giá vì giao dịch đã được thanh toán hoàn tất!");
+      throw new DataConflictException(
+          "Không thể hủy phiên đấu giá vì giao dịch đã được thanh toán hoàn tất!");
     }
     auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
-    logger.warning("[FORCE CANCEL] Admin đã hủy khẩn cấp phiên " + auctionId + ". Lý do: " + reason);
+    logger.warning(
+        "[FORCE CANCEL] Admin đã hủy khẩn cấp phiên " + auctionId + ". Lý do: " + reason);
   }
 
   public boolean checkoutAuction(int auctionId, int winnerId) {
     if (auctionId <= 0 || winnerId <= 0) {
-      throw new InvalidUserDataException("Thông số mã phiên hoặc định danh người chiến thắng không hợp lệ!");
+      throw new InvalidUserDataException(
+          "Thông số mã phiên hoặc định danh người chiến thắng không hợp lệ!");
     }
 
     synchronized (lock) {
@@ -128,13 +139,16 @@ public class AuctionService {
         throw new ResourceNotFoundException("Phiên đấu giá không tồn tại trên hệ thống!");
       }
       if (auction.getStatus() == AuctionStatus.PAID) {
-        throw new DataConflictException("Phiên đấu giá này đã được thực hiện thanh toán hoàn tất trước đó!");
+        throw new DataConflictException(
+            "Phiên đấu giá này đã được thực hiện thanh toán hoàn tất trước đó!");
       }
       if (auction.getStatus() != AuctionStatus.FINISHED) {
-        throw new DataConflictException("Phiên đấu giá chưa kết thúc, không thể tiến hành thủ tục thanh toán!");
+        throw new DataConflictException(
+            "Phiên đấu giá chưa kết thúc, không thể tiến hành thủ tục thanh toán!");
       }
       if (auction.getBidderId() != winnerId) {
-        throw new InvalidUserDataException("Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp!");
+        throw new InvalidUserDataException(
+            "Xác thực thất bại: Bạn không phải là người chiến thắng hợp pháp!");
       }
 
       int sellerId = itemDAO.getOwnerIdByItemId(auction.getItemId());
@@ -143,20 +157,24 @@ public class AuctionService {
 
       BigDecimal bidPrice = auction.getHighestBid();
       if (bidPrice.compareTo(walletDAO.getAvailableBalance(winnerId)) > 0) {
-        throw new InsufficientBalanceException("Số dư khả dụng trong ví tài khoản không đủ để thực hiện thanh toán!");
+        throw new InsufficientBalanceException(
+            "Số dư khả dụng trong ví tài khoản không đủ để thực hiện thanh toán!");
       }
 
       userDAO.updateBalanceInDB(winnerId, winner.getBalance().subtract(bidPrice));
       userDAO.updateBalanceInDB(sellerId, seller.getBalance().add(bidPrice));
 
-      walletDAO.insertWalletTransaction(winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
-      walletDAO.insertWalletTransaction(sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
+      walletDAO.insertWalletTransaction(
+          winnerId, bidPrice, WalletTransactionType.PAY_AUCTION, auctionId);
+      walletDAO.insertWalletTransaction(
+          sellerId, bidPrice, WalletTransactionType.SELL_REVENUE, auctionId);
 
       auctionDAO.setAuctionStatus(auctionId, AuctionStatus.PAID);
       itemDAO.updateOwnerIdByItemId(auction.getItemId(), winnerId);
       itemDAO.updateItemStatus(auction.getItemId(), ItemStatus.APPROVED);
 
-      logger.info("[CHECKOUT SUCCESS] Phiên " + auctionId + " quyết toán thành công. Winner: " + winnerId);
+      logger.info(
+          "[CHECKOUT SUCCESS] Phiên " + auctionId + " quyết toán thành công. Winner: " + winnerId);
       return true;
     }
   }
@@ -188,13 +206,15 @@ public class AuctionService {
       }
       logger.info("Đã tái cấu trúc và phục hồi toàn bộ tiến trình hẹn giờ ngầm hệ thống!");
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Lỗi nghiêm trọng khi nạp khôi phục Scheduled Tasks lịch hẹn giờ", e);
+      logger.log(
+          Level.SEVERE, "Lỗi nghiêm trọng khi nạp khôi phục Scheduled Tasks lịch hẹn giờ", e);
     }
   }
 
   public List<Auction> getAuctionsByStatus(AuctionStatus status) {
     if (status == null) {
-      throw new InvalidUserDataException("Trạng thái phiên đấu giá cần tra cứu không được để trống!");
+      throw new InvalidUserDataException(
+          "Trạng thái phiên đấu giá cần tra cứu không được để trống!");
     }
     return auctionDAO.getAllAuctionsByStatus(status);
   }
@@ -209,28 +229,32 @@ public class AuctionService {
     }
     Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
     if (auction == null) {
-      throw new ResourceNotFoundException("Không tìm thấy thông tin chi tiết của phiên đấu giá có mã: " + auctionId);
+      throw new ResourceNotFoundException(
+          "Không tìm thấy thông tin chi tiết của phiên đấu giá có mã: " + auctionId);
     }
     return auction;
   }
 
   public List<Integer> getAllItemPaidPending(int userId) {
     if (userId <= 0) {
-      throw new InvalidUserDataException("Mã người dùng không hợp lệ để tra cứu danh sách chờ thanh toán!");
+      throw new InvalidUserDataException(
+          "Mã người dùng không hợp lệ để tra cứu danh sách chờ thanh toán!");
     }
     return auctionDAO.getAllAuctionIdFinishedByUserId(userId);
   }
 
   public List<PendingPaymentsDTO> getAllAuctionsFinished(int userId) {
     if (userId <= 0) {
-      throw new InvalidUserDataException("Mã người dùng không hợp lệ để lấy danh sách hóa đơn chờ thanh toán!");
+      throw new InvalidUserDataException(
+          "Mã người dùng không hợp lệ để lấy danh sách hóa đơn chờ thanh toán!");
     }
     return auctionDAO.getAllAuctionsFinished(userId);
   }
 
   public List<PaidHistoryDTO> getAllAuctionsPaid(int userId) {
     if (userId <= 0) {
-      throw new InvalidUserDataException("Mã người dùng không hợp lệ để tra cứu lịch sử mua hàng thành công!");
+      throw new InvalidUserDataException(
+          "Mã người dùng không hợp lệ để tra cứu lịch sử mua hàng thành công!");
     }
     return auctionDAO.getAllAuctionsPaid(userId);
   }
@@ -246,16 +270,22 @@ public class AuctionService {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.RUNNING);
         logger.info("Phiên " + auctionId + " ĐÃ CHUYỂN SANG TRẠNG THÁI RUNNING!");
 
-        AuctionServer.broadcastToRoom(auctionId, new Response("AUCTION_STARTED", "Phiên đấu giá bắt đầu!"));
+        AuctionServer.broadcastToRoom(
+            auctionId, new Response("AUCTION_STARTED", "Phiên đấu giá bắt đầu!"));
 
-        long durationSeconds = Duration.between(LocalDateTime.now(), auction.getEndTime()).getSeconds();
+        long durationSeconds =
+            Duration.between(LocalDateTime.now(), auction.getEndTime()).getSeconds();
         if (durationSeconds <= 0) durationSeconds = 1;
 
         scheduler.schedule(() -> endAuction(auctionId), durationSeconds, TimeUnit.SECONDS);
-        logger.info("Đã lên lịch ĐÓNG phiên " + auctionId + " sau chính xác " + durationSeconds + " giây.");
+        logger.info(
+            "Đã lên lịch ĐÓNG phiên " + auctionId + " sau chính xác " + durationSeconds + " giây.");
       }
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Lỗi luồng xử lý tự động kích hoạt startAuction cho phòng: " + auctionId, e);
+      logger.log(
+          Level.SEVERE,
+          "Lỗi luồng xử lý tự động kích hoạt startAuction cho phòng: " + auctionId,
+          e);
     }
   }
 
@@ -271,16 +301,24 @@ public class AuctionService {
           if (remainingSeconds <= 0) remainingSeconds = 1;
 
           scheduler.schedule(() -> endAuction(auctionId), remainingSeconds, TimeUnit.SECONDS);
-          logger.info("[ANTI-SNIPING] Tái thiết lập lịch đóng phòng " + auctionId + " muộn thêm " + remainingSeconds + " giây.");
+          logger.info(
+              "[ANTI-SNIPING] Tái thiết lập lịch đóng phòng "
+                  + auctionId
+                  + " muộn thêm "
+                  + remainingSeconds
+                  + " giây.");
           return;
         }
 
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.FINISHED);
         logger.info("Phiên " + auctionId + " ĐÃ KẾT THÚC THÀNH CÔNG (FINISHED)!");
 
-        String winnerName = BidDAO.getInstance().getBidHistoryByAuctionId(auctionId).getLast().getBidderName();
-        if (winnerName == null) {
+        String winnerName;
+        List<BidTransaction> bidHistory = BidDAO.getInstance().getBidHistoryByAuctionId(auctionId);
+        if (bidHistory.isEmpty()) {
           winnerName = "Không có ai!!!";
+        } else {
+          winnerName = bidHistory.getLast().getBidderName();
         }
 
         AuctionServer.broadcastToRoom(auctionId, new Response("AUCTION_ENDED", winnerName));
@@ -296,19 +334,31 @@ public class AuctionService {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.FINISHED) {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
-        logger.warning("🗑Phiên " + auctionId + " tự động chuyển trạng thái CANCELED do quá hạn thanh toán 24h.");
+        logger.warning(
+            "🗑Phiên "
+                + auctionId
+                + " tự động chuyển trạng thái CANCELED do quá hạn thanh toán 24h.");
       }
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Lỗi thực thi kiểm tra thanh toán tự động quá hạn phòng: " + auctionId, e);
+      logger.log(
+          Level.SEVERE, "Lỗi thực thi kiểm tra thanh toán tự động quá hạn phòng: " + auctionId, e);
     }
   }
 
-  private void validateAuctionPayload(Item item, long duration, BigDecimal increment, LocalDateTime start) {
-    if (item == null) throw new InvalidUserDataException("Vật phẩm đấu giá không tồn tại hoặc chưa được chọn!");
-    if (item.getStatus() == ItemStatus.LISTED) throw new InvalidUserDataException("Vật phẩm này hiện đang trong một phiên đấu giá khác!");
-    if (duration <= 0) throw new InvalidUserDataException("Thời gian diễn ra phiên đấu giá phải lớn hơn 0 phút!");
-    if (increment == null || increment.compareTo(BigDecimal.ZERO) <= 0) throw new InvalidUserDataException("Bước giá thầu phải lớn hơn 0 VNĐ!");
-    if (start == null) throw new InvalidUserDataException("Thời gian bắt đầu phiên đấu giá không được để trống!");
-    if (start.isBefore(LocalDateTime.now().minusMinutes(1))) throw new InvalidUserDataException("Thời gian bắt đầu phiên đấu giá không được ở trong quá khứ!");
+  private void validateAuctionPayload(
+      Item item, long duration, BigDecimal increment, LocalDateTime start) {
+    if (item == null)
+      throw new InvalidUserDataException("Vật phẩm đấu giá không tồn tại hoặc chưa được chọn!");
+    if (item.getStatus() == ItemStatus.LISTED)
+      throw new InvalidUserDataException("Vật phẩm này hiện đang trong một phiên đấu giá khác!");
+    if (duration <= 0)
+      throw new InvalidUserDataException("Thời gian diễn ra phiên đấu giá phải lớn hơn 0 phút!");
+    if (increment == null || increment.compareTo(BigDecimal.ZERO) <= 0)
+      throw new InvalidUserDataException("Bước giá thầu phải lớn hơn 0 VNĐ!");
+    if (start == null)
+      throw new InvalidUserDataException("Thời gian bắt đầu phiên đấu giá không được để trống!");
+    if (start.isBefore(LocalDateTime.now().minusMinutes(1)))
+      throw new InvalidUserDataException(
+          "Thời gian bắt đầu phiên đấu giá không được ở trong quá khứ!");
   }
 }
