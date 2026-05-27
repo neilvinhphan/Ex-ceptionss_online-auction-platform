@@ -15,6 +15,7 @@ import org.example.core.shared.enums.AuctionStatus;
 import org.example.core.shared.enums.ItemStatus;
 import org.example.core.shared.enums.WalletTransactionType;
 import org.example.server.daos.AuctionDAO;
+import org.example.server.daos.BidDAO;
 import org.example.server.daos.ItemDAO;
 import org.example.server.daos.UserDAO;
 import org.example.server.daos.WalletDAO;
@@ -277,12 +278,10 @@ public class AuctionService {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.FINISHED);
         logger.info("Phiên " + auctionId + " ĐÃ KẾT THÚC THÀNH CÔNG (FINISHED)!");
 
-        int lastIndex = auction.getBidHistory().size();
-        String winnerName = auction.getBidHistory().get(lastIndex).getBidderName();
-//        if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
-//          int lastIndex = auction.getBidHistory().size() - 1;
-//          winnerName = auction.getBidHistory().get(lastIndex).getBidderName();
-//        }
+        String winnerName = BidDAO.getInstance().getBidHistoryByAuctionId(auctionId).getLast().getBidderName();
+        if (winnerName == null) {
+          winnerName = "Không có ai!!!";
+        }
 
         AuctionServer.broadcastToRoom(auctionId, new Response("AUCTION_ENDED", winnerName));
         scheduler.schedule(() -> cancelIfNotPaid(auctionId), 24, TimeUnit.HOURS);
