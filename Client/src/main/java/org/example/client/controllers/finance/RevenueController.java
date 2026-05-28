@@ -90,7 +90,7 @@ public class RevenueController extends BaseController {
   /** Cập nhật các chỉ số tài chính cơ bản (KPI Labels) kèm định dạng tiền tệ VNĐ chuẩn. */
   private void updateKPIs(double totalRevenue, int totalSold) {
     NumberFormat currencyFormatter = NumberFormat.getInstance(new Locale("vi", "VN"));
-    lblTotalRevenue.setText(currencyFormatter.format(totalRevenue) + " đ");
+    lblTotalRevenue.setText(currencyFormatter.format(totalRevenue) + " VNĐ");
     lblTotalSold.setText(String.valueOf(totalSold));
   }
 

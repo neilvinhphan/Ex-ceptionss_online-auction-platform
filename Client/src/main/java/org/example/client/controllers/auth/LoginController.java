@@ -81,7 +81,6 @@ public class LoginController extends BaseController {
                 switchScene(event, "/views/AuctionCatalogView.fxml", "Trang chủ");
               }
             } else {
-              // GIẢI MÃ MÃ LỖI ĐĂNG NHẬP
               int code = response.getData() instanceof Number ? ((Number) response.getData()).intValue() : -1;
               String title = switch (code) {
                 case 4010 -> "Sai thông tin (401)";

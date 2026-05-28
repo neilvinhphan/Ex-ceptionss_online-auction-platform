@@ -34,7 +34,6 @@ public class UserMenuController extends BaseController implements Initializable 
   @FXML private Button btnBackToAdmin;
 
   private final Gson gson = ClientManager.getInstance().getGson();
-  private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
 
   /**
    * Khởi tạo giao diện, nhận diện người dùng hiện hành từ Session để render tên và phân loại badge

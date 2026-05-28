@@ -14,6 +14,18 @@ public class PaidHistoryDTO implements Serializable {
 
     public String getItemName() { return itemName; }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public BigDecimal getFinalPrice() {
+        return finalPrice;
+    }
+
+    public LocalDateTime getPaidDate() {
+        return paidDate;
+    }
+
     public void setItemName(String itemName) {
         this.itemName = itemName;
     }

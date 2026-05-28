@@ -22,9 +22,12 @@ import org.example.core.shared.enums.ActionType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,7 +72,12 @@ public class AuctionHistoryController extends BaseController implements Initiali
               @Override
               protected void updateItem(BigDecimal price, boolean empty) {
                 super.updateItem(price, empty);
-                setText(empty || price == null ? null : String.format("%,.0f VNĐ", price));
+                if(empty || price == null) {
+                    setText(null);
+                } else {
+                    DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+                    setText(formatter.format(price) + " VNĐ");
+                }
               }
             });
 

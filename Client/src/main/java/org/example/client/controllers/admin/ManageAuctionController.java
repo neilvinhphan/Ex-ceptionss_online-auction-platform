@@ -20,9 +20,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,18 +92,30 @@ public class ManageAuctionController extends BaseController implements Initializ
 
     colSeller.setCellValueFactory(new PropertyValueFactory<>("ownerId"));
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    DateTimeFormatter formatterDate = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     colStartTime.setCellValueFactory(
         cellData -> {
           if (cellData.getValue().getStartTime() != null) {
-            return new SimpleStringProperty(cellData.getValue().getStartTime().format(formatter));
+            return new SimpleStringProperty(cellData.getValue().getStartTime().format(formatterDate));
           }
           return new SimpleStringProperty("Chưa có");
         });
 
     colCurrentPrice.setCellValueFactory(new PropertyValueFactory<>("highestBid"));
+    DecimalFormat formatterPrice = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+        colCurrentPrice.setCellFactory(column -> new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(BigDecimal item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(formatterPrice.format(item) + " VND");
+                }
+            }
+        });
 
-    colStatus.setCellValueFactory(
+      colStatus.setCellValueFactory(
         cellData -> {
           AuctionStatus statusEnum = cellData.getValue().getStatus();
           return new SimpleStringProperty(

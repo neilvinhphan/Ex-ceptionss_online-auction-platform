@@ -195,7 +195,9 @@ public class BiddingService {
         for (AutoBidDAO.AutoBidConfig bot : activeBots) {
           boolean isOutbid = bot.getMaxBid().compareTo(latestPrice) < 0;
           boolean isMaxedOutAndLost = (bot.getMaxBid().compareTo(latestPrice) == 0 && bot.getUserId() != currentLeaderId);
-          if (isOutbid || isMaxedOutAndLost) {
+          BigDecimal actualWallet = walletDAO.getAvailableBalance(bot.getUserId());
+          boolean isWalletDepleted = actualWallet.compareTo(latestPrice) < 0;
+          if (isOutbid || isMaxedOutAndLost || isWalletDepleted) {
             autoBidDAO.disableAutoBid(auctionId, bot.getUserId());
             AuctionServer.broadcastToRoom(auctionId, new Response("AUTOBID_DISABLED", "Bot chạm trần", bot.getUserId()));
           }
@@ -207,6 +209,13 @@ public class BiddingService {
   }
 
   private void executeAutoBidTransaction(int auctionId, BigDecimal finalPrice, int winnerId, Auction auction) throws Exception {
+    BigDecimal availableBalance = walletDAO.getAvailableBalance(winnerId);
+    if (finalPrice.compareTo(availableBalance) > 0) {
+      autoBidDAO.disableAutoBid(auctionId, winnerId);
+      AuctionServer.broadcastToRoom(auctionId, new Response("AUTOBID_DISABLED", "Bot tự động tắt do ví không đủ số dư thực tế!", winnerId));
+      throw new InsufficientBalanceException("Số dư khả dụng của tài khoản đặt AutoBid không đủ để nâng giá tự động!");
+    }
+
     LocalDateTime now = LocalDateTime.now();
     String winnerName = userDAO.getUserByUserId(winnerId).getUserName();
 

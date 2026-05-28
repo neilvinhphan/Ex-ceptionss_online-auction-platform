@@ -22,6 +22,9 @@ import org.example.core.shared.enums.RoleType;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -39,10 +42,8 @@ public class PersonalController extends BaseController implements Initializable 
   @FXML private Label lbUserName;
   @FXML private Label lbPhoneNum;
   @FXML private Label lbEmail;
-  @FXML private Label lbPassWord;
   @FXML private Label lblRole;
   @FXML private Label lbBalance;
-  @FXML private Button createAuction;
 
   private final RoleType userRole = UserSession.getInstance().getCurrentUser().getRole();
   private final Gson gson = ClientManager.getInstance().getGson();
@@ -57,7 +58,12 @@ public class PersonalController extends BaseController implements Initializable 
       lbPhoneNum.setText(currentUser.getPhone());
       lbEmail.setText(currentUser.getEmail());
       lblRole.setText(userRole.toString());
-      lbBalance.setText(currentUser.getBalance().toString());
+      if (currentUser.getBalance() != null) {
+        DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+        lbBalance.setText(formatter.format(currentUser.getBalance()));
+      } else {
+        lbBalance.setText("0");
+      }
     }
   }
 

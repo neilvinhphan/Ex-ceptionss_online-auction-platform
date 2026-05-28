@@ -10,6 +10,11 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,7 +107,14 @@ public class AdminDashboardController extends BaseController {
     lblTotalUsers.setText(kpis.getOrDefault("totalUsers", "0"));
     lblActiveAuctions.setText(kpis.getOrDefault("activeAuctions", "0"));
     lblPendingItems.setText(kpis.getOrDefault("pendingCount", "0"));
-    lblTotalVolume.setText(kpis.getOrDefault("totalVolume", "0"));
+    String rawVolume = kpis.getOrDefault("totalVolume", "0");
+    try {
+      BigDecimal volumeValue = new BigDecimal(rawVolume);
+      DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+      lblTotalVolume.setText(formatter.format(volumeValue) + " VNĐ");
+    } catch (Exception e) {
+      lblTotalVolume.setText(rawVolume + " VNĐ");
+    }
   }
 
   /**

@@ -59,7 +59,7 @@ public class MarketHistoryController extends BaseController implements Initializ
   @FXML private LineChart<String, Number> chartPriceTrend;
 
   private final ObservableList<Auction> historyList = FXCollections.observableArrayList();
-  private final Gson gson = new Gson();
+  private final Gson gson = ClientManager.getInstance().getGson();
 
   /**
    * Khởi tạo giao diện, cấu hình các cột TableView, tải dữ liệu lịch sử và thiết lập bộ lắng nghe
@@ -179,16 +179,15 @@ public class MarketHistoryController extends BaseController implements Initializ
    */
   private void loadMarketHistory() {
       Request request = new Request(ActionType.GET_MARKET_HISTORY, null);
-      Gson managerGson = ClientManager.getInstance().getGson();
 
       new Thread(() -> {
           try {
-              String resJson = ClientManager.getInstance().getClient().sendRequest(managerGson.toJson(request));
-              Response res = managerGson.fromJson(resJson, Response.class);
+              String resJson = ClientManager.getInstance().getClient().sendRequest(gson.toJson(request));
+              Response res = gson.fromJson(resJson, Response.class);
 
               if ("SUCCESS".equals(res.getStatus())) {
                   Type listType = new TypeToken<List<Auction>>() {}.getType();
-                  List<Auction> list = managerGson.fromJson(managerGson.toJson(res.getData()), listType);
+                  List<Auction> list = gson.fromJson(gson.toJson(res.getData()), listType);
                   Platform.runLater(() -> {
                       historyList.setAll(list);
                       tvMarketHistory.setItems(historyList);

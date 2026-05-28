@@ -24,7 +24,10 @@ import org.example.core.shared.enums.ActionType;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +64,10 @@ public class WaitPaymentController extends BaseController implements Initializab
     colPrice.setCellValueFactory(new PropertyValueFactory<>("winPrice"));
     colDate.setCellValueFactory(new PropertyValueFactory<>("endDate"));
 
-    colPrice.setCellFactory(
+      DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+
+
+      colPrice.setCellFactory(
         column ->
             new TableCell<>() {
               @Override
@@ -70,7 +76,7 @@ public class WaitPaymentController extends BaseController implements Initializab
                 if (empty || price == null) {
                   setText(null);
                 } else {
-                  setText(String.format("%,d VNĐ", price.longValue()));
+                  setText(formatter.format(price) + " VNĐ");
                 }
               }
             });

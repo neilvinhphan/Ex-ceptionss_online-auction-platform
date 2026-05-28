@@ -23,8 +23,11 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,8 +68,10 @@ public class ItemApprovalController extends BaseController implements Initializa
   private final ObservableList<Item> pendingItemsList = FXCollections.observableArrayList();
   private final Gson gson = ClientManager.getInstance().getGson();
   private final AuctionClient clientSocket = ClientManager.getInstance().getClient();
+  DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
 
-  /**
+
+    /**
    * Khởi tạo bảng dữ liệu, cấu hình ánh xạ các cột và thiết lập bộ lắng nghe sự kiện chọn phần tử.
    */
   @Override
@@ -75,15 +80,15 @@ public class ItemApprovalController extends BaseController implements Initializa
     colItemName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
     colType.setCellValueFactory(new PropertyValueFactory<>("type"));
 
-    colPrice.setCellValueFactory(
-        cellData -> {
-          if (cellData.getValue().getStartingPrice() != null) {
-            String formattedPrice =
-                String.format("%,.0f đ", cellData.getValue().getStartingPrice().doubleValue());
-            return new SimpleStringProperty(formattedPrice);
-          }
-          return new SimpleStringProperty("NULL");
-        });
+
+      colPrice.setCellValueFactory(
+              cellData -> {
+                  if (cellData.getValue().getStartingPrice() != null) {
+                      String formattedPrice = formatter.format(cellData.getValue().getStartingPrice()) + " VNĐ";
+                      return new SimpleStringProperty(formattedPrice);
+                  }
+                  return new SimpleStringProperty("NULL");
+              });
 
     itemTable.setItems(pendingItemsList);
     setupTableSelectionListener();
@@ -104,7 +109,7 @@ public class ItemApprovalController extends BaseController implements Initializa
                 lblName.setText(newSelection.getItemName());
                 lblType.setText(newSelection.getType());
                 lblPrice.setText(
-                    String.format("%,.0f đ", newSelection.getStartingPrice().doubleValue()));
+                    String.format("%,.0f VNĐ", newSelection.getStartingPrice().doubleValue()));
 
                 String desc = newSelection.getDescription();
                 txtDescription.setText(

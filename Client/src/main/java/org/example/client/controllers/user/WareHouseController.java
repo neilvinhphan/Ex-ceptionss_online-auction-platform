@@ -36,8 +36,11 @@ import org.example.core.shared.enums.ItemStatus;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -208,6 +211,19 @@ public class WareHouseController extends BaseController implements Initializable
     colName.setCellValueFactory(new PropertyValueFactory<>("itemName"));
     colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
     colStartingPrice.setCellValueFactory(new PropertyValueFactory<>("startingPrice"));
+    DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+
+    colStartingPrice.setCellFactory(tc -> new TableCell<Item, BigDecimal>() {
+      @Override
+      protected void updateItem(BigDecimal price, boolean empty) {
+        super.updateItem(price, empty);
+        if (empty || price == null) {
+          setText(null);
+        } else {
+          setText(formatter.format(price) + " VNĐ");
+        }
+      }
+    });
 
     colStatus.setCellValueFactory(
         cellData -> {

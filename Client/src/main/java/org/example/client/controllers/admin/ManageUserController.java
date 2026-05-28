@@ -17,7 +17,9 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,20 +71,21 @@ public class ManageUserController extends BaseController implements Initializabl
     colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
     colBalance.setCellValueFactory(new PropertyValueFactory<>("balance"));
 
-    DecimalFormat formatter = new DecimalFormat("#,##0");
+    DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+
     colBalance.setCellFactory(
-        tc ->
-            new TableCell<User, BigDecimal>() {
-              @Override
-              protected void updateItem(BigDecimal price, boolean empty) {
-                super.updateItem(price, empty);
-                if (empty || price == null) {
-                  setText(null);
-                } else {
-                  setText(formatter.format(price));
-                }
-              }
-            });
+            tc ->
+                    new TableCell<User, BigDecimal>() {
+                      @Override
+                      protected void updateItem(BigDecimal price, boolean empty) {
+                        super.updateItem(price, empty);
+                        if (empty || price == null) {
+                          setText(null);
+                        } else {
+                          setText(formatter.format(price) + " VNĐ");
+                        }
+                      }
+                    });
 
     loadUsersFromServer();
   }

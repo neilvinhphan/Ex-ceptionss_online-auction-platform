@@ -59,7 +59,7 @@ public class ItemService {
 
     CompletableFuture.runAsync(() -> {
       try {
-        logger.info("🤖 AI bắt đầu quét thẩm định vật phẩm ID: " + itemId);
+        logger.info("AI bắt đầu quét thẩm định vật phẩm ID: " + itemId);
         AiEvaluationDTO evaluation = AiModerationService.evaluateItem(newItem);
 
         newItem.setSuggestedPrice(evaluation.getSuggestedPrice());
@@ -67,7 +67,7 @@ public class ItemService {
 
         if (evaluation.isSafe()) {
           newItem.setStatus(ItemStatus.APPROVED);
-          logger.info("✅ AI tự động APPROVED cho vật phẩm ID: " + itemId);
+          logger.info("AI tự động APPROVED cho vật phẩm ID: " + itemId);
         } else {
           logger.log(Level.WARNING, "AI phát hiện rủi ro tại ID: " + itemId);
         }
