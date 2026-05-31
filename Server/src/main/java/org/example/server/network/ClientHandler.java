@@ -9,6 +9,7 @@ import org.example.server.network.handlers.*;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ public class ClientHandler implements Runnable {
     initializeRoutes();
 
     try {
+      this.clientSocket.setSoTimeout(600000);
       this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
       this.out = new PrintWriter(clientSocket.getOutputStream(), true);
       connectedClients.add(this);

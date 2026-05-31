@@ -49,7 +49,7 @@
                     <Label fx:id="lblDetailDesc" style="-fx-text-fill: #64748b; -fx-font-size: 13px;" text="Mô tả..." wrapText="true" />
                     <Label fx:id="lblDetailBids" style="-fx-font-weight: bold; -fx-text-fill: #0284c7; -fx-font-size: 13px;" text="Số lượt thầu: --" />
 
-                    <Label fx:id="lblDetailPrice" style="-fx-font-weight: black; -fx-text-fill: #e11d48; -fx-font-size: 14px;" text="Giá: -- VNĐ" />
+                    <Label fx:id="lblDetailPrice" style="-fx-font-weight: bold; -fx-text-fill: #e11d48; -fx-font-size: 14px;" text="Giá: -- VNĐ" />
                 </VBox>
 
                 <VBox spacing="8.0" style="-fx-background-color: #eff6ff; -fx-padding: 20; -fx-border-color: #bfdbfe; -fx-border-radius: 8; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">

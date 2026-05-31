@@ -1,18 +1,35 @@
+/* ==========================================================================
+   ROOT & GENERAL STYLES
+   ========================================================================== */
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+}
 
-/* Đổi màu chữ bên trong MenuButton thành trắng */
+/* BUTTON GENERAL */
+.button {
+    -fx-cursor: hand;
+    -fx-background-radius: 20;
+}
+.button:hover {
+    -fx-opacity: 0.85;
+}
+
+/* ==========================================================================
+   COMPONENTS
+   ========================================================================== */
+
+/* MenuButton Customization */
 .user-menu-btn .label {
     -fx-text-fill: white;
 }
 .user-menu-btn .arrow {
     -fx-background-color: white;
 }
-.root {
-    -fx-font-family: "Segoe UI", sans-serif;
-}
 /* Đổi màu chữ của các mục xổ xuống (MenuItem) thành đen */
 .user-menu-btn .menu-item .label {
     -fx-text-fill: black;
 }
+
 /* CARD */
 .card {
     -fx-background-color: white;
@@ -20,71 +37,39 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);
 }
 
-/* BUTTON */
-.button {
-    -fx-cursor: hand;
-    -fx-background-radius: 20;
+/* TEXT FIELD */
+.custom-text-field {
+    -fx-background-color: #FAFAFA;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.custom-text-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #808080;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(40, 167, 69, 0.15), 6, 0, 0, 0);
 }
 
-.button:hover {
-    -fx-opacity: 0.85;
-}
+/* ==========================================================================
+   SIDEBAR & NAVIGATION
+   ========================================================================== */
 
-/* PRICE */
-.price {
-    -fx-text-fill: #28a745;
-    -fx-font-weight: bold;
-}
-
-/* STATUS */
-.status-running {
-    -fx-background-color: #e6f4ea;
-    -fx-text-fill: #28a745;
-    -fx-padding: 4 10;
-    -fx-background-radius: 10;
-}
-
-/* ERROR */
-.error {
-    -fx-text-fill: #e74c3c;
-}
-
-/* CHART */
-.chart-series-line {
-    -fx-stroke-width: 2px;
-}
-/* Style mặc định cho nút Sidebar */
+/* Style cho nút Sidebar (Đã gộp và xóa -fx-transition) */
 .sidebar-button {
     -fx-background-color: transparent;
     -fx-text-fill: #555555;
     -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-padding: 15px 20px 15px 20px;
     -fx-cursor: hand;
-    -fx-transition: 0.3s; /* Hiệu ứng chuyển màu mượt */
 }
-
-/* Hiệu ứng khi di chuột qua (Hover) */
 .sidebar-button:hover {
     -fx-background-color: #f0f2f5;
     -fx-text-fill: #28a745;
 }
-
-/* Style mặc định cho các nút menu Sidebar */
-.sidebar-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #555555;
-    -fx-font-weight: bold;
-    -fx-font-size: 15px; /* Chuyển từ FXML sang */
-    -fx-padding: 15 20;  /* Chuyển từ FXML sang */
-    -fx-cursor: hand;
-    -fx-transition: 0.3s;
-}
-
-.sidebar-button:hover {
-    -fx-background-color: #f0f2f5;
-    -fx-text-fill: #28a745;
-}
-
-/* Tăng độ ưu tiên cho class active bằng cách ghép tên */
+/* Trạng thái active của nút Sidebar */
 .sidebar-button.sidebar-active {
     -fx-background-color: #d4edda;
     -fx-text-fill: #28a745;
@@ -97,37 +82,46 @@
     -fx-background-color: #28a745;
     -fx-text-fill: white;
     -fx-font-size: 15px;
-    -fx-padding: 15 20;
+    -fx-padding: 15px 20px 15px 20px;
     -fx-background-radius: 10;
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(40,167,69,0.3), 10, 0, 0, 4);
 }
-
 .btn-create-auction:hover {
     -fx-background-color: #218838;
 }
 
-/* --- PIE CHART COLORS --- / */
+/* ==========================================================================
+   DATA DISPLAY & CHARTS
+   ========================================================================== */
+
+/* PRICE & ERROR */
+.price {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+.error {
+    -fx-text-fill: #e74c3c;
+}
+
+/* STATUS */
+.status-running {
+    -fx-background-color: #e6f4ea;
+    -fx-text-fill: #28a745;
+    -fx-padding: 4px 10px 4px 10px; /* Đã chuẩn hóa padding */
+    -fx-background-radius: 10;
+}
+
+/* CHART LINES */
+.chart-series-line {
+    -fx-stroke-width: 2px;
+}
+
+/* PIE CHART COLORS */
 .default-color0.chart-pie { -fx-pie-color: #3498db; }
 .default-color1.chart-pie { -fx-pie-color: #f39c12; }
 .default-color2.chart-pie { -fx-pie-color: #FF9999; }
 
 .chart-pie {
     -fx-border-color: transparent;
-}
-/* Trạng thái bình thường của ô nhập liệu */
-.custom-text-field {
-    -fx-background-color: #FAFAFA;
-    -fx-border-color: #E0E0E0;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-
-/* HIỆU ỨNG CHUYÊN NGHIỆP KHI BẤM CHUỘT VÀO (FOCUS) */
-.custom-text-field:focused {
-    -fx-background-color: white;
-    -fx-border-color: #808080;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-effect: dropshadow(gaussian, rgba(40, 167, 69, 0.15), 6, 0, 0, 0); /* Đổ bóng nhẹ cực mượt */
 }
