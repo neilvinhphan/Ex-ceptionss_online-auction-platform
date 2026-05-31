@@ -27,6 +27,12 @@ public class ClientMain extends Application {
         primaryStage.setTitle("Đăng nhập hệ thống");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
+
+        primaryStage.setOnCloseRequest(event -> {
+            System.out.println("[Client] Đóng ứng dụng, ép ngắt kết nối Socket...");
+            System.exit(0);
+        });
+
         primaryStage.show();
     }
 }
