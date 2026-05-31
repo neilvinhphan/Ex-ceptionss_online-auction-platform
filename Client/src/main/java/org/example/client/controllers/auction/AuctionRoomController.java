@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.Tooltip;
 
 import org.example.client.controllers.BaseController;
 import org.example.client.controllers.user.UserSidebarController;
@@ -298,9 +299,9 @@ public class AuctionRoomController extends BaseController implements Initializab
     User user = UserSession.getInstance().getCurrentUser();
     setupRoleBasedUI(user, auction);
     this.currentMaxPrice =
-        auction.getHighestBid() != null
-            ? auction.getHighestBid()
-            : (item != null ? item.getStartingPrice() : BigDecimal.ZERO);
+            auction.getHighestBid() != null
+                    ? auction.getHighestBid()
+                    : (item != null ? item.getStartingPrice() : BigDecimal.ZERO);
 
     Item actualItem = (auction.getItem() != null) ? auction.getItem() : item;
 
@@ -323,7 +324,7 @@ public class AuctionRoomController extends BaseController implements Initializab
       }
     } else {
       lblItemName.setText(
-          auction.getItemName() != null ? auction.getItemName() : "Sản phẩm không xác định");
+              auction.getItemName() != null ? auction.getItemName() : "Sản phẩm không xác định");
       taDescription.setText("Dữ liệu sản phẩm đang bị lỗi. Vui lòng liên hệ Admin.");
     }
 
@@ -340,23 +341,34 @@ public class AuctionRoomController extends BaseController implements Initializab
     lvBidHistory.getItems().clear();
     bidStepCount = 0;
 
+    if (!lineChart.getData().contains(priceSeries)) {
+      lineChart.getData().add(priceSeries);
+    }
+
     if (auction.getBidHistory() != null && !auction.getBidHistory().isEmpty()) {
       for (BidTransaction bid : auction.getBidHistory()) {
         bidStepCount++;
-        priceSeries.getData().add(new XYChart.Data<>(bidStepCount, bid.getAmount().doubleValue()));
+
+        XYChart.Data<Number, Number> dataPoint = new XYChart.Data<>(bidStepCount, bid.getAmount().doubleValue());
+
+        priceSeries.getData().add(dataPoint);
+
+        applyTooltipAndHover(dataPoint);
 
         String time = bid.getTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         String historyLine =
-            String.format(
-                "[%s] %s đã đặt %,d VND", time, bid.getBidderName(), bid.getAmount().longValue());
+                String.format(
+                        "[%s] %s đã đặt %,d VND", time, bid.getBidderName(), bid.getAmount().longValue());
         lvBidHistory.getItems().add(0, historyLine);
       }
       String topBidder =
-          auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
+              auction.getBidHistory().get(auction.getBidHistory().size() - 1).getBidderName();
       updatePriceUI(currentMaxPrice, topBidder);
     } else {
       if (item != null && item.getStartingPrice() != null) {
-        priceSeries.getData().add(new XYChart.Data<>(0, item.getStartingPrice().doubleValue()));
+        XYChart.Data<Number, Number> startDataPoint = new XYChart.Data<>(0, item.getStartingPrice().doubleValue());
+        priceSeries.getData().add(startDataPoint);
+        applyTooltipAndHover(startDataPoint);
       }
       updatePriceUI(currentMaxPrice, "Chưa có");
     }
@@ -800,6 +812,32 @@ public class AuctionRoomController extends BaseController implements Initializab
       logger.log(Level.SEVERE, "Lỗi dựng lại UI phòng đấu giá từ dữ liệu khởi tạo", e);
     }
   }
+
+  // Hàm phụ trợ dùng để gắn hiệu ứng cho 1 điểm bất kỳ trên biểu đồ
+  private void applyTooltipAndHover(XYChart.Data<?, Number> data) {
+    // Bắt buộc dùng Platform.runLater để chờ JavaFX vẽ cái node ra xong mới gắn hiệu ứng,
+    // tránh lỗi NullPointerException khi điểm mới vừa được tạo.
+    Platform.runLater(() -> {
+      if (data.getNode() != null) {
+        // 1. Tạo Tooltip
+        Tooltip tooltip = new Tooltip(String.format("%,d VNĐ", data.getYValue().longValue()));
+        tooltip.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-color: #2c3e50; -fx-text-fill: white;");
+        tooltip.setShowDelay(javafx.util.Duration.ZERO);
+        Tooltip.install(data.getNode(), tooltip);
+
+        // 2. Hiệu ứng Hover phình to
+        data.getNode().setOnMouseEntered(event -> {
+          data.getNode().setStyle("-fx-scale-x: 2.0; -fx-scale-y: 2.0; -fx-cursor: hand; -fx-background-color: #e74c3c;");
+        });
+
+        // 3. Trả lại bình thường
+        data.getNode().setOnMouseExited(event -> {
+          data.getNode().setStyle("-fx-scale-x: 1; -fx-scale-y: 1;");
+        });
+      }
+    });
+  }
+
   @FXML
   private void handleQuickBidStep(ActionEvent event) {
     if (currentAuction == null || currentAuction.getBidIncrement() == null) return;

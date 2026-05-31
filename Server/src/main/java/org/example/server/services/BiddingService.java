@@ -19,6 +19,7 @@ import org.example.server.daos.WalletDAO;
 import org.example.server.network.AuctionServer;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -242,17 +243,44 @@ public class BiddingService {
     logger.info("[ANTI-SNIPING] Phòng " + auctionId + " gia hạn đến: " + auction.getEndTime());
   }
 
-  public void saveOrUpdateAutoBid(int auctionId, int userId, BigDecimal maxBid) {
-    if (auctionId <= 0 || userId <= 0) {
-      throw new InvalidUserDataException("Mã phòng hoặc người dùng thiết lập AutoBid không hợp lệ.");
+  public void saveOrUpdateAutoBid(int auctionId, int userId, BigDecimal maxBid) throws SQLException {
+    ReentrantLock lock = getLock(auctionId);
+    lock.lock();
+    try {
+      if (auctionId <= 0 || userId <= 0) {
+        throw new InvalidUserDataException("Mã phòng hoặc người dùng thiết lập AutoBid không hợp lệ.");
+      }
+      if (maxBid == null || maxBid.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new InvalidUserDataException("Mức giá trần thiết lập tối đa phải lớn hơn 0 VNĐ.");
+      }
+      if (maxBid.compareTo(walletDAO.getAvailableBalance(userId)) > 0) {
+        throw new InsufficientBalanceException("Giá đặt trần tự động không được vượt quá số dư ví khả dụng!");
+      }
+
+      List<AutoBidDAO.AutoBidConfig> activeBots = autoBidDAO.getActiveAutoBidsForAuction(auctionId);
+      if (!activeBots.isEmpty()) {
+        AutoBidDAO.AutoBidConfig highestBot = activeBots.get(0);
+
+        if (highestBot.getUserId() != userId && maxBid.compareTo(highestBot.getMaxBid()) <= 0) {
+          throw new InvalidBidException("Thất bại! Mức trần hiện tại là: "
+                  + highestBot.getMaxBid().toPlainString()
+                  + " VNĐ.");
+        }
+      }
+
+      BigDecimal currentPrice = bidDAO.getCurrentPrice(auctionId);
+      if (currentPrice != null && maxBid.compareTo(currentPrice) <= 0) {
+        throw new InvalidBidException("Mức trần thiết lập phải lớn hơn giá hiện tại của phòng ("
+                + currentPrice.toPlainString() + " VNĐ)!");
+      }
+
+      autoBidDAO.saveOrUpdateAutoBid(auctionId, userId, maxBid);
+
+      evaluateDeterministicBidding(auctionId);
+
+    } finally {
+      lock.unlock();
     }
-    if (maxBid == null || maxBid.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new InvalidUserDataException("Mức giá trần thiết lập tối đa phải lớn hơn 0 VNĐ.");
-    }
-    if (maxBid.compareTo(walletDAO.getAvailableBalance(userId)) > 0) {
-      throw new InsufficientBalanceException("Giá đặt trần tự động không được vượt quá số dư ví khả dụng!");
-    }
-    autoBidDAO.saveOrUpdateAutoBid(auctionId, userId, maxBid);
   }
 
   public void disableAutoBid(int auctionId, int userId) {

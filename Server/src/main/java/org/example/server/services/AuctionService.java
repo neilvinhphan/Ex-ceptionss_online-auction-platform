@@ -334,6 +334,7 @@ public class AuctionService {
       Auction auction = auctionDAO.getAuctionByAuctionId(auctionId);
       if (auction != null && auction.getStatus() == AuctionStatus.FINISHED) {
         auctionDAO.setAuctionStatus(auctionId, AuctionStatus.CANCELED);
+        itemDAO.getItemById(auction.getItemId()).setStatus(ItemStatus.APPROVED);
         logger.warning(
             "🗑Phiên "
                 + auctionId
