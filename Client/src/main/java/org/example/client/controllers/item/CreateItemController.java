@@ -140,7 +140,7 @@ public class CreateItemController extends BaseController implements Initializabl
 
     // 2. Gộp mô tả
     StringBuilder finalDescription = new StringBuilder(description);
-    finalDescription.append("\n\n--- THÔNG TIN CHI TIẾT ---");
+    finalDescription.append("\n\n--- THÔNG TIN---");
     try {
       // ===== TẠO DTO THEO CATEGORY VÀ GỘP CHUỖI MÔ TẢ =====
       switch (category) {

@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
 import org.example.client.controllers.BaseController;
+import org.example.client.controllers.user.UserSidebarController;
 import org.example.client.network.AuctionClient;
 import org.example.client.network.ClientManager;
 import org.example.client.utils.AuctionSession;
@@ -242,7 +243,7 @@ public class AuctionRoomController extends BaseController implements Initializab
       tfMaxBid.setPromptText("Nhập hạn mức trần...");
       btnToggleAutoBid.setText("KÍCH HOẠT AUTOBID");
       btnToggleAutoBid.setStyle(
-          "-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+          "-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;-fx-background-radius: 6;");
       lblBidError.setStyle("-fx-text-fill: green;");
       lblBidError.setText("Hệ thống AutoBid đã ngừng hoạt động!");
     }
@@ -287,6 +288,7 @@ public class AuctionRoomController extends BaseController implements Initializab
   @FXML
   public void handleCheckout(ActionEvent event) {
     cleanUpBeforeExit();
+    UserSidebarController.currentView = "WaiPaymentView.fxml";
     switchScene(event, "/views/WaitPaymentView.fxml", "Sản phẩm chờ thanh toán");
   }
   /** Dựng khung phòng đấu giá dựa trên dữ liệu Auction truyền từ màn hình chính. */
@@ -654,7 +656,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         isAutoBidActive = true;
         tfMaxBid.setDisable(true);
         btnToggleAutoBid.setText("HỦY AUTOBID");
-        btnToggleAutoBid.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;");
+        btnToggleAutoBid.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;-fx-background-radius:6");
         lblBidError.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
         lblBidError.setText("Hệ thống AutoBid đã được kích hoạt thành công!");
       });
@@ -667,7 +669,7 @@ public class AuctionRoomController extends BaseController implements Initializab
         isAutoBidActive = false;
         tfMaxBid.setDisable(false);
         btnToggleAutoBid.setText("KÍCH HOẠT AUTOBID");
-        btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+        btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;-fx-background-radius:6");
         lblBidError.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
         lblBidError.setText(response.getMessage());
       });
@@ -750,7 +752,7 @@ public class AuctionRoomController extends BaseController implements Initializab
           tfMaxBid.clear();
           tfMaxBid.setPromptText("Nhập hạn mức trần...");
           btnToggleAutoBid.setText("KÍCH HOẠT AUTOBID");
-          btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+          btnToggleAutoBid.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;-fx-background-radius: 6;");
           lblBidError.setStyle("-fx-text-fill: #ff9800; -fx-font-weight: bold;");
           lblBidError.setText("⚠️ Bot đã tự động tắt do mức giá vượt quá trần!");
         });

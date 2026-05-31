@@ -40,7 +40,9 @@ public class PendingPaymentsDTO implements Serializable {
   public void setEndDate(LocalDateTime endDate) {
     this.endDate = endDate;
   }
-
+  public LocalDateTime getEndDate() {
+    return endDate;
+  }
   public int getUserId() {
     return userId;
   }
@@ -48,4 +50,5 @@ public class PendingPaymentsDTO implements Serializable {
   public void setUserId(int userId) {
     this.userId = userId;
   }
+
 }

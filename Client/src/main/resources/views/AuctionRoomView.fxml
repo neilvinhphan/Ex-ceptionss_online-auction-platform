@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.auction.AuctionRoomController">
+<ScrollPane fitToHeight="true" fitToWidth="true" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.client.controllers.auction.AuctionRoomController">
 
     <content>
         <BorderPane style="-fx-background-color:#f3f4f6;">
@@ -63,7 +74,7 @@
 
                             <HBox alignment="CENTER_LEFT" spacing="10">
                                 <TextField fx:id="tfMaxBid" prefHeight="38" promptText="Cài hạn mức trần Auto..." style="-fx-font-size:14; -fx-background-radius:6;" HBox.hgrow="ALWAYS" />
-                                <Button fx:id="btnToggleAutoBid" onAction="#handleToggleAutoBid" prefHeight="38" prefWidth="140" style="-fx-background-color:#ff9800; -fx-text-fill:white; -fx-font-weight:bold; -fx-font-size:13; -fx-background-radius:6; -fx-cursor:hand;" text="BẬT AUTOBID" />
+                                <Button fx:id="btnToggleAutoBid" onAction="#handleToggleAutoBid" prefHeight="38" prefWidth="140" style="-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-background-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 12;" text="KÍCH HOẠT AUTOBID" />
                             </HBox>
 
                             <Label fx:id="lblBidError" style="-fx-text-fill:red; -fx-font-size:12; -fx-font-weight:bold;" text="" wrapText="true" />

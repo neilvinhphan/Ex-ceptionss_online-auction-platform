@@ -64,8 +64,7 @@
                         <TableColumn fx:id="colName" prefWidth="150.0" text="Tên" />
                         <TableColumn fx:id="colDescription" prefWidth="250" text="Mô tả" />
                         <TableColumn fx:id="colStartingPrice" prefWidth="120" text="Giá khởi điểm" />
-                        <TableColumn prefWidth="120.0" text="Giá cao nhất " />
-                        <TableColumn fx:id="colStatus" prefWidth="100" text="Trạng thái" />
+                         <TableColumn fx:id="colStatus" prefWidth="100" text="Trạng thái" />
                     </columns>
 
                     <columnResizePolicy>
