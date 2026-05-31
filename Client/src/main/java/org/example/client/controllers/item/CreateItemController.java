@@ -137,12 +137,9 @@ public class CreateItemController extends BaseController implements Initializabl
       return;
     }
 
-
-    // 2. Gộp mô tả
     StringBuilder finalDescription = new StringBuilder(description);
     finalDescription.append("\n\n--- THÔNG TIN---");
     try {
-      // ===== TẠO DTO THEO CATEGORY VÀ GỘP CHUỖI MÔ TẢ =====
       switch (category) {
         case "ART":
           CreateArtItemDTO artDTO = new CreateArtItemDTO();
@@ -188,13 +185,11 @@ public class CreateItemController extends BaseController implements Initializabl
         itemDTO.setStartingPrice(startingPrice);
       } catch (Exception e) {
         showAlert("Lỗi", "Giá khởi điểm không hợp lệ");
-        return; // Dừng lại nếu lỗi giá tiền
+        return;
       }
 
-      // ===== 3. SET FIELD CHUNG =====
       itemDTO.setItemName(name);
       itemDTO.setType(category);
-      // TRUYỀN CHUỖI ĐÃ GỘP XUỐNG DTO THAY VÌ CHUỖI NGẮN GỐC
       itemDTO.setDescription(finalDescription.toString());
 
       itemDTO.setSellerID(sellerId);

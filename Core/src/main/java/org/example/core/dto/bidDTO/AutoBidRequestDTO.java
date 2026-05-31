@@ -13,7 +13,6 @@ public class AutoBidRequestDTO {
         this.maxBid = maxBid;
     }
 
-    // --- HÀM TRÍCH XUẤT DỮ LIỆU (GETTER / SETTER) ---
     public int getAuctionId() {
         return auctionId;
     }

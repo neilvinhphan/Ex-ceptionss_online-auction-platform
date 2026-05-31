@@ -34,14 +34,12 @@ public class DBConnection {
       config.setUsername(properties.getProperty("db.username"));
       config.setPassword(properties.getProperty("db.password"));
 
-      // Cấu hình tải và tối ưu kết nối
       config.setMaximumPoolSize(25);
       config.setMinimumIdle(5);
       config.setIdleTimeout(30000);
       config.setMaxLifetime(1800000);
       config.setConnectionTimeout(10000);
 
-      // Tối ưu hóa hiệu năng MySQL Statements
       config.addDataSourceProperty("cachePrepStmts", "true");
       config.addDataSourceProperty("prepStmtCacheSize", "250");
       config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");

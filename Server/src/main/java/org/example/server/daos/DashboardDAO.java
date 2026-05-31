@@ -38,7 +38,6 @@ public class DashboardDAO {
     public Map<String, String> getKPIs() {
         Map<String, String> kpis = new HashMap<>();
 
-        // 1. Đếm tổng số lượng User (Trừ Admin)
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM user WHERE role != 'ADMIN'");
              ResultSet rs = ps.executeQuery()) {
@@ -48,7 +47,6 @@ public class DashboardDAO {
             kpis.put("totalUsers", "0");
         }
 
-        // 2. Đếm số lượng phiên đấu giá đang chạy (RUNNING)
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM auction WHERE status = 'RUNNING'");
              ResultSet rs = ps.executeQuery()) {
@@ -58,7 +56,6 @@ public class DashboardDAO {
             kpis.put("activeAuctions", "0");
         }
 
-        // 3. Đếm số lượng tài sản đang chờ phê duyệt (PENDING)
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM items WHERE status = 'PENDING'");
              ResultSet rs = ps.executeQuery()) {
@@ -68,7 +65,6 @@ public class DashboardDAO {
             kpis.put("pendingCount", "0");
         }
 
-        // 4. Tính tổng doanh thu hệ thống (Chỉ cộng dồn các phiên đã thanh toán - PAID)
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT SUM(highest_price) FROM auction WHERE status = 'PAID'");
              ResultSet rs = ps.executeQuery()) {

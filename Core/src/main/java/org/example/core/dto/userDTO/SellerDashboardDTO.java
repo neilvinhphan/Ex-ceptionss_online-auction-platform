@@ -17,7 +17,6 @@ public class SellerDashboardDTO {
         this.revenueGrowthData = revenueGrowthData;
     }
 
-    // Getter và Setter
     public Map<String, Double> getRevenueGrowthData() { return revenueGrowthData; }
     public double getTotalRevenue() { return totalRevenue; }
     public int getTotalSold() { return totalSold; }

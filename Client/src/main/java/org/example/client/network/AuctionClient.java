@@ -18,7 +18,6 @@ public class AuctionClient {
   private static final Logger logger = Logger.getLogger(AuctionClient.class.getName());
   private static final Object networkLock = new Object();
 
-  // Khối static nạp cấu hình logger từ logging.properties ngay khi class được load
   static {
     try (InputStream is = AuctionClient.class.getClassLoader().getResourceAsStream("logging.properties")) {
       if (is != null) {

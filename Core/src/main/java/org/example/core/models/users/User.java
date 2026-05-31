@@ -17,8 +17,6 @@ public class User extends Entity {
   protected UserStatus status;
   private BigDecimal balance;
 
-  private SellerProfile sellerProfile;
-
   public User(String userName, String password, String email, String phone) {
     this.userName = userName;
     this.phone = phone;
@@ -86,14 +84,6 @@ public class User extends Entity {
 
   public void setPassword(String password) {
     this.password = password;
-  }
-
-  public SellerProfile getSellerProfile() {
-    return sellerProfile;
-  }
-
-  public void setSellerProfile(SellerProfile sellerProfile) {
-    this.sellerProfile = sellerProfile;
   }
 
   public BigDecimal getBalance() {

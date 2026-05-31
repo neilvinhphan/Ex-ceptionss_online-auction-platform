@@ -20,13 +20,12 @@ Dự án được phát triển trong khuôn khổ **Bài tập lớn môn Lập
 
 ### Phạm vi hệ thống
 
-Phạm vi hệ thống bao gồm:
 
 - **Ứng dụng Server:** xử lý kết nối client, nghiệp vụ đấu giá, ví điện tử, AutoBid, AI và Database.
 - **Ứng dụng Client:** cung cấp giao diện JavaFX cho người dùng tham gia đấu giá.
 - **Core Module:** chứa các model, DTO và thành phần dùng chung giữa client và server.
 - **Cơ sở dữ liệu:** lưu trữ tài khoản, vật phẩm, phiên đấu giá, giao dịch và thông tin ví điện tử.
-- **Tích hợp AI:** hỗ trợ admin kiểm duyệt vật phẩm và hỗ trợ client phân tích dữ liệu đấu giá.
+- **Tích hợp AI:** hỗ trợ admin kiểm duyệt vật phẩm và hỗ trợ client phân tích dữ liệu lịch sử thị trường.
 
 
 ---
@@ -39,8 +38,8 @@ Phạm vi hệ thống bao gồm:
 - [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
 - [Cấu trúc dự án](#cấu-trúc-dự-án)
 - [Hướng dẫn cài đặt và chạy hệ thống](#hướng-dẫn-cài-đặt-và-chạy-hệ-thống)
-- [Hướng dẫn sử dụng](#hướng-dẫn-sử-dụng)
 - [Tài khoản demo](#tài-khoản-demo)
+- [Hướng dẫn sử dụng](#hướng-dẫn-sử-dụng)
 - [Hình ảnh minh họa](#hình-ảnh-minh-họa)
 - [Báo cáo và video demo](#báo-cáo-và-video-demo)
 - [Thành viên nhóm](#thành-viên-nhóm)
@@ -219,154 +218,68 @@ Smart-Auction-Platform/
 ```
 
 ---
-
 ## Hướng dẫn cài đặt và chạy hệ thống
 
+> ⚠️ **LƯU Ý QUAN TRỌNG VỀ ĐỊA CHỈ TRUY CẬP (DEPLOYMENT):**
+> Hệ thống Máy chủ (**Server**) và Cơ sở dữ liệu (**Cloud Database**) đã được nhóm **triển khai trực tuyến hoàn toàn (Deployed 24/7)** trên máy chủ Cloud độc lập.
+> Giảng viên/Người chấm bài **KHÔNG CẦN** thiết lập Database MySQL cục bộ hay kích hoạt Server, chỉ cần khởi động phân hệ Client là hệ thống tự động kết nối Real-time qua cổng mạng thông suốt.
 
-### 1. Yêu cầu môi trường
+### Cách 1: Chạy qua Fat JAR (Khuyến nghị)
 
-Trước khi chạy dự án, cần chuẩn bị:
+Người dùng không cần cấu hình môi trường lập trình phức tạp, chỉ cần thực hiện các bước tinh gọn sau để kiểm thử:
 
-- **JDK 25** hoặc mới hơn.
-- **Maven**.
-- Kết nối Internet để server truy cập **MySQL Cloud Database**.
-- Server cho phép sử dụng cổng `9000`.
-- File `.jar` của Server và Client, hoặc source code để build bằng Maven.
-
-Kiểm tra Java và Maven:
-
+1. **Tải xuống gói thực thi:** Tải file nén gói bài tập lớn của nhóm tại đây: [Link Tải File Giải Nén Đồ Án](#) *(Dán link Google Drive chứa file nén tổng tại đây)*.
+2. **Giải nén:** Thực hiện giải nén file, bạn sẽ thấy thư mục `Client_Executable` nằm ở thư mục gốc.
+3. **Khởi động Giao diện:** Mở Command Prompt (Windows) hoặc Terminal (MacOS) tại thư mục `Client_Executable` chứa file `.jar` và gõ câu lệnh duy nhất:
 ```bash
-java --version
-mvn --version
+java -jar Client-1.0-SNAPSHOT-shaded.jar
 ```
-
-> Dự án sử dụng MySQL Cloud Database, vì vậy không bắt buộc cài đặt MySQL cục bộ do thông tin kết nối database đã được cấu hình sẵn.
+*(Yêu cầu máy tính cài đặt JRE/JDK 11 trở lên, khuyến nghị tốt nhất trên JDK 25 để tối ưu hóa thư viện luồng JavaFX).*
 
 ---
 
-### 2. Cấu hình hệ thống
+### Cách 2: Chạy từ Source Code (Kiểm tra cấu trúc dự án)
 
-Dự án đã được cấu hình sẵn để phục vụ mục đích demo và chấm bài.  
-Server sẽ tự động kết nối tới Cloud Database và sử dụng API key demo đã được nhóm chuẩn bị.
+Trong trường hợp người dùng muốn kiểm tra trực tiếp cấu trúc mã nguồn Maven Multi-module hoặc build lại dự án cục bộ:
 
-Người dùng không cần cài đặt MySQL cục bộ hoặc tự cấu hình API key để chạy thử hệ thống.
+**Bước 1: Clone dự án về máy**
+```bash
+git clone [https://github.com/username/OOP_Java_Ex-ceptions.git](https://github.com/username/OOP_Java_Ex-ceptions.git)
+cd OOP_Java_Ex-ceptions
+```
 
-> Lưu ý: Các thông tin cấu hình trong bản demo chỉ phục vụ mục đích học tập và kiểm thử. Không sử dụng cho môi trường production.
+**Bước 2: Đóng gói toàn bộ hệ thống qua Maven Wrapper**
+
+Dự án tích hợp sẵn Maven Wrapper, không yêu cầu cài đặt Maven toàn cục trên hệ điều hành máy tính:
+- **Trên Windows (CMD/PowerShell):**
+  ```cmd
+  mvnw.cmd clean package
+  ```
+- **Trên MacOS/Linux hoặc Git Bash:**
+  ```bash
+  ./mvnw clean package
+  ```
+
+**Bước 3: Chạy phân hệ Client**
+Sau khi build thành công (`BUILD SUCCESS`), di chuyển vào thư mục đích `target` của module Client để khởi chạy tệp JAR có chứa các thư viện đi kèm:
+```bash
+cd Client/target
+java -jar Client-1.0-SNAPSHOT-shaded.jar
+```
+> Lưu ý: Nếu muốn ngắt kết nối mạng Cloud và chạy thử nghiệm cục bộ offline hoàn toàn, có thể thực thi file Server tương ứng tại `Server/target/Server-1.0-SNAPSHOT-shaded.jar` trước khi bật Client.
+---
+## Tài khoản demo
+
+Có thể sử dụng các tài khoản sau để kiểm thử hệ thống:
+
+| Vai trò | Tên đăng nhập | Mật khẩu      | Ghi chú                               |
+|---------|---------------|---------------|---------------------------------------|
+| Admin   | [Cần bổ sung] | [Cần bổ sung] | Tài khoản quản trị                    |
+| User 1  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản đấu giá thử                 |
+| User 2  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử concurrent bidding |
+| User 3  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử AutoBid            |
 
 ---
-
-### 3. Build từ source code
-
-Clone repository:
-
-```bash
-git clone [Cần bổ sung: repository URL]
-cd Online-Auction-Platform
-```
-
-Build toàn bộ project bằng Maven:
-
-```bash
-mvn clean package
-```
-
-Sau khi build thành công, các file `.jar` sẽ được tạo trong thư mục `target` của từng module.
-
----
-
-### 4. Vị trí file JAR
-
-Các file `.jar` chính dùng để chạy chương trình nằm ở:
-
-```txt
-Smart-Auction-Platform/
-├── server/
-│   └── target/
-│       └── Server-1.0-SNAPSHOT-jar-with-dependencies.jar
-│
-└── client/
-    └── target/
-        └── Client-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-| File JAR                                                      | Vai trò                                                                          |
-|---------------------------------------------------------------|----------------------------------------------------------------------------------|
-| `server/target/Server-1.0-SNAPSHOT-jar-with-dependencies.jar` | Chạy Server, xử lý kết nối client, nghiệp vụ đấu giá, ví điện tử, AI và database |
-| `client/target/Client-1.0-SNAPSHOT-jar-with-dependencies.jar` | Chạy Client, mở giao diện JavaFX cho người dùng                                  |
-
----
-
-### 5. Chạy Server và Client
-
-Hệ thống cần được chạy theo thứ tự: **Server trước, Client sau**.
-
-#### Bước 1: Chạy Server
-
-Di chuyển tới thư mục chứa file `.jar` của Server:
-
-```bash
-cd server/target
-```
-
-Chạy Server:
-
-```bash
-java -jar Server-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-Khi chạy thành công, Server sẽ:
-
-- Kết nối tới Cloud Database.
-- Khởi tạo các service cần thiết.
-- Mở cổng `9000`.
-- Chờ Client kết nối.
-
-Ví dụ log khi Server chạy thành công:
-
-```txt
-INFO: [AUCTION SERVER] Started and listening on port 9000
-```
-
----
-
-#### Bước 2: Chạy Client
-
-Mở Terminal/CMD mới, sau đó di chuyển tới thư mục chứa file `.jar` của Client:
-
-```bash
-cd client/target
-```
-
-Chạy Client:
-
-```bash
-java -jar Client-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-Client sẽ mở giao diện JavaFX và kết nối tới Server.
-
----
-
-### 6. Chạy nhiều Client để kiểm thử
-
-Để kiểm thử đấu giá đồng thời, có thể mở nhiều cửa sổ Terminal/CMD và chạy nhiều Client:
-
-```bash
-java -jar Client-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
-
-Sau đó đăng nhập bằng các tài khoản khác nhau và tham gia cùng một phiên đấu giá.
-
-Kịch bản này dùng để kiểm tra:
-
-- Nhiều client đặt giá gần như đồng thời.
-- Cập nhật giá hiện tại trong phiên đấu giá.
-- Xử lý AutoBid.
-- Kiểm tra số dư ví.
-- Xác định người thắng phiên đấu giá.
-
----
-
 ## Hướng dẫn sử dụng
 
 ### Luồng sử dụng của Bidder:
@@ -375,11 +288,12 @@ Người dùng thông thường có thể thực hiện các thao tác chính sa
 
 1. Đăng ký hoặc đăng nhập tài khoản.
 2. Xem danh sách vật phẩm/phiên đấu giá.
-3. Xem chi tiết một vật phẩm.
-4. Tham gia phiên đấu giá.
-5. Đặt giá (Thủ công/Autobid)
-6. Kiểm tra ví và lịch sử giao dịch.
-7. Nhận quyền sở hữu vật phẩm nếu thắng đấu giá và thanh toán trong vòng 24h.
+3. Tham khảo lịch sử thị trường
+4. Xem chi tiết một vật phẩm.
+5. Tham gia phiên đấu giá.
+6. Đặt giá (Thủ công/Autobid)
+7. Kiểm tra ví và lịch sử giao dịch.
+8. Nhận quyền sở hữu vật phẩm nếu thắng đấu giá và thanh toán trong vòng 24h.
 
 ---
 
@@ -399,10 +313,11 @@ Người bán có thể thực hiện tất cả các thao tác giống với Bi
 Admin có thể thực hiện các thao tác quản trị:
 
 1. Đăng nhập bằng tài khoản admin.
-2. Xem danh sách tất cả vật phẩm chờ duyệt, các cuộc đấu giá, người dùng.
-3. Chấp nhận hoặc từ chối vật phẩm.
-4. Quản lý phiên đấu giá (Theo dõi, Buộc dừng đấu giá).
-5. Quản lý người dùng (Ban/Unban người dùng).
+2. Kiểm thử bằng giả lập giao diện người dùng
+3. Xem danh sách tất cả vật phẩm chờ duyệt, các cuộc đấu giá, người dùng.
+4. Chấp nhận hoặc từ chối vật phẩm.
+5. Quản lý phiên đấu giá (Theo dõi, Buộc dừng đấu giá).
+6. Quản lý người dùng (Ban/Unban người dùng).
 
 ---
 
@@ -421,18 +336,6 @@ Cơ chế AutoBid hoạt động theo luồng tổng quát:
 
 ---
 
-## Tài khoản demo
-
-Có thể sử dụng các tài khoản sau để kiểm thử hệ thống:
-
-| Vai trò | Tên đăng nhập | Mật khẩu      | Ghi chú                               |
-|---------|---------------|---------------|---------------------------------------|
-| Admin   | [Cần bổ sung] | [Cần bổ sung] | Tài khoản quản trị                    |
-| User 1  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản đấu giá thử                 |
-| User 2  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử concurrent bidding |
-| User 3  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử AutoBid            |
-
----
 
 ## Hình ảnh minh họa
 
@@ -493,7 +396,7 @@ Có thể sử dụng các tài khoản sau để kiểm thử hệ thống:
 
 ## Ghi chú
 
-- Server cần được chạy trước Client.
+- Server cần được chạy trước Client (Nếu muốn kiểm thử Server).
 - Server sử dụng cổng `9000`.
 - Dự án sử dụng Cloud Database nên không cần cài đặt MySQL cục bộ khi chạy thử nếu thông tin kết nối đã được cấu hình sẵn.
 - Để kiểm thử đấu giá đồng thời, nên chạy nhiều Client cùng lúc bằng các tài khoản khác nhau.

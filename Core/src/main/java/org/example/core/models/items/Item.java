@@ -91,7 +91,6 @@ public abstract class Item extends Entity {
       return self();
     }
 
-    // Cập nhật status để có thể set từ bên ngoài (ví dụ khi load từ DB)
     public T status(ItemStatus status) {
       this.status = status;
       return self();

@@ -65,7 +65,7 @@ public class UserService {
     if (userId <= 0) {
       throw new InvalidUserDataException("Mã người dùng yêu cầu nâng cấp quyền hạn vai trò không hợp lệ!");
     }
-    userDAO.getUserByUserId(userId); // Bắn ResourceNotFoundException nếu không thấy User
+    userDAO.getUserByUserId(userId);
     return userDAO.updateRoleInDB(userId);
   }
 

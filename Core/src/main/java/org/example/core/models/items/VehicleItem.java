@@ -61,7 +61,6 @@ public class VehicleItem extends Item {
     }
   }
 
-  // GETTER & SETTER
   public String getBrand() {
     return brand;
   }
