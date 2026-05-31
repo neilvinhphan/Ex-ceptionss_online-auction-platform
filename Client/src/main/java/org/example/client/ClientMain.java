@@ -13,8 +13,10 @@ import javafx.stage.Stage;
 public class ClientMain extends Application {
     public static void main(String[] args){
         // Khởi tạo kết nối server qua ClientManager
-        ClientManager.getInstance().connect("localhost", 9000);
+//        ClientManager.getInstance().connect("localhost", 9000);
 //       ClientManager.getInstance().connect("100.88.106.124", 9000);
+        ClientManager.getInstance().connect("40.90.160.83", 9000);
+
         launch();
     }
 

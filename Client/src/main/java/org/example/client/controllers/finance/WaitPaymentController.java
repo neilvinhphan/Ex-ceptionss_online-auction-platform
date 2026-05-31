@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -44,7 +46,7 @@ public class WaitPaymentController extends BaseController implements Initializab
   @FXML private TableView<PendingPaymentsDTO> tvPendingItems;
   @FXML private TableColumn<PendingPaymentsDTO, String> colName;
   @FXML private TableColumn<PendingPaymentsDTO, BigDecimal> colPrice;
-  @FXML private TableColumn<PendingPaymentsDTO, String> colDate;
+  @FXML private TableColumn<PendingPaymentsDTO, LocalDateTime> colDate;
   @FXML private TableColumn<PendingPaymentsDTO, Void> colAction;
   @FXML private Button btnPayAll;
 
@@ -80,6 +82,25 @@ public class WaitPaymentController extends BaseController implements Initializab
                 }
               }
             });
+      DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+      colDate.setCellFactory(
+              column ->
+                      new TableCell<>() {
+                          @Override
+                          protected void updateItem(LocalDateTime date, boolean empty) {
+                              super.updateItem(date, empty);
+                              if (empty || date == null) {
+                                  setText(null);
+                              } else {
+                                  try {
+                                      setText(date.format(outputFormatter));
+                                  } catch (Exception e) {
+                                      setText(date.toString());
+                                  }
+                              }
+                          }
+                      });
 
     setupActionColumn();
     loadPendingItems();

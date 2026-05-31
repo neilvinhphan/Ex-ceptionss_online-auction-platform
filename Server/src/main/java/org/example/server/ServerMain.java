@@ -22,7 +22,6 @@ public class ServerMain {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       System.err.println("\n[SHUTDOWN] Phát hiện tín hiệu dừng Server. Đang dọn dẹp hệ thống...");
 
-      // Gọi hàm shutdown bọc thép để đóng toàn bộ kết nối trong HikariCP
       DBConnection.shutdown();
 
       System.err.println("[SHUTDOWN] Hệ thống đã dừng an toàn hoàn toàn.");

@@ -7,7 +7,7 @@
     <artifactId>Client</artifactId>
     <parent>
         <groupId>org.example</groupId>
-        <artifactId>OnlineAuctionSystem</artifactId>
+        <artifactId>OnlineAuctionPlatform</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>

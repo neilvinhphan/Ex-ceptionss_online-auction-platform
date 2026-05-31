@@ -42,10 +42,13 @@ import org.example.core.shared.enums.RoleType;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -379,13 +382,17 @@ public class AuctionCatalogController extends BaseController implements Initiali
     lblName.setWrapText(true);
 
     long currentPrice =
-        (auction.getHighestBid() != null)
-            ? auction.getHighestBid().longValue()
-            : ((auction.getItem() != null && auction.getItem().getStartingPrice() != null)
-                ? auction.getItem().getStartingPrice().longValue()
-                : 0);
+            (auction.getHighestBid() != null)
+                    ? auction.getHighestBid().longValue()
+                    : ((auction.getItem() != null && auction.getItem().getStartingPrice() != null)
+                       ? auction.getItem().getStartingPrice().longValue()
+                       : 0);
 
-    Label lblPrice = new Label("Giá hiện tại: " + String.format("%,d", currentPrice) + " đ");
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("vi", "VN"));
+    symbols.setGroupingSeparator('.');
+    DecimalFormat moneyFormatter = new DecimalFormat("#,###", symbols);
+
+    Label lblPrice = new Label("Giá hiện tại: " + moneyFormatter.format(currentPrice) + " VNĐ");
     lblPrice.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #e53935;");
 
     String startStr =

@@ -106,9 +106,7 @@ public class RevenueController extends BaseController {
     pieChartCategory.setData(pieData);
   }
 
-  /**
-   * Làm sạch dữ liệu cũ và cập nhật đường biểu diễn tăng trưởng doanh thu tích lũy lên LineChart.
-   */
+  /** Làm sạch dữ liệu cũ và cập nhật đường biểu diễn tăng trưởng doanh thu tích lũy lên LineChart. */
   private void updateLineChart(Map<String, Double> revenueGrowthData) {
     lineChartRevenue.getData().clear();
 

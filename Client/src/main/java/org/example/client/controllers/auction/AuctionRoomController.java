@@ -36,9 +36,12 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -71,7 +74,7 @@ public class AuctionRoomController extends BaseController implements Initializab
   @FXML private Button btnToggleAutoBid;
   @FXML private VBox vboxPriceBox;
   @FXML private VBox vboxWinnerBox;
-@FXML private Button btnCheckout;
+  @FXML private Button btnCheckout;
   private XYChart.Series<Number, Number> priceSeries;
   private ScheduledExecutorService timerService;
   private Auction currentAuction;
@@ -152,6 +155,40 @@ public class AuctionRoomController extends BaseController implements Initializab
               lblCurrentPrice.setText(String.format("%,d VNĐ", finalPrice.longValue()));
             });
       }
+      DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+
+      tfBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
+        if (newValue.isEmpty()) return;
+
+        String cleanString = newValue.replaceAll("[.,]", "");
+        try {
+          long parsed = Long.parseLong(cleanString);
+          String formatted = formatter.format(parsed);
+
+          Platform.runLater(() -> {
+            tfBidAmount.setText(formatted);
+            tfBidAmount.positionCaret(formatted.length());
+          });
+        } catch (NumberFormatException e) {
+          tfBidAmount.setText(oldValue);
+        }
+      });
+      tfMaxBid.textProperty().addListener((observable, oldValue, newValue) -> {
+        if (newValue.isEmpty()) return;
+
+        String cleanString = newValue.replaceAll("[.,]", "");
+        try {
+          long parsed = Long.parseLong(cleanString);
+          String formatted = formatter.format(parsed);
+
+          Platform.runLater(() -> {
+            tfMaxBid.setText(formatted);
+            tfMaxBid.positionCaret(formatted.length());
+          });
+        } catch (NumberFormatException e) {
+          tfMaxBid.setText(oldValue);
+        }
+      });
       listenFromServer();
     } else {
       showAlert("Lỗi", "Không tìm thấy dữ liệu phòng đấu giá!");
@@ -161,13 +198,18 @@ public class AuctionRoomController extends BaseController implements Initializab
   /** Xử lý sự kiện đặt giá thủ công từ người tham gia đấu giá. */
   @FXML
   private void handlePlaceBid(ActionEvent event) {
-    String input = tfBidAmount.getText().trim();
+    String input = tfBidAmount.getText().trim().replaceAll("[.,]", "");
     lblBidError.setText("");
 
     String myUsername = UserSession.getInstance().getCurrentUser().getUserName();
     String leadingUsername = lblHighestBidder.getText().trim();
 
     try {
+      if (input.isEmpty()) {
+        lblBidError.setStyle("-fx-text-fill: red;");
+        lblBidError.setText("Vui lòng nhập số tiền!");
+        return;
+      }
       BigDecimal bidAmount = new BigDecimal(input);
 
       if (myUsername.equalsIgnoreCase(leadingUsername)) {
@@ -178,7 +220,9 @@ public class AuctionRoomController extends BaseController implements Initializab
 
       if (bidAmount.compareTo(currentMaxPrice) <= 0) {
         lblBidError.setStyle("-fx-text-fill: red;");
-        lblBidError.setText("Giá đặt phải cao hơn giá hiện tại!");
+
+        DecimalFormat formatter = new DecimalFormat("#,###", new DecimalFormatSymbols(new Locale("vi", "VN")));
+        lblBidError.setText("Giá đặt phải cao hơn giá hiện tại (" + formatter.format(currentMaxPrice) + " VNĐ)!");
         return;
       }
 
@@ -221,11 +265,6 @@ public class AuctionRoomController extends BaseController implements Initializab
             new AutoBidRequestDTO(currentAuctionId, currentUserId, maxBid);
         outToServer.println(gson.toJson(new Request(ActionType.REGISTER_AUTOBID, autoBidReq)));
 
-//        isAutoBidActive = true;
-//        tfMaxBid.setDisable(true);
-//        btnToggleAutoBid.setText("HỦY AUTOBID");
-//        btnToggleAutoBid.setStyle(
-//            "-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-font-weight: bold;");
         lblBidError.setStyle("-fx-text-fill: green;");
         lblBidError.setText("Hệ thống AutoBid đã được kích hoạt thành công!");
 
@@ -813,24 +852,18 @@ public class AuctionRoomController extends BaseController implements Initializab
     }
   }
 
-  // Hàm phụ trợ dùng để gắn hiệu ứng cho 1 điểm bất kỳ trên biểu đồ
   private void applyTooltipAndHover(XYChart.Data<?, Number> data) {
-    // Bắt buộc dùng Platform.runLater để chờ JavaFX vẽ cái node ra xong mới gắn hiệu ứng,
-    // tránh lỗi NullPointerException khi điểm mới vừa được tạo.
     Platform.runLater(() -> {
       if (data.getNode() != null) {
-        // 1. Tạo Tooltip
         Tooltip tooltip = new Tooltip(String.format("%,d VNĐ", data.getYValue().longValue()));
         tooltip.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-background-color: #2c3e50; -fx-text-fill: white;");
         tooltip.setShowDelay(javafx.util.Duration.ZERO);
         Tooltip.install(data.getNode(), tooltip);
 
-        // 2. Hiệu ứng Hover phình to
         data.getNode().setOnMouseEntered(event -> {
           data.getNode().setStyle("-fx-scale-x: 2.0; -fx-scale-y: 2.0; -fx-cursor: hand; -fx-background-color: #e74c3c;");
         });
 
-        // 3. Trả lại bình thường
         data.getNode().setOnMouseExited(event -> {
           data.getNode().setStyle("-fx-scale-x: 1; -fx-scale-y: 1;");
         });
