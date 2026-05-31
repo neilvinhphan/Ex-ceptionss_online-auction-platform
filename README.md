@@ -234,7 +234,7 @@ Người dùng không cần cấu hình môi trường lập trình phức tạp
 ```bash
 java -jar Client-1.0-SNAPSHOT-shaded.jar
 ```
-*(Yêu cầu máy tính cài đặt JRE/JDK 11 trở lên, khuyến nghị tốt nhất trên JDK 25 để tối ưu hóa thư viện luồng JavaFX).*
+*(Yêu cầu máy tính cài đặt JDK 25 trở lên để tối ưu hóa thư viện luồng JavaFX).*
 > Lưu ý: Nếu muốn trực tiếp chạy Server, có thể chạy file `Server-1.0-SNAPSHOT-shaded.jar` tại thư mục `Server_Executable`
 ---
 
