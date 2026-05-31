@@ -187,7 +187,7 @@ Các thành phần chính:
 ## Cấu trúc dự án
 
 ```txt
-Smart-Auction-Platform/
+Online-Auction-Platform/
 ├── client/
 │   ├── src/
 │   │   └── main/
@@ -228,14 +228,14 @@ Smart-Auction-Platform/
 
 Người dùng không cần cấu hình môi trường lập trình phức tạp, chỉ cần thực hiện các bước tinh gọn sau để kiểm thử:
 
-1. **Tải xuống gói thực thi:** Tải file nén gói bài tập lớn của nhóm tại đây: [Link Tải File Giải Nén Đồ Án](#) *(Dán link Google Drive chứa file nén tổng tại đây)*.
+1. **Tải xuống gói thực thi:** Tải file nén gói bài tập lớn của nhóm tại đây: [Link Tải File zip](https://drive.google.com/drive/folders/1Kzm6rg-sRBCT1qhr3tbPOxMKY_R3XVRa?usp=sharing).
 2. **Giải nén:** Thực hiện giải nén file, bạn sẽ thấy thư mục `Client_Executable` nằm ở thư mục gốc.
-3. **Khởi động Giao diện:** Mở Command Prompt (Windows) hoặc Terminal (MacOS) tại thư mục `Client_Executable` chứa file `.jar` và gõ câu lệnh duy nhất:
+3. **Khởi động Giao diện:** Mở Command Prompt (Windows) hoặc Terminal (MacOS) tại thư mục `Client_Executable` chứa file `.jar` và gõ câu lệnh:
 ```bash
 java -jar Client-1.0-SNAPSHOT-shaded.jar
 ```
 *(Yêu cầu máy tính cài đặt JRE/JDK 11 trở lên, khuyến nghị tốt nhất trên JDK 25 để tối ưu hóa thư viện luồng JavaFX).*
-
+> Lưu ý: Nếu muốn trực tiếp chạy Server, có thể chạy file `Server-1.0-SNAPSHOT-shaded.jar` tại thư mục `Server_Executable`
 ---
 
 ### Cách 2: Chạy từ Source Code (Kiểm tra cấu trúc dự án)
@@ -244,8 +244,8 @@ Trong trường hợp người dùng muốn kiểm tra trực tiếp cấu trúc
 
 **Bước 1: Clone dự án về máy**
 ```bash
-git clone [https://github.com/username/OOP_Java_Ex-ceptions.git](https://github.com/username/OOP_Java_Ex-ceptions.git)
-cd OOP_Java_Ex-ceptions
+git clone https://github.com/neilvinhphan/Ex-ceptionss_online-auction-platform.git
+cd Ex-ceptionss_online-auction-platform
 ```
 
 **Bước 2: Đóng gói toàn bộ hệ thống qua Maven Wrapper**
@@ -272,12 +272,12 @@ java -jar Client-1.0-SNAPSHOT-shaded.jar
 
 Có thể sử dụng các tài khoản sau để kiểm thử hệ thống:
 
-| Vai trò | Tên đăng nhập | Mật khẩu      | Ghi chú                               |
-|---------|---------------|---------------|---------------------------------------|
-| Admin   | [Cần bổ sung] | [Cần bổ sung] | Tài khoản quản trị                    |
-| User 1  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản đấu giá thử                 |
-| User 2  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử concurrent bidding |
-| User 3  | [Cần bổ sung] | [Cần bổ sung] | Tài khoản kiểm thử AutoBid            |
+| Vai trò  | Tên đăng nhập | Mật khẩu | Ghi chú                   |
+|----------|---------------|----------|---------------------------|
+| Admin    | admin         | 123      | Tài khoản quản trị        |
+| Seller   | seller        | 123      | Tài khoản người bán       |
+| Bidder 1 | bidder1       | 123      | Tài khoản người đấu giá 1 |
+| Bidder 2 | bidder2       | 123      | Tài khoản người đáu giá 2 |
 
 ---
 ## Hướng dẫn sử dụng
@@ -377,8 +377,8 @@ Cơ chế AutoBid hoạt động theo luồng tổng quát:
 
 ## Báo cáo và video demo
 
-- **Báo cáo PDF:** [Cần bổ sung: link hoặc đường dẫn file báo cáo PDF]
-- **Video demo:** [Cần bổ sung: link video demo YouTube/Google Drive]
+- **Báo cáo PDF:** [Báo cáo](https://drive.google.com/file/d/1k7k4YOZNyqLOPdXChs4vBtaa_xJZBpCo/view?usp=sharing)
+- **Video demo:** [Xem tại đây](https://youtu.be/Zla8bjS2bNU?si=ygjZJPWaz21jSWtj)
 
 ---
 
